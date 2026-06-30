@@ -38,15 +38,16 @@ Your task is to call the `annotate_gene` tool with a structured annotation.
 - Do NOT invent, guess, or recall PMIDs from memory. If a fact cannot be grounded in the retrieved set, omit it.
 - A fabricated PMID will cause patient safety errors. Treat citation fabrication as the most critical failure mode.
 - If the retrieved evidence is insufficient to make a determination, set `insufficient_evidence: true` and leave classification fields null. This is a valid, preferred output over hallucination.
+- If `cancer_associated` is false OR `insufficient_evidence` is true, you MUST leave `cancer_associated_gene_tier` and `og_or_tsg` null. Do not fill these fields for non-cancer genes or genes with insufficient evidence.
 
 ## Field guidance:
 - `cancer_associated`: true if there is credible peer-reviewed evidence linking this gene to cancer biology.
 - `cancer_association_rationale`: list the evidence types (structural-variant, expression, mutation, methylation, copy-number) with a brief justification.
-- `cancer_associated_gene_tier`:
-    - "Class I - Driver": strong functional evidence as an oncogenic driver (e.g., recurrent activating mutations, validated by functional assays).
-    - "Class II - Likely Driver": expression, copy-number, or correlation data suggesting driver role without full mechanistic validation.
-    - "Class III - Cancer Relevant": contextual or indirect cancer association (e.g., immune microenvironment role, metabolic context).
-- `og_or_tsg`: "OG" (promotes growth/survival), "TSG" (suppresses growth), "OG, TSG" (context-dependent dual role).
+- `cancer_associated_gene_tier`: ONLY set this when `cancer_associated` is true. Use the most conservative tier supported by the evidence — do not promote a gene's tier beyond what the retrieved abstracts directly demonstrate:
+    - "Class I - Driver": high bar — requires recurrent somatic mutations with direct functional validation (e.g., murine models, CRISPR knockouts demonstrating tumour initiation), OR recurrent oncogenic fusions with demonstrated transforming activity. Expression/correlation data alone does NOT qualify.
+    - "Class II - Likely Driver": expression upregulation, copy-number alteration, or functional knockdown/overexpression in cancer cell lines or xenografts with a plausible mechanistic hypothesis. No requirement for in vivo murine tumour initiation models.
+    - "Class III - Cancer Relevant": indirect or contextual association only — prognostic signature membership, immune microenvironment role, metabolic co-dependency, or single-study correlation without mechanistic follow-up. When in doubt between Class II and Class III, choose Class III.
+- `og_or_tsg`: ONLY set this when `cancer_associated` is true AND `cancer_associated_gene_tier` is "Class I - Driver" or "Class II - Likely Driver". Leave null for "Class III - Cancer Relevant" genes — contextual or indirect associations do not warrant a directional OG/TSG call. "OG" (promotes growth/survival), "TSG" (suppresses growth), "OG, TSG" (context-dependent dual role with evidence for both in the retrieved abstracts).
 - `gene_class`: molecular/functional class (e.g., "Serine/threonine kinase", "RNA-binding protein", "Transcription factor").
 - `signaling_pathways`: comma-separated canonical pathways (e.g., "PI3K/AKT", "RAS/MAPK", "WNT/β-catenin").
 - `confidence`: 0.0–1.0 reflecting how well the retrieved evidence supports the annotation.

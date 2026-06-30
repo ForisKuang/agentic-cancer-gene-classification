@@ -1,0 +1,377 @@
+{
+  "holdout_path": "/Users/foriskuang/Projects/agentic-cancer-gene-classification/benchmarks/data/holdout.jsonl",
+  "n_genes": 22,
+  "categorical_metrics": {
+    "n": 22,
+    "cancer_associated": {
+      "accuracy": 1.0,
+      "cohen_kappa": 1.0
+    },
+    "cancer_tier": {
+      "macro_f1": 0.6667,
+      "per_class": {
+        "Class II - Likely Driver": 0.6667,
+        "Class III - Cancer Relevant": 0.6667
+      }
+    },
+    "og_or_tsg": {
+      "macro_f1": 0.5,
+      "per_class": {
+        "OG": 1.0,
+        "TSG": 0.0
+      }
+    },
+    "citations": {
+      "precision": 0.2427,
+      "recall": 0.4038,
+      "f1": 0.2715
+    }
+  },
+  "judge": null,
+  "pipeline_result": {
+    "run_id": "d4fbd64b-8a3d-4685-8923-6d001c8cfbe9",
+    "timestamp": "2026-06-30T17:15:02.629835+00:00",
+    "fusions_processed": 5,
+    "genes_annotated": 10,
+    "annotations": [
+      {
+        "gene": "ACACB",
+        "fusions": [
+          "ANKRD13A::ACACB"
+        ],
+        "in_oncokb": null,
+        "cancer_associated": true,
+        "cancer_association_rationale": "Multiple lines of evidence: (1) functional evidence in ovarian cancer where MARCH5-mediated ubiquitination/degradation of ACC2 promotes fatty acid oxidation, proliferation and metastasis in vitro and in vivo (PMID 38211832); (2) functional/genetic evidence in hepatocellular carcinoma where loss of AMPK phosphorylation site on ACC2 (Ser212Ala) increases de novo lipogenesis and liver lesions, and a liver-specific ACC inhibitor suppresses HCC (PMID 30244972); (3) expression downregulation in pancreatic, thyroid, and ovarian cancers correlating with worse prognosis (PMIDs 40281115, 41752148, 38211832, 34389782); (4) role in breast cancer EMT-driven catabolic metabolism via Snail suppression (PMID 32927665); (5) biomarker of cetuximab response in metastatic colorectal cancer (PMID 36111743); (6) hypermethylation/expression changes in nasopharyngeal carcinoma (PMID 32541515); (7) Mendelian randomization implicates ACACB among metformin targets in cancer prevention (PMID 41755790). Evidence types span mutation/functional, expression, methylation, and prognostic signatures.",
+        "cancer_associated_gene_tier": "Class II - Likely Driver",
+        "og_or_tsg": "TSG",
+        "cancer_type_prevalence": null,
+        "gene_class": "Metabolic enzyme \u2014 acetyl-CoA carboxylase (biotin-dependent carboxylase)",
+        "signaling_pathways": "Fatty acid metabolism (de novo lipogenesis and fatty acid oxidation), AMPK signaling, lipid metabolic reprogramming",
+        "gene_summary": "ACACB (acetyl-CoA carboxylase beta / ACC2) is a rate-limiting enzyme in fatty acid metabolism that catalyzes carboxylation of acetyl-CoA to malonyl-CoA, regulating fatty acid oxidation (FAO) and de novo lipogenesis. In ovarian cancer, MARCH5-mediated ubiquitination and degradation of ACC2 enhances FAO and promotes proliferation and metastasis in vitro and in vivo, with ACC2 downregulation associated with larger tumor size, metastasis, and worse prognosis (PMID 38211832). Loss-of-AMPK-phosphorylation knock-in mutation (ACC2 Ser212Ala) in mice increases hepatic de novo lipogenesis and liver lesions, while a liver-specific ACC inhibitor (ND-654) suppresses HCC, demonstrating a tumor-suppressive role in liver cancer (PMID 30244972). ACACB is identified as a metabolism-related biomarker of cetuximab response in metastatic colorectal cancer (PMID 36111743) and as a prognostic biomarker downregulated in pancreatic cancer (PMIDs 40281115, 34389782) and papillary thyroid carcinoma (PMID 41752148). Additional supporting roles include EMT-mediated catabolic reprogramming in basal-like breast cancer via Snail-driven ACC2 loss (PMID 32927665), DNA methylation-driven dysregulation in nasopharyngeal carcinoma (PMID 32541515), and inclusion in prognostic fatty acid metabolism signatures for endometrial, ovarian, head and neck, bladder, prostate, and retinoblastoma cancers (PMIDs 37796199, 36785673, 38678878, 37632832, 32853947, 25958981, 32099333, 40233124), as well as Mendelian randomization evidence as a putative metformin target in cancer prevention (PMID 41755790) and altered expression in cancer cachexia models (PMID 35277933). (Literature sourced via Tier 1 direct PubMed query.)",
+        "citations": [
+          "38211832",
+          "30244972",
+          "36111743",
+          "40281115",
+          "41752148",
+          "32927665",
+          "32541515",
+          "41755790",
+          "25958981",
+          "37796199",
+          "36785673",
+          "38678878",
+          "32853947",
+          "32099333",
+          "34389782",
+          "40233124",
+          "37632832",
+          "35277933"
+        ],
+        "date_annotated": "6/30/26",
+        "retrieval_count": 19,
+        "insufficient_evidence": false,
+        "confidence": 0.8,
+        "error": null
+      },
+      {
+        "gene": "ANK1",
+        "fusions": [
+          "NSD3::ANK1"
+        ],
+        "in_oncokb": null,
+        "cancer_associated": true,
+        "cancer_association_rationale": "Evidence spans multiple modalities but is contextual and tissue-dependent: (1) structural-variant \u2014 a novel FGFR1::ANK1 fusion was identified in an unclassified rhabdomyosarcoma, though FGFR1 is presumed the oncogenic driver (PMID 38607246); ANK1 also lies within the 8p11.2-p12 amplicon centered on FGFR1 in breast cancer (PMID 7898940); (2) methylation \u2014 ANK1 promoter CpG island hypermethylation is recurrent in NSCLC, osteosarcoma, and oral tongue squamous cell carcinoma, co-regulating host miR-486-5p (PMIDs 28965852, 35172717, 36398465, 31253192); (3) expression \u2014 ANK1 is overexpressed in pancreatic cancer where knockdown reduces xenograft growth (PMID 27144336), but acts as a ferroptosis-promoting tumor suppressor in osteosarcoma (PMID 39217322); (4) mutation \u2014 subclonal ANK1 mutations independently predict shorter OS in CRC (PMID 35962343) and shared ANK1 mutations mark early clonal events in multiple myeloma (PMID 36131282). Context-dependent and pleiotropic roles preclude a directional driver call.",
+        "cancer_associated_gene_tier": "Class III - Cancer Relevant",
+        "og_or_tsg": null,
+        "cancer_type_prevalence": null,
+        "gene_class": "Cytoskeletal adaptor protein (ankyrin family); host gene of miR-486",
+        "signaling_pathways": "p53/DNA damage response, ferroptosis, miR-486-5p/AKT, FGFR1 (via fusion/amplicon context), GATA1 erythroid program",
+        "gene_summary": "ANK1 encodes the erythroid cytoskeletal adaptor ankyrin-1 and serves as the host gene for the cancer-relevant miR-486 locus, with cancer associations spanning multiple evidence types and directions. Promoter hypermethylation of ANK1 co-silences miR-486-5p in NSCLC (discriminating histology and smoking status), osteosarcoma, and oral squamous cell carcinoma (PMIDs 28965852, 35172717, 36398465, 31253192), while ANK1 overexpression promotes pancreatic cancer growth in vitro and in xenografts (PMID 27144336) and is induced over 80-fold by p53 following DNA damage to alter actin cytoskeleton and migration (PMID 27054339). In contrast, ANK1 overexpression suppresses osteosarcoma progression by promoting ferroptosis in vitro and in vivo (PMID 39217322). A novel FGFR1::ANK1 fusion was reported in rhabdomyosarcoma (FGFR1 considered the oncogenic kinase partner; PMID 38607246), and ANK1 lies in the recurrently amplified 8p11.2-p12 amplicon in breast cancer (PMID 7898940). Subclonal ANK1 mutations independently predict shorter survival in colorectal cancer (PMID 35962343) and shared ANK1 mutations mark early clonal origin in multiple myeloma (PMID 36131282); ANK1 is also part of FLT3-ITD-associated expression signatures in AML and is regulated by GATA1s in Down syndrome megakaryocytic leukemia (PMIDs 20656931, 25533034). (Literature sourced via Tier 1 direct PubMed query.)",
+        "citations": [
+          "39217322",
+          "35172717",
+          "28965852",
+          "38607246",
+          "27144336",
+          "35962343",
+          "36131282",
+          "36398465",
+          "31253192",
+          "7898940",
+          "27054339",
+          "25533034",
+          "20656931"
+        ],
+        "date_annotated": "6/30/26",
+        "retrieval_count": 20,
+        "insufficient_evidence": false,
+        "confidence": 0.55,
+        "error": null
+      },
+      {
+        "gene": "ANKRD13A",
+        "fusions": [
+          "ANKRD13A::ACACB"
+        ],
+        "in_oncokb": null,
+        "cancer_associated": true,
+        "cancer_association_rationale": "Expression evidence: high ANKRD13A expression correlates with poor prognosis and anti-apoptotic phenotypes in ovarian cancer (PMID 34839354); cis-regulation by lncRNA USP30-AS1 implicates ANKRD13A in AML cell survival and HLA-I internalization/immune escape (PMID 34694569); included in a 13-gene ubiquitin-related prognostic signature in cervical cancer (PMID 40465099); indirect involvement in WWP1 degradation pathway in breast cancer (PMID 39059493). Mechanistic role as a UIM-bearing adaptor for K63-ubiquitinated cargos (EGFR, Cav-1) provides plausible but indirect oncogenic links (PMIDs 31985874, 26797118). No recurrent somatic mutations or fusions with functional validation reported.",
+        "cancer_associated_gene_tier": "Class III - Cancer Relevant",
+        "og_or_tsg": null,
+        "cancer_type_prevalence": null,
+        "gene_class": "Ubiquitin-binding adaptor protein (ankyrin repeat and UIM domain-containing)",
+        "signaling_pathways": "Ubiquitin-proteasome/lysosomal trafficking, TNF/RIP1 cell death signaling, EGFR endocytic degradation, PINK1/Parkin mitophagy, NF-\u03baB (indirect)",
+        "gene_summary": "ANKRD13A is an ankyrin repeat domain-containing protein with ubiquitin-interacting motifs (UIMs) that preferentially bind K63-linked polyubiquitin chains on substrates including EGFR and caveolin-1, acting as an endosomal adaptor that cooperates with the E3 ligases ITCH/RNF11 and the AAA-ATPase VCP/p97 to direct ubiquitinated cargo to lysosomal degradation (PMIDs 31985874, 26797118, 40975168). In cancer contexts, ANKRD13A functions at an early TNF-induced cell-death checkpoint by binding ubiquitinated RIP1 in complex-II and limiting FADD/caspase-8 recruitment; high ANKRD13A expression inversely correlates with apoptosis and is associated with poor prognosis in ovarian cancer (PMID 34839354). In AML, lncRNA USP30-AS1 cis-upregulates ANKRD13A, which promotes HLA-I internalization and potential immune escape (PMID 34694569), and ANKRD13A is a component of a 13-gene ubiquitin-related prognostic signature in cervical cancer (PMID 40465099). It also directs CYYR1-mediated lysosomal degradation of the breast cancer-associated E3 ligase WWP1 (PMID 39059493). Evidence remains correlative/mechanistic without recurrent driver mutations or functionally validated fusions. (Literature sourced via Tier 2 Claude agentic retrieval \u2014 sparse initial results required expanded search.)",
+        "citations": [
+          "39059493",
+          "34694569",
+          "34839354",
+          "40975168",
+          "31985874",
+          "40465099",
+          "26797118"
+        ],
+        "date_annotated": "6/30/26",
+        "retrieval_count": 9,
+        "insufficient_evidence": false,
+        "confidence": 0.45,
+        "error": null
+      },
+      {
+        "gene": "ASAP3",
+        "fusions": [
+          "ASAP3::HNRNPR"
+        ],
+        "in_oncokb": null,
+        "cancer_associated": true,
+        "cancer_association_rationale": "Expression evidence: ASAP3 is upregulated in hepatocellular carcinoma (PMID 14654939), NSCLC (PMID 24078447), colorectal cancer (PMIDs 30536996, 28502111), and glioma (PMID 31186064), with upregulation correlating with stage, metastasis, and poor prognosis. Functional evidence: siRNA knockdown reduces proliferation, migration, and invasion across multiple cancer cell lines (PMIDs 14654939, 18400762, 24078447, 24284654, 28502111). Mechanistic evidence: ACAP4/ASAP3 acts as an Arf6 GAP at focal adhesions, regulates cytoskeletal ACTG1 stability, integrin \u03b21 recycling, and is acetylated by PCAF to drive CCL18-elicited breast cancer migration (PMIDs 18400762, 24284654, 22027826, 30395269). Prognostic biomarker evidence in ovarian cancer (PMIDs 26886260, 36856946) and esophageal adenocarcinoma (PMID 36829221). No in vivo murine tumour-initiation model demonstrated, so Class II rather than Class I.",
+        "cancer_associated_gene_tier": "Class II - Likely Driver",
+        "og_or_tsg": "OG",
+        "cancer_type_prevalence": null,
+        "gene_class": "Arf GTPase-activating protein (ArfGAP)",
+        "signaling_pathways": "ARF6 GTPase signaling, integrin/focal adhesion signaling, EGF/Grb2 signaling, CCL18-chemokine signaling, actin cytoskeleton remodeling",
+        "gene_summary": "ASAP3 (also known as ACAP4, DDEFL1, UPLC1) is an Arf6 GTPase-activating protein with PH, ankyrin-repeat and SH3 domains that localizes to focal adhesions and regulates actin-cytoskeletal dynamics, cell migration, and invasion (PMID 18400762). It was originally identified as a hepatocellular carcinoma-upregulated gene whose knockdown suppresses HCC cell growth (PMID 14654939), and subsequent studies showed ASAP3 is overexpressed in non-small cell lung cancer, colorectal cancer, glioma, breast cancer, and pancreatic ductal cells under acidic stress, with expression correlating with poor differentiation, lymph node metastasis, advanced stage and poor survival (PMIDs 24078447, 28502111, 30536996, 31186064, 40293952). Mechanistically, ASAP3 stabilizes \u03b3-actin (ACTG1) to promote migration (PMID 24284654), cooperates with Grb2 to drive EGF-stimulated integrin \u03b21 recycling (PMID 22027826), and is acetylated by PCAF at K311 to mediate CCL18-induced breast cancer invasion (PMID 30395269); it is also a downstream target of the A1CF\u2013FAM224A\u2013miR-590-3p\u2013ZNF143 oncogenic loop in glioma (PMID 31186064) and a miR-143-3p target in colorectal cancer (PMID 30536996). ASAP3 mRNA expression has been highlighted as a prognostic biomarker in serous ovarian carcinoma and esophageal adenocarcinoma (PMIDs 26886260, 36856946, 36829221). (Literature sourced via Tier 1 direct PubMed query.)",
+        "citations": [
+          "18400762",
+          "30536996",
+          "24078447",
+          "28502111",
+          "24284654",
+          "26886260",
+          "36829221",
+          "31186064",
+          "30395269",
+          "40293952",
+          "14654939",
+          "22027826",
+          "36856946"
+        ],
+        "date_annotated": "6/30/26",
+        "retrieval_count": 13,
+        "insufficient_evidence": false,
+        "confidence": 0.85,
+        "error": null
+      },
+      {
+        "gene": "CLCN3P1",
+        "fusions": [
+          "SETBP1::CLCN3P1"
+        ],
+        "in_oncokb": null,
+        "cancer_associated": false,
+        "cancer_association_rationale": "CLCN3P1 is a pseudogene of CLCN3. The retrieved literature does not contain any abstracts that directly address CLCN3P1 itself or the SETBP1::CLCN3P1 fusion. Abstracts pertaining to SETBP1 describe its independent leukemogenic role, and abstracts on CLCN3 discuss the parental chloride channel gene in various contexts, but none provide evidence that CLCN3P1 (the pseudogene) functions as a cancer-associated gene or that the SETBP1::CLCN3P1 fusion has been functionally characterized.",
+        "cancer_associated_gene_tier": null,
+        "og_or_tsg": null,
+        "cancer_type_prevalence": null,
+        "gene_class": "Pseudogene (of CLCN3, a voltage-gated chloride channel)",
+        "signaling_pathways": "",
+        "gene_summary": "CLCN3P1 is annotated as a pseudogene of the CLCN3 voltage-gated chloride channel. Despite an expanded agentic search, no retrieved abstracts directly addressed CLCN3P1 or functionally characterized the SETBP1::CLCN3P1 fusion. Available SETBP1 fusion literature describes other partners (e.g., NUP98-SETBP1, INO80C-SETBP1) but not CLCN3P1, and CLCN3 literature concerns the parental coding gene rather than this pseudogene. The evidence base is therefore insufficient to support a cancer association for CLCN3P1 itself, although the fusion may serve as a mechanism for SETBP1 deregulation. (Literature sourced via Tier 2 Claude agentic retrieval \u2014 sparse initial results required expanded search.)",
+        "citations": [],
+        "date_annotated": "6/30/26",
+        "retrieval_count": 25,
+        "insufficient_evidence": true,
+        "confidence": 0.0,
+        "error": null
+      },
+      {
+        "gene": "CRACD",
+        "fusions": [
+          "CRACD::NMU"
+        ],
+        "in_oncokb": null,
+        "cancer_associated": true,
+        "cancer_association_rationale": "Structural/mutation evidence: CRACD (KIAA1211) is frequently inactivated/mutated in SCLC and colorectal cancer (PMID 41353272, 30361697, 31699089). Functional in vivo evidence: Cracd knockout mice develop intestinal mucinous adenoma and, with APC mutation, invasive colorectal cancer (PMID 30361697); Cracd KO drives neuroendocrine plasticity in LUAD and SCLC mouse models (PMID 38796854, 41353272). Mechanistic evidence: loss disrupts cadherin-catenin-actin complex causing Wnt/\u03b2-catenin hyperactivation (PMID 30361697), suppresses YAP-NOTCH signaling (PMID 41353272), and drives EZH2-mediated MHC-I repression and immune evasion (PMID 41353272). Expression evidence: downregulated in CRC correlating with metastasis (PMID 35172140). Context-dependent oncogenic role reported in NSCLC where knockdown suppresses growth via Claudin 4 (PMID 33006362).",
+        "cancer_associated_gene_tier": "Class I - Driver",
+        "og_or_tsg": "OG, TSG",
+        "cancer_type_prevalence": null,
+        "gene_class": "Actin cytoskeleton regulator (capping protein inhibitor)",
+        "signaling_pathways": "WNT/\u03b2-catenin, Hippo/YAP, NOTCH, Actin cytoskeleton/mechanotransduction, EZH2-PRC2/MHC-I antigen presentation",
+        "gene_summary": "CRACD (capping protein inhibiting regulator of actin dynamics; also known as KIAA1211/CRAD) is an actin cytoskeleton regulator that stabilizes the cadherin-catenin-actin complex via capping protein inhibition (PMID 30361697). It functions predominantly as a tumor suppressor: CRACD is frequently mutated or transcriptionally downregulated in colorectal cancer, and Cracd knockout in mice causes loss of epithelial integrity, Wnt/\u03b2-catenin hyperactivation, and mucinous intestinal adenoma development, with APC co-mutation accelerating invasive colorectal cancer (PMID 30361697). In small cell lung cancer and lung adenocarcinoma, CRACD inactivation drives neuroendocrine cell plasticity, intratumoral heterogeneity, and EZH2-mediated MHC-I repression leading to CD8\u207a T-cell depletion and immune evasion, nominating the CRACD-EZH2-MHC-I axis as a therapeutic vulnerability (PMID 41353272, 38796854). CRAD deficiency also promotes CRC stemness and metastasis through mechanotransduction-coupled YAP cytoplasmic retention release (PMID 35172140), and KIAA1211 mutation associates with longer overall survival in SCLC (PMID 31699089). A discordant report describes CRAD as oncogenic in NSCLC, where its knockdown suppresses proliferation and induces apoptosis via Claudin 4 (PMID 33006362), suggesting context-dependent dual activity. (Literature sourced via Tier 1 direct PubMed query.)",
+        "citations": [
+          "41353272",
+          "38796854",
+          "35172140",
+          "30361697",
+          "33006362",
+          "31699089"
+        ],
+        "date_annotated": "6/30/26",
+        "retrieval_count": 7,
+        "insufficient_evidence": false,
+        "confidence": 0.9,
+        "error": null
+      },
+      {
+        "gene": "HNRNPR",
+        "fusions": [
+          "ASAP3::HNRNPR"
+        ],
+        "in_oncokb": null,
+        "cancer_associated": true,
+        "cancer_association_rationale": "Expression evidence: HNRNPR is overexpressed in multiple cancers (gastric, NSCLC, HCC, ESCA, neuroblastoma, NPC) and correlates with poor prognosis (PMIDs 31527303, 40268079, 37077028, 38331110, 38402949, 36195940). Functional evidence: knockdown suppresses proliferation, migration, invasion, and EMT in vitro and in vivo across GC, NSCLC, HCC, and neuroblastoma models (PMIDs 31527303, 40268079, 37077028, 38331110). Mechanistic evidence: HNRNPR stabilizes oncogenic mRNAs (CCNB1, CENPF, XB130, ASCL1) and regulates oncogenic splicing (UPF3B-S) and super-enhancer R-loop formation (NDRG1/TRIB1) (PMIDs 31527303, 40268079, 38331110, 38402949, 37479693, 37867401). No recurrent driver mutations or transforming fusion validation reported.",
+        "cancer_associated_gene_tier": "Class II - Likely Driver",
+        "og_or_tsg": "OG",
+        "cancer_type_prevalence": null,
+        "gene_class": "RNA-binding protein (heterogeneous nuclear ribonucleoprotein / splicing factor)",
+        "signaling_pathways": "PI3K/AKT, Hippo/YAP, EMT, m6A RNA modification, RNA splicing",
+        "gene_summary": "HNRNPR encodes a heterogeneous nuclear ribonucleoprotein that functions as an RNA-binding protein and splicing factor, with consistent evidence supporting an oncogenic role across multiple cancer types. Pan-cancer analyses report HNRNPR overexpression and association with poor prognosis, particularly in hepatocellular carcinoma, with loss-of-function suppressing HCC proliferation, migration, invasion, and EMT (PMID 37077028). In gastric cancer, HNRNPR stabilizes CCNB1 and CENPF mRNAs to drive proliferation and metastasis (PMID 31527303), and recruits to the LINC00501-SLUG axis promoting EMT and angiogenesis (PMID 37867401). In NSCLC it protects XB130 mRNA from XRN1/DIS3L2-mediated degradation, activating AKT signaling and EMT (PMID 40268079), while in neuroblastoma it cooperates with HNRNPA2B1/IGF2BP1 to stabilize ASCL1 mRNA in an m6A-dependent manner (PMIDs 38331110, 25124043). Additional mechanistic roles include HnRNPR-mediated UPF3B alternative splicing driving HCC metastasis via E-cadherin loss and YAP/Hippo activation (PMID 38402949), R-loop scaffolding at NDRG1/TRIB1 promoters in nasopharyngeal carcinoma metastasis (PMID 37479693), and overexpression in esophageal carcinoma (PMID 36195940). HNRNPR has also been nominated as a downstream target of ZFP69B in HCC (PMID 40423834), identified via allelic expression imbalance in HCC (PMID 27000824), implicated in temozolomide resistance in glioblastoma (PMID 29687002), and flagged in multi-omics LUAD analyses (PMID 39097651); promoter hypermethylation was not observed in MDS/AML (PMID 25220401). (Literature sourced via Tier 1 direct PubMed query.)",
+        "citations": [
+          "31527303",
+          "40268079",
+          "37077028",
+          "38331110",
+          "38402949",
+          "36195940",
+          "37479693",
+          "37867401",
+          "40423834",
+          "27000824",
+          "29687002",
+          "39097651",
+          "25124043",
+          "25220401"
+        ],
+        "date_annotated": "6/30/26",
+        "retrieval_count": 16,
+        "insufficient_evidence": false,
+        "confidence": 0.85,
+        "error": null
+      },
+      {
+        "gene": "NMU",
+        "fusions": [
+          "CRACD::NMU"
+        ],
+        "in_oncokb": null,
+        "cancer_associated": true,
+        "cancer_association_rationale": "Expression: NMU is recurrently upregulated in colorectal cancer, lung adenocarcinoma, NSCLC, endometrial cancer, and thyroid carcinoma, with high expression correlating with poor prognosis (PMID 35490318, 33505535, 34336003, 26849234, 37779238, 40394719). Functional: NMU autocrine/paracrine signaling through NMUR1/NMUR2 activates ERK1/2, SRC, RhoA/Rac1 and adhesion signaling to drive cancer cell motility, proliferation, and a pro-metastatic tumor microenvironment via macrophage and endothelial cell activation (PMID 36482448, 26849234, 39842617). Mutation: specific NMU mutations (G45V, R143T, F152L) reported in LUAD with worse prognosis (PMID 34336003). Drug resistance: NMU implicated in alectinib resistance in ALK-rearranged NSCLC (PMID 30096454). No retrieved abstract describes the CRACD::NMU fusion specifically.",
+        "cancer_associated_gene_tier": "Class II - Likely Driver",
+        "og_or_tsg": "OG",
+        "cancer_type_prevalence": null,
+        "gene_class": "Secreted neuropeptide / GPCR ligand",
+        "signaling_pathways": "NMU-NMUR1/NMUR2 GPCR signaling, RAS/MAPK (ERK1/2), SRC-Rho GTPase (RhoA/Rac1) adhesion signaling, cAMP signaling, EGFR/TGF\u03b2-driven EMT",
+        "gene_summary": "Neuromedin U (NMU) is a secreted neuropeptide whose autocrine and paracrine signaling through NMUR1/NMUR2 has been repeatedly implicated in cancer progression. NMU is significantly overexpressed in colorectal cancer, lung adenocarcinoma, NSCLC, endometrial cancer, and thyroid carcinoma, and high expression correlates with worse overall and progression-free survival (PMID 35490318, 33505535, 34336003, 37779238, 40394719). Mechanistically, NMU activates ERK1/2, SRC, and RhoA/Rac1 to promote adhesion signaling, EMT, motility, and proliferation in endometrial cancer cells (PMID 26849234), and reshapes the tumor microenvironment by activating macrophages and endothelial cells in CRC, producing pro-metastatic phenotypes and platelet/microparticle signaling (PMID 36482448, 39842617). Recurrent NMU point mutations (G45V, R143T, F152L) have been reported in LUAD with prognostic impact, and NMU upregulation has been linked to alectinib resistance in ALK-rearranged NSCLC (PMID 34336003, 30096454). Cross-species expression profiling further supports NMU as a conserved breast cancer-relevant transcript (PMID 15845649). The CRACD::NMU fusion partner was not specifically characterized in the retrieved literature. (Literature sourced via Tier 1 direct PubMed query.)",
+        "citations": [
+          "40394719",
+          "35490318",
+          "33505535",
+          "39842617",
+          "36482448",
+          "26849234",
+          "34336003",
+          "30096454",
+          "37779238",
+          "15845649"
+        ],
+        "date_annotated": "6/30/26",
+        "retrieval_count": 20,
+        "insufficient_evidence": false,
+        "confidence": 0.75,
+        "error": null
+      },
+      {
+        "gene": "NSD3",
+        "fusions": [
+          "NSD3::ANK1"
+        ],
+        "in_oncokb": null,
+        "cancer_associated": true,
+        "cancer_association_rationale": "Multiple evidence types: (1) recurrent copy-number amplification at 8p11-12 in lung squamous, breast, and other cancers (PMID 34358469, 33536620, 40912657, 11374904, 33166592); (2) recurrent oncogenic fusions including NSD3-NUT in NUT midline carcinoma and NSD3-NUP98 in leukemia (PMID 38256018, 37505808, 39628352); (3) functional validation showing NSD3 methyltransferase activity drives squamous lung cancer and that CRISPR-Cas9 knockout or PROTAC degradation suppresses tumor growth and cMyc oncogenic program (PMID 33536620, 34469831); (4) mutations and dysregulated expression across cancer types with mechanistic links to H3K36 methylation, EMT, DNA repair, and PARPi resistance (PMID 37182335, 40143436, 40578344, 35532818). Context-dependent tumor-suppressor role also reported in lung adenocarcinoma (PMID 39119928).",
+        "cancer_associated_gene_tier": "Class I - Driver",
+        "og_or_tsg": "OG, TSG",
+        "cancer_type_prevalence": null,
+        "gene_class": "Histone lysine methyltransferase (H3K36)",
+        "signaling_pathways": "Histone H3K36 methylation/chromatin regulation, MYC, STAT3, DNA damage response (PARP/BRCA), EMT",
+        "gene_summary": "NSD3 (WHSC1L1) is a SET-domain H3K36 histone methyltransferase located within the recurrently amplified 8p11-12 amplicon in lung squamous cell carcinoma, breast cancer, and other solid tumors (PMID 11374904, PMID 33166592, PMID 40912657). Elevated NSD3 methyltransferase activity functionally drives lung squamous cell carcinoma and has been identified as an alternative driver in FGFR1-amplified LSCC (PMID 33536620, PMID 34358469), with NSD3 amplification serving as an independent poor-prognostic factor in resected LUSC cohorts (PMID 40912657). NSD3 also participates in recurrent oncogenic fusions, including NSD3-NUT in NUT midline/adnexal carcinoma, NSD3-NUP98 in leukemia, and the novel NSD3-NCOA2 fusion in head and neck carcinoma (PMID 38256018, PMID 37505808, PMID 39628352). Functional studies demonstrate that NSD3 PROTAC degradation or CRISPR knockout suppresses NSD3- and cMyc-driven oncogenic transcriptional programs, and isoform-specific NSD3 functions confer PARP-inhibitor resistance in prostate cancer (PMID 34469831, PMID 40578344, PMID 38286657). NSD3 has also been reported to suppress glycolysis and tumor progression in lung adenocarcinoma via a PPP1CB/STAT3 axis, indicating context-dependent activity (PMID 39119928), and is an active target for small-molecule inhibitor and degrader development (PMID 37182335, PMID 40143436, PMID 37400043, PMID 35532818, PMID 21664949, PMID 33361816, PMID 40586874, PMID 37072259). (Literature sourced via Tier 1 direct PubMed query.)",
+        "citations": [
+          "34358469",
+          "33536620",
+          "39119928",
+          "38256018",
+          "37182335",
+          "34469831",
+          "33361816",
+          "40578344",
+          "40912657",
+          "37400043",
+          "37505808",
+          "40143436",
+          "35532818",
+          "39628352",
+          "11374904",
+          "33166592",
+          "21664949",
+          "38286657",
+          "40586874",
+          "37072259"
+        ],
+        "date_annotated": "6/30/26",
+        "retrieval_count": 20,
+        "insufficient_evidence": false,
+        "confidence": 0.95,
+        "error": null
+      },
+      {
+        "gene": "SETBP1",
+        "fusions": [
+          "SETBP1::CLCN3P1"
+        ],
+        "in_oncokb": null,
+        "cancer_associated": true,
+        "cancer_association_rationale": "Strong evidence as a driver oncogene: recurrent somatic activating mutations (hotspot mutations preventing proteasomal degradation) in myeloid malignancies including aCML, CMML, JMML, and secondary AML (PMID 28447248, 37489294, 38644693, 38066919); independent prognostic mutation in CMML risk stratification (PMID 27385790, 33861431); germline predisposition variants associated with clonal hematopoiesis (PMID 35835912); mechanistic mouse models supporting myeloid leukemogenesis cooperating with ASXL1 (PMID 28447248); expression-driven role in CRC metastasis via NR3C1/MDM4 axis (PMID 38796806); overexpression in BLCA/STAD per pan-cancer analysis (PMID 37150818); SETBP1-R54P promotes malignant transformation in bronchial epithelial cells (PMID 40152245). Evidence spans mutation, expression, and functional validation.",
+        "cancer_associated_gene_tier": "Class I - Driver",
+        "og_or_tsg": "OG",
+        "cancer_type_prevalence": null,
+        "gene_class": "SET-binding protein / epigenetic regulator",
+        "signaling_pathways": "HOXA transcriptional program, RUNX1/MYB, PP2A/SET, RAS/MAPK (co-mutation context), AKT/NF-\u03baB",
+        "gene_summary": "SETBP1 (SET-binding protein 1) is a recognized major oncogene in myeloid neoplasms, where recurrent somatic hotspot mutations stabilize the protein by preventing proteasomal degradation and amplify wild-type function, driving HOXA pathway activation, RUNX1 attenuation, and MYB activation (PMID 28447248, 37489294, 37464069). Activating SETBP1 mutations occur recurrently in atypical CML, chronic myelomonocytic leukemia (CMML), juvenile myelomonocytic leukemia, and secondary AML, where they confer poor prognosis and are independently associated with shorter overall survival in CMML risk-stratification models (PMID 27385790, 33861431, 38066919, 38644693, 39337700). Germline variants at the SETBP1 locus predispose to clonal hematopoiesis (PMID 35835912), and SETBP1/GATA2 co-mutation defines a distinct molecular subset of myeloid neoplasms (PMID 40482584). Beyond hematologic malignancies, SETBP1 is implicated in solid tumors: it promotes colorectal cancer dissemination downstream of MDM4\u2013NR3C1 signaling (PMID 38796806), is overexpressed in bladder and gastric adenocarcinoma in pan-cancer analyses (PMID 37150818), and the R54P mutation promotes cadmium-induced malignant transformation of bronchial epithelial cells (PMID 40152245). SETBP1 is also among the commonly mutated genes predictable from lung adenocarcinoma histopathology (PMID 30224757, 28383694). (Literature sourced via Tier 1 direct PubMed query.)",
+        "citations": [
+          "28447248",
+          "37489294",
+          "38644693",
+          "38066919",
+          "27385790",
+          "33861431",
+          "35835912",
+          "38796806",
+          "37150818",
+          "40152245",
+          "37464069",
+          "40482584",
+          "28028025",
+          "39337700",
+          "40644618",
+          "28076841",
+          "30224757",
+          "28383694"
+        ],
+        "date_annotated": "6/30/26",
+        "retrieval_count": 19,
+        "insufficient_evidence": false,
+        "confidence": 0.95,
+        "error": null
+      }
+    ]
+  }
+}
