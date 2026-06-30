@@ -306,7 +306,7 @@ async def _tier2_agentic_retrieve(
 async def retrieve_literature(
     gene: str,
     fusions: Optional[List[str]] = None,
-) -> List[LiteratureRecord]:
+) -> tuple:
     """
     Two-tier retrieval with automatic fallthrough.
 
@@ -314,6 +314,8 @@ async def retrieve_literature(
     Tier 2: Claude agentic retrieval (only when Tier 1 is insufficient).
 
     The threshold is settings.min_papers_for_strong_association (default 4).
+
+    Returns (records, tier) where tier is 1 or 2.
     """
     try:
         records = await _tier1_retrieve(gene)
@@ -326,10 +328,11 @@ async def retrieve_literature(
             "Tier 1 sufficient for %s (%d papers) — skipping Claude retrieval",
             gene, len(records),
         )
-        return records
+        return records, 1
 
     logger.info(
         "Tier 1 insufficient for %s (%d < %d papers) — falling through to Claude",
         gene, len(records), settings.min_papers_for_strong_association,
     )
-    return await _tier2_agentic_retrieve(gene, fusions or [], records)
+    records = await _tier2_agentic_retrieve(gene, fusions or [], records)
+    return records, 2

@@ -41,7 +41,7 @@ async def _annotate_gene(
         )
 
     # Run DB lookup and literature retrieval concurrently
-    oncokb_membership, records = await asyncio.gather(
+    oncokb_membership, (records, retrieval_tier) = await asyncio.gather(
         check_oncokb_membership(gene),
         retrieve_literature(gene, fusions),
     )
@@ -55,6 +55,7 @@ async def _annotate_gene(
             in_oncokb=oncokb_membership,
             cancer_type_prevalence=prevalence,
             records=records,
+            retrieval_tier=retrieval_tier,
         )
     except Exception as e:
         logger.error("Synthesis failed for gene %s: %s", gene, e)

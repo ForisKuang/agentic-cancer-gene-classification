@@ -54,6 +54,15 @@ Your task is to call the `annotate_gene` tool with a structured annotation.
   - 2–4 papers with functional/expression data → 0.5–0.8
   - <2 papers or only indirect evidence → 0.2–0.5
   - 0 papers → set insufficient_evidence: true, confidence: 0.0
+
+## Retrieval provenance:
+The context will tell you which retrieval tier sourced the literature:
+- **Tier 1** (direct NCBI structured query): well-characterised gene with abundant indexed literature.
+- **Tier 2** (Claude agentic retrieval): sparse initial results; Claude searched iteratively using aliases,
+  fusion-specific terms, and pathway names to surface relevant evidence.
+End the `gene_summary` with one parenthetical sentence noting the retrieval tier, for example:
+  "(Literature sourced via Tier 1 direct PubMed query.)" or
+  "(Literature sourced via Tier 2 Claude agentic retrieval — sparse initial results required expanded search.)"
 """
 
 ANNOTATE_TOOL: anthropic.types.ToolParam = {
@@ -135,10 +144,17 @@ def _build_user_prompt(
     in_oncokb: Optional[bool],
     cancer_type_prevalence: Optional[str],
     records: List[LiteratureRecord],
+    retrieval_tier: int,
 ) -> str:
+    tier_label = (
+        "Tier 1 (direct NCBI structured query — abundant indexed literature)"
+        if retrieval_tier == 1
+        else "Tier 2 (Claude agentic retrieval — sparse initial results required expanded search)"
+    )
     lines = [
         f"## Gene: {gene}",
         f"Associated fusions: {', '.join(fusions) if fusions else 'none'}",
+        f"Retrieval tier: {tier_label}",
         "",
         "### Deterministic database facts (do not contradict or regenerate):",
         f"- In OncoKB: {'Yes' if in_oncokb else ('No' if in_oncokb is False else 'Unknown (token not configured)')}",
@@ -186,12 +202,13 @@ async def synthesize_gene_annotation(
     in_oncokb: Optional[bool],
     cancer_type_prevalence: Optional[str],
     records: List[LiteratureRecord],
+    retrieval_tier: int = 1,
 ) -> Dict:
     """
     Call Claude to produce a structured annotation. Returns raw tool-use input dict.
     Raises on API error.
     """
-    user_prompt = _build_user_prompt(gene, fusions, in_oncokb, cancer_type_prevalence, records)
+    user_prompt = _build_user_prompt(gene, fusions, in_oncokb, cancer_type_prevalence, records, retrieval_tier)
     retrieved_pmids: Set[str] = {r.pmid for r in records}
 
     response = await _client.messages.create(
