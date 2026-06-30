@@ -20,7 +20,7 @@ from src.models.schema import GeneAnnotation, LiteratureRecord
 
 logger = logging.getLogger(__name__)
 
-_client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+_client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
 
 SYSTEM_PROMPT = """\
 You are a cancer genomics expert filling structured annotation rows for the OncoKB MSK TARGET Gene Triaging database.
@@ -194,7 +194,7 @@ async def synthesize_gene_annotation(
     user_prompt = _build_user_prompt(gene, fusions, in_oncokb, cancer_type_prevalence, records)
     retrieved_pmids: Set[str] = {r.pmid for r in records}
 
-    response = _client.messages.create(
+    response = await _client.messages.create(
         model=settings.synthesis_model,
         max_tokens=2048,
         system=[

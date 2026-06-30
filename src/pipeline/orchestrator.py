@@ -10,6 +10,7 @@ import asyncio
 import logging
 import uuid
 from datetime import datetime, timezone
+from typing import List
 
 from src.models.schema import AnnotationResult, GeneAnnotation
 from src.pipeline.db_lookups import check_oncokb_membership, get_msk_genie_prevalence
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 async def _annotate_gene(
     gene: str,
-    fusions: list[str],
+    fusions: List[str],
     resolved: bool,
     unresolvable: bool,
 ) -> GeneAnnotation:
@@ -42,7 +43,7 @@ async def _annotate_gene(
     # Run DB lookup and literature retrieval concurrently
     oncokb_membership, records = await asyncio.gather(
         check_oncokb_membership(gene),
-        retrieve_literature(gene),
+        retrieve_literature(gene, fusions),
     )
 
     prevalence = get_msk_genie_prevalence(gene)
@@ -77,7 +78,7 @@ async def _annotate_gene(
     )
 
 
-async def run_pipeline(fusions: list[str]) -> AnnotationResult:
+async def run_pipeline(fusions: List[str]) -> AnnotationResult:
     """
     Main entry point: accepts a list of fusion strings and returns
     a structured AnnotationResult with one GeneAnnotation per gene.
@@ -91,7 +92,7 @@ async def run_pipeline(fusions: list[str]) -> AnnotationResult:
 
     # Annotate all genes; run sequentially to respect rate limits
     # (PubMed: 3 req/s without key; LLM calls are already async within each gene)
-    annotations: list[GeneAnnotation] = []
+    annotations: List[GeneAnnotation] = []
     for canonical, (resolved_gene, gene_fusions) in gene_map.items():
         annotation = await _annotate_gene(
             gene=canonical,
