@@ -99,6 +99,37 @@ async def test_selection_prefilters_and_chunks_before_model_selection(monkeypatc
     assert "irrelevant-9" not in "\n".join(calls)
 
 
+async def test_conservative_token_mode_uses_deterministic_selection(monkeypatch):
+    async def fail_complete_with_tool(**kwargs):
+        raise AssertionError("selection LLM should not run in conservative token mode")
+
+    monkeypatch.setattr("src.pipeline.selection.complete_with_tool", fail_complete_with_tool)
+    monkeypatch.setattr("src.pipeline.selection.settings.token_budget_mode", "conservative")
+    monkeypatch.setattr("src.pipeline.selection.settings.selection_prefilter_limit", 6)
+
+    records = [
+        LiteratureRecord(
+            pmid="strong",
+            title="GENE knockdown suppresses carcinoma",
+            abstract="GENE knockdown reduced tumor proliferation and xenograft growth.",
+        ),
+        LiteratureRecord(
+            pmid="medium",
+            title="GENE mutation in cancer",
+            abstract="GENE mutation was observed in carcinoma.",
+        ),
+        LiteratureRecord(
+            pmid="weak",
+            title="GENE expression signature",
+            abstract="GENE was one of many genes in an expression signature.",
+        ),
+    ]
+
+    selected = await select_papers_for_synthesis("GENE", records, max_papers=2)
+
+    assert [record.pmid for record in selected] == ["strong", "medium"]
+
+
 def test_selection_prefilter_prioritizes_direct_cancer_evidence():
     records = [
         LiteratureRecord(
@@ -274,6 +305,8 @@ async def test_synthesis_uses_evidence_packets_instead_of_full_abstract(monkeypa
         }
 
     monkeypatch.setattr("src.pipeline.synthesis.complete_with_tool", fake_complete_with_tool)
+    monkeypatch.setattr("src.pipeline.synthesis.settings.evidence_extraction_batch_size", 1)
+    monkeypatch.setattr("src.pipeline.synthesis.settings.llm_cache_enabled", False)
 
     records = [
         LiteratureRecord(

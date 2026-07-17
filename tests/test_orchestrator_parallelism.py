@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 
-from src.models.schema import GeneAnnotation, ResolvedGene
+from src.models.schema import GeneAnnotation, LiteratureRecord, ResolvedGene
 from src.pipeline import orchestrator
 
 
@@ -87,3 +87,44 @@ async def test_run_pipeline_stops_early_on_model_capacity_error(monkeypatch):
     assert [annotation.gene for annotation in result.annotations] == ["A"]
     assert result.run_error is not None
     assert "insufficient tokens" in result.run_error
+
+
+async def test_annotate_gene_skips_synthesis_when_no_papers_selected(monkeypatch):
+    async def fake_check_oncokb_membership(gene, lookup=None):
+        return False
+
+    async def fake_retrieve_literature(gene, fusions, local_mode=False, local_backend=None):
+        return (
+            [
+                LiteratureRecord(
+                    pmid="12345",
+                    title="Unrelated paper",
+                    abstract="This abstract does not support a cancer association.",
+                )
+            ],
+            1,
+        )
+
+    async def fake_select_papers_for_synthesis(*args, **kwargs):
+        return []
+
+    async def fail_synthesize_gene_annotation(*args, **kwargs):
+        raise AssertionError("synthesis should not run when no papers are selected")
+
+    monkeypatch.setattr(orchestrator, "check_oncokb_membership", fake_check_oncokb_membership)
+    monkeypatch.setattr(orchestrator, "retrieve_literature", fake_retrieve_literature)
+    monkeypatch.setattr(orchestrator, "select_papers_for_synthesis", fake_select_papers_for_synthesis)
+    monkeypatch.setattr(orchestrator, "synthesize_gene_annotation", fail_synthesize_gene_annotation)
+
+    annotation = await orchestrator._annotate_gene(  # noqa: SLF001
+        gene="CLCN3P1",
+        fusions=["SETBP1::CLCN3P1"],
+        resolved_gene=ResolvedGene(input_symbol="CLCN3P1", canonical_symbol="CLCN3P1", resolved=True),
+        unresolvable=False,
+    )
+
+    assert annotation.gene == "CLCN3P1"
+    assert annotation.cancer_associated is False
+    assert annotation.insufficient_evidence is True
+    assert annotation.citations == []
+    assert annotation.retrieval_count == 1

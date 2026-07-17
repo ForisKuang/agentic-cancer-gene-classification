@@ -21,7 +21,10 @@ class Settings(BaseSettings):
     selection_chunk_size: int = 10
     selection_chunk_keep: int = 3
     synthesis_evidence_max_chars: int = 900
+    evidence_extraction_batch_size: int = 1
     local_tier2_min_prefilter_score: int = 2
+    llm_cache_enabled: bool = True
+    token_budget_mode: str = "balanced"
 
     log_level: str = "INFO"
 

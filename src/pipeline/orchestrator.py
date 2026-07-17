@@ -23,7 +23,11 @@ from src.pipeline.literature import retrieve_literature
 from src.pipeline.llm_client import resolve_local_backend
 from src.pipeline.normalization import normalize_fusions
 from src.pipeline.selection import select_papers_for_synthesis
-from src.pipeline.synthesis import build_gene_annotation, synthesize_gene_annotation
+from src.pipeline.synthesis import (
+    build_gene_annotation,
+    build_no_selected_evidence_result,
+    synthesize_gene_annotation,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +119,16 @@ async def _annotate_gene(
         local_mode=local_mode,
         local_backend=local_backend,
     )
+    if not selected_records:
+        logger.info("No directly relevant papers selected for %s — skipping synthesis", gene)
+        return build_gene_annotation(
+            gene=gene,
+            fusions=fusions,
+            in_oncokb=oncokb_membership,
+            cancer_type_prevalence=prevalence,
+            records=records,
+            synthesis_result=build_no_selected_evidence_result(gene, retrieval_tier),
+        )
 
     try:
         synthesis = await synthesize_gene_annotation(

@@ -370,6 +370,16 @@ async def _tier2_agentic_retrieve(
                     continue
 
                 if block.name == "search_pubmed":
+                    if tool_calls_made >= MAX_AGENTIC_TOOL_CALLS:
+                        tool_results.append(
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": block.id,
+                                "content": "Search budget exhausted; no more PubMed searches will be run.",
+                            }
+                        )
+                        continue
+
                     query = block.input.get("query", "")
                     max_res = min(int(block.input.get("max_results", 10)), 20)
                     tool_calls_made += 1

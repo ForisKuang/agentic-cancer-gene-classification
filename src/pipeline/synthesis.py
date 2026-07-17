@@ -15,9 +15,13 @@ from typing import Dict, List, Optional
 from src.config import settings
 from src.models.schema import GeneAnnotation, LiteratureRecord
 from src.pipeline.citation_precision import filter_and_rank_citations
+from src.pipeline.llm_cache import read_cached_json, text_digest, write_cached_json
 from src.pipeline.llm_client import complete_with_tool
 
 logger = logging.getLogger(__name__)
+
+EVIDENCE_CACHE_VERSION = "paper-evidence-v1"
+SYNTHESIS_CACHE_VERSION = "gene-synthesis-v1"
 
 SYSTEM_PROMPT = """\
 You are a cancer genomics expert filling structured annotation rows for the OncoKB MSK TARGET Gene Triaging database.
@@ -178,6 +182,59 @@ EXTRACT_EVIDENCE_TOOL: dict = {
     },
 }
 
+EXTRACT_EVIDENCE_BATCH_TOOL: dict = {
+    "name": "extract_paper_evidence_batch",
+    "description": (
+        "Extract compact cancer-gene evidence from multiple PubMed abstracts. "
+        "Return one evidence object per PMID and only summarize facts present in each abstract."
+    ),
+    "input_schema": {
+        "type": "object",
+        "required": ["papers"],
+        "properties": {
+            "papers": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["pmid", "relevance", "key_findings"],
+                    "properties": {
+                        "pmid": {
+                            "type": "string",
+                            "description": "PMID for the abstract being summarized.",
+                        },
+                        "relevance": {
+                            "type": "string",
+                            "enum": ["direct", "indirect", "none", "ambiguous"],
+                            "description": "How directly this paper supports cancer relevance for the HGNC gene.",
+                        },
+                        "evidence_types": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Evidence types present, such as mutation, fusion, expression, functional assay, clinical association.",
+                        },
+                        "key_findings": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Up to 4 concise findings from the abstract relevant to cancer annotation.",
+                        },
+                        "cancer_types": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Cancer types mentioned in the abstract.",
+                        },
+                        "caveats": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Reasons to downweight the paper, including broad screen, review article, symbol ambiguity, or indirect evidence.",
+                        },
+                    },
+                },
+                "description": "One compact evidence packet per PMID.",
+            }
+        },
+    },
+}
+
 _EVIDENCE_SYSTEM = """\
 You extract concise evidence from one PubMed abstract for cancer gene curation.
 
@@ -187,6 +244,25 @@ or only mentions the gene in passing, mark relevance as "ambiguous", "indirect",
 """
 
 
+def _paper_evidence_cache_key(
+    gene: str,
+    record: LiteratureRecord,
+    gene_identity: Optional[str],
+    local_mode: bool,
+    local_backend: Optional[str],
+) -> Dict:
+    return {
+        "version": EVIDENCE_CACHE_VERSION,
+        "gene": gene.upper(),
+        "gene_identity": gene_identity or "",
+        "pmid": record.pmid,
+        "title_sha256": text_digest(record.title),
+        "abstract_sha256": text_digest(record.abstract),
+        "model": settings.selection_model,
+        "backend": local_backend if local_mode else "anthropic-sdk",
+    }
+
+
 async def _extract_paper_evidence(
     gene: str,
     record: LiteratureRecord,
@@ -194,6 +270,18 @@ async def _extract_paper_evidence(
     local_mode: bool,
     local_backend: Optional[str],
 ) -> Dict:
+    cache_key = _paper_evidence_cache_key(
+        gene,
+        record,
+        gene_identity,
+        local_mode,
+        local_backend,
+    )
+    cached = read_cached_json("paper-evidence", cache_key)
+    if cached is not None:
+        logger.info("Evidence cache hit for %s PMID %s", gene, record.pmid)
+        return cached
+
     prompt = (
         f"Gene: {gene}\n"
         f"Gene identity: {gene_identity or 'canonical symbol only'}\n"
@@ -201,7 +289,7 @@ async def _extract_paper_evidence(
         f"Title: {record.title}\n"
         f"Abstract:\n{record.abstract}"
     )
-    return await complete_with_tool(
+    evidence = await complete_with_tool(
         model=settings.selection_model,
         system=_EVIDENCE_SYSTEM,
         user=prompt,
@@ -210,6 +298,54 @@ async def _extract_paper_evidence(
         local_mode=local_mode,
         local_backend=local_backend,
     )
+    write_cached_json("paper-evidence", cache_key, evidence)
+    return evidence
+
+
+async def _extract_paper_evidence_batch(
+    gene: str,
+    records: List[LiteratureRecord],
+    gene_identity: Optional[str],
+    local_mode: bool,
+    local_backend: Optional[str],
+) -> Dict[str, Dict]:
+    prompt_blocks = [
+        f"Gene: {gene}",
+        f"Gene identity: {gene_identity or 'canonical symbol only'}",
+        "",
+        "Extract evidence separately for each PubMed abstract below. Do not mix facts across PMIDs.",
+    ]
+    for index, record in enumerate(records, start=1):
+        prompt_blocks += [
+            "",
+            f"## Paper {index}",
+            f"PMID: {record.pmid}",
+            f"Title: {record.title}",
+            f"Abstract:\n{record.abstract}",
+        ]
+
+    result = await complete_with_tool(
+        model=settings.selection_model,
+        system=_EVIDENCE_SYSTEM,
+        user="\n".join(prompt_blocks),
+        tool=EXTRACT_EVIDENCE_BATCH_TOOL,
+        max_tokens=min(2048, 512 + (256 * len(records))),
+        local_mode=local_mode,
+        local_backend=local_backend,
+    )
+    papers = result.get("papers", [])
+    if not isinstance(papers, list):
+        return {}
+
+    evidence_by_pmid: Dict[str, Dict] = {}
+    expected_pmids = {record.pmid for record in records}
+    for item in papers:
+        if not isinstance(item, dict):
+            continue
+        pmid = str(item.get("pmid", ""))
+        if pmid in expected_pmids:
+            evidence_by_pmid[pmid] = item
+    return evidence_by_pmid
 
 
 def _fallback_evidence_packet(record: LiteratureRecord) -> Dict:
@@ -235,21 +371,115 @@ async def _extract_evidence_packets(
     local_mode: bool,
     local_backend: Optional[str],
 ) -> List[Dict]:
-    packets = []
+    batch_size = max(1, settings.evidence_extraction_batch_size)
+    if batch_size == 1:
+        packets = []
+        for record in records:
+            try:
+                evidence = await _extract_paper_evidence(
+                    gene,
+                    record,
+                    gene_identity,
+                    local_mode,
+                    local_backend,
+                )
+            except Exception as exc:
+                logger.warning("Evidence extraction failed for %s PMID %s: %s", gene, record.pmid, exc)
+                evidence = _fallback_evidence_packet(record)
+            packets.append({"record": record, "evidence": evidence})
+        return packets
+
+    evidence_by_pmid: Dict[str, Dict] = {}
+    missing_records: List[LiteratureRecord] = []
     for record in records:
+        cache_key = _paper_evidence_cache_key(
+            gene,
+            record,
+            gene_identity,
+            local_mode,
+            local_backend,
+        )
+        cached = read_cached_json("paper-evidence", cache_key)
+        if cached is not None:
+            logger.info("Evidence cache hit for %s PMID %s", gene, record.pmid)
+            evidence_by_pmid[record.pmid] = cached
+        else:
+            missing_records.append(record)
+
+    for start in range(0, len(missing_records), batch_size):
+        batch = missing_records[start : start + batch_size]
         try:
-            evidence = await _extract_paper_evidence(
+            extracted = await _extract_paper_evidence_batch(
                 gene,
-                record,
+                batch,
                 gene_identity,
                 local_mode,
                 local_backend,
             )
+            logger.info(
+                "Batch evidence extraction for %s returned %d/%d papers",
+                gene,
+                len(extracted),
+                len(batch),
+            )
         except Exception as exc:
-            logger.warning("Evidence extraction failed for %s PMID %s: %s", gene, record.pmid, exc)
-            evidence = _fallback_evidence_packet(record)
-        packets.append({"record": record, "evidence": evidence})
-    return packets
+            logger.warning("Batch evidence extraction failed for %s: %s", gene, exc)
+            extracted = {}
+
+        for record in batch:
+            evidence = extracted.get(record.pmid) or _fallback_evidence_packet(record)
+            evidence_by_pmid[record.pmid] = evidence
+            write_cached_json(
+                "paper-evidence",
+                _paper_evidence_cache_key(
+                    gene,
+                    record,
+                    gene_identity,
+                    local_mode,
+                    local_backend,
+                ),
+                evidence,
+            )
+
+    return [
+        {"record": record, "evidence": evidence_by_pmid.get(record.pmid) or _fallback_evidence_packet(record)}
+        for record in records
+    ]
+
+
+def _record_cache_payload(record: LiteratureRecord) -> Dict:
+    return {
+        "pmid": record.pmid,
+        "title_sha256": text_digest(record.title),
+        "abstract_sha256": text_digest(record.abstract),
+    }
+
+
+def _synthesis_cache_key(
+    gene: str,
+    fusions: List[str],
+    in_oncokb: Optional[bool],
+    cancer_type_prevalence: Optional[str],
+    records: List[LiteratureRecord],
+    retrieval_tier: int,
+    gene_identity: Optional[str],
+    local_mode: bool,
+    local_backend: Optional[str],
+) -> Dict:
+    return {
+        "version": SYNTHESIS_CACHE_VERSION,
+        "gene": gene.upper(),
+        "fusions": sorted(dict.fromkeys(fusions)),
+        "in_oncokb": in_oncokb,
+        "cancer_type_prevalence": cancer_type_prevalence or "",
+        "retrieval_tier": retrieval_tier,
+        "gene_identity": gene_identity or "",
+        "records": [_record_cache_payload(record) for record in records],
+        "selection_model": settings.selection_model,
+        "synthesis_model": settings.synthesis_model,
+        "max_citations": settings.max_citations_per_annotation,
+        "backend": local_backend if local_mode else "anthropic-sdk",
+    }
 
 
 def _build_user_prompt(
@@ -349,6 +579,28 @@ def _verify_citations(
     return verified
 
 
+def build_no_selected_evidence_result(gene: str, retrieval_tier: int) -> Dict:
+    tier_note = (
+        "Tier 1 direct PubMed query"
+        if retrieval_tier == 1
+        else "Tier 2 Claude agentic retrieval"
+    )
+    return {
+        "cancer_associated": False,
+        "insufficient_evidence": True,
+        "cancer_association_rationale": (
+            "No directly relevant PubMed evidence was selected for synthesis."
+        ),
+        "gene_summary": (
+            f"No directly relevant PubMed evidence was selected for {gene}; "
+            "therefore no cancer association is assigned. "
+            f"(Literature sourced via {tier_note}.)"
+        ),
+        "citations": [],
+        "confidence": 0.0,
+    }
+
+
 async def synthesize_gene_annotation(
     gene: str,
     fusions: List[str],
@@ -364,6 +616,22 @@ async def synthesize_gene_annotation(
     Call Claude to produce a structured annotation. Returns raw tool-use input dict.
     Raises on API error.
     """
+    cache_key = _synthesis_cache_key(
+        gene,
+        fusions,
+        in_oncokb,
+        cancer_type_prevalence,
+        records,
+        retrieval_tier,
+        gene_identity,
+        local_mode,
+        local_backend,
+    )
+    cached = read_cached_json("gene-synthesis", cache_key)
+    if cached is not None:
+        logger.info("Synthesis cache hit for %s (%d selected papers)", gene, len(records))
+        return cached
+
     evidence_packets = await _extract_evidence_packets(
         gene,
         records,
@@ -405,6 +673,7 @@ async def synthesize_gene_annotation(
             gene_identity,
         )
 
+    write_cached_json("gene-synthesis", cache_key, tool_input)
     return tool_input
 
 

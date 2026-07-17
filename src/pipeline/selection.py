@@ -105,6 +105,10 @@ def strongest_selection_score(
     return max(_record_selection_score(gene, record, gene_identity) for record in records)
 
 
+def conservative_token_mode_enabled() -> bool:
+    return settings.token_budget_mode.strip().lower() == "conservative"
+
+
 def _structured_record_context(
     gene: str,
     record: LiteratureRecord,
@@ -207,6 +211,14 @@ async def select_papers_for_synthesis(
     )
     if len(candidate_records) <= max_papers:
         return candidate_records
+    if conservative_token_mode_enabled():
+        logger.info(
+            "Conservative token mode selected deterministic top %d/%d papers for %s",
+            max_papers,
+            len(candidate_records),
+            gene,
+        )
+        return candidate_records[:max_papers]
 
     try:
         chunk_size = max(1, settings.selection_chunk_size)
