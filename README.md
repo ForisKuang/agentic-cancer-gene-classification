@@ -292,6 +292,14 @@ prompts. For GitHub Copilot, the setup screen can invoke `copilot login` from
 the local machine. Copilot login uses GitHub's browser/device auth flow, so any
 organization SSO requirement is handled by GitHub rather than by this app.
 
+The standalone macOS app does not inherit the same shell `PATH` that Terminal
+uses. To avoid false missing-tool errors, the app checks common install
+locations such as `~/.local/bin`, `/opt/homebrew/bin`, and `/usr/local/bin`, and
+it runs local agents by absolute path when possible. If a local agent was
+installed somewhere custom, set one of these overrides before launching the app:
+`AGCG_CLAUDE_CODE_PATH`, `AGCG_CODEX_PATH`, `AGCG_COPILOT_PATH`, or
+`AGCG_ANTIGRAVITY_PATH`.
+
 Antigravity is also available as a local execution path. Because there is no
 documented stable headless installer/login command in the public setup surface,
 the setup screen opens the official Antigravity setup page instead of running an
@@ -366,6 +374,15 @@ For local mode, make sure the selected tool is installed and logged in on the ho
 codex --version
 claude --version
 copilot version
+```
+
+If Terminal can run a tool but the standalone app cannot, the CLI is probably in
+a shell-only path. The app searches common user and Homebrew locations, but a
+custom install can be pointed at explicitly:
+
+```bash
+AGCG_CLAUDE_CODE_PATH="$HOME/.local/bin/claude" \
+  python -m src.cli --fusions "TP53::BRAF" --local claude-code
 ```
 
 Antigravity defaults to:

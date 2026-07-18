@@ -5,9 +5,7 @@ FastAPI application — manually invokable, Docker/K8s-ready.
 from __future__ import annotations
 
 import logging
-import os
 import platform
-import shutil
 import sys
 import json
 from pathlib import Path
@@ -55,6 +53,11 @@ from src.pipeline.google_sheets_export import (
     google_sheets_config_status,
     save_service_account_credentials,
 )
+from src.pipeline.local_agents import (
+    LOCAL_BACKEND_COMMANDS,
+    LOCAL_BACKEND_VERSION_ARGS,
+    resolve_local_agent_path,
+)
 from src.pipeline.llm_client import LOCAL_BACKENDS
 from src.pipeline.literature import ncbi_config_status, save_ncbi_api_key
 from src.pipeline.orchestrator import iter_pipeline_events, run_pipeline
@@ -68,18 +71,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 STATIC_DIR = Path(__file__).parent / "static"
-LOCAL_BACKEND_COMMANDS = {
-    "claude-code": "claude",
-    "codex": "codex",
-    "copilot": "copilot",
-    "antigravity": "antigravity",
-}
-LOCAL_BACKEND_VERSION_ARGS = {
-    "claude-code": ["--version"],
-    "codex": ["--version"],
-    "copilot": ["version"],
-    "antigravity": ["--version"],
-}
 LOCAL_CLIENT_HOSTS = {"127.0.0.1", "::1", "localhost", "testclient"}
 INSTALL_TIMEOUT_SECONDS = 600
 LOGIN_TIMEOUT_SECONDS = 600
@@ -154,25 +145,7 @@ def _check_backend(backend: str) -> LocalBackendStatus:
 
 
 def _find_command(command: str) -> Optional[str]:
-    path = shutil.which(command)
-    if path:
-        return path
-
-    home = Path.home()
-    candidate_paths = [
-        home / ".local" / "bin" / command,
-    ]
-    if platform.system() == "Windows":
-        local_app_data = os.environ.get("LOCALAPPDATA")
-        if local_app_data:
-            candidate_paths.append(
-                Path(local_app_data) / "Programs" / "OpenAI" / "Codex" / "bin" / f"{command}.exe"
-            )
-
-    for candidate in candidate_paths:
-        if candidate.exists():
-            return str(candidate)
-    return None
+    return resolve_local_agent_path(command)
 
 
 def _installer_info(backend: str) -> LocalBackendInstallerInfo:

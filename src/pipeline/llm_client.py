@@ -21,6 +21,11 @@ from typing import Any, Dict, List, Optional
 import anthropic
 
 from src.config import settings
+from src.pipeline.local_agents import (
+    LOCAL_BACKEND_COMMANDS,
+    local_agent_subprocess_env,
+    resolve_local_agent_path,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -147,12 +152,21 @@ async def _communicate(
     timeout: int = 180,
 ) -> tuple[str, str]:
     logger.debug("Local mode: invoking `%s` for tool %s", " ".join(args[:2]), tool_name)
-    proc = await asyncio.create_subprocess_exec(
-        *args,
-        stdin=asyncio.subprocess.PIPE if input_text is not None else None,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *args,
+            stdin=asyncio.subprocess.PIPE if input_text is not None else None,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=local_agent_subprocess_env(),
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError(
+            f"Local agent command {args[0]!r} was not found. "
+            "If you launched the standalone app from Finder, the app may not see "
+            "your shell PATH. Open Setup, reinstall or refresh the local agent, "
+            "or set the matching AGCG_*_PATH environment override."
+        ) from exc
 
     try:
         input_bytes = input_text.encode() if input_text is not None else None
@@ -173,7 +187,10 @@ async def _communicate(
 
 
 async def _run_claude_code(prompt: str, tool_name: str) -> str:
-    stdout, _ = await _communicate(["claude", "-p", prompt], tool_name=tool_name)
+    stdout, _ = await _communicate(
+        [_local_agent_executable("claude-code"), "-p", prompt],
+        tool_name=tool_name,
+    )
     return stdout
 
 
@@ -182,7 +199,7 @@ async def _run_codex(prompt: str, tool_name: str) -> str:
     os.close(fd)
     try:
         args = [
-            "codex",
+            _local_agent_executable("codex"),
             "exec",
             "--sandbox",
             "read-only",
@@ -210,7 +227,7 @@ async def _run_codex(prompt: str, tool_name: str) -> str:
 
 async def _run_copilot(prompt: str, tool_name: str) -> str:
     stdout, _ = await _communicate(
-        ["copilot", "-p", prompt, "-s", "--no-ask-user"],
+        [_local_agent_executable("copilot"), "-p", prompt, "-s", "--no-ask-user"],
         tool_name=tool_name,
         timeout=240,
     )
@@ -222,8 +239,22 @@ async def _run_antigravity(prompt: str, tool_name: str) -> str:
     args = [part if part != "{prompt}" else prompt for part in shlex.split(command)]
     if "{prompt}" not in command:
         args.append(prompt)
+    if args and args[0] == "antigravity":
+        args[0] = _local_agent_executable("antigravity")
     stdout, _ = await _communicate(args, tool_name=tool_name)
     return stdout
+
+
+def _local_agent_executable(backend: str) -> str:
+    command = LOCAL_BACKEND_COMMANDS[backend]
+    path = resolve_local_agent_path(command)
+    if path:
+        return path
+    raise RuntimeError(
+        f"{command!r} was not detected. Install the local agent from Setup, then "
+        f"refresh status. If it is already installed in a custom location, set "
+        f"the AGCG_*_PATH override for that agent."
+    )
 
 
 def _extract_json(text: str, tool_name: str) -> Dict[str, Any]:
