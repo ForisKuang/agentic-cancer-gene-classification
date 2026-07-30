@@ -14,21 +14,92 @@
           <p>Run, review, and export curation-ready results.</p>
         </div>
 
-        <section class="panel">
+        <nav class="app-tabs" aria-label="App sections">
+          <button class="app-tab active" id="nav-annotate" type="button">Annotate</button>
+          <button class="app-tab hidden" id="nav-benchmark" type="button">Benchmark</button>
+        </nav>
+
+        <section class="panel" id="annotate-panel">
           <div class="section-heading">
             <h2>Annotate</h2>
+            <div class="input-mode-tabs">
+              <button class="mode-tab active" id="tab-single" type="button">Single</button>
+              <button class="mode-tab" id="tab-batch" type="button">Batch</button>
+            </div>
           </div>
 
-          <label class="field" id="fusion-input-field">
-            <span>Fusions</span>
-            <textarea
-              id="fusion-input"
-              rows="9"
-              spellcheck="false"
-              placeholder="TP53::BRAF&#10;ETV6::NTRK3&#10;BCR::ABL1&#10;&#10;Or paste TSV with columns:&#10;fusion&#9;tumor_type&#9;five_exon&#9;three_exon&#9;five_genomic&#9;three_genomic&#9;five_transcript&#9;three_transcript"
-            ></textarea>
-            <span class="field-hint" id="tsv-hint"></span>
-          </label>
+          <!-- Single entry mode -->
+          <div id="single-mode">
+            <label class="field">
+              <span>Fusion <span class="required-star">*</span></span>
+              <input id="single-fusion" type="text" placeholder="TP53::BRAF" autocomplete="off" spellcheck="false" />
+            </label>
+            <label class="field">
+              <span>Tumor Type</span>
+              <input id="single-tumor-type" type="text" placeholder="e.g. LUAD, breast cancer" autocomplete="off" />
+            </label>
+            <details class="breakpoint-section">
+              <summary>Breakpoint details <span class="optional-tag">optional</span></summary>
+              <div class="breakpoint-grid">
+                <label class="field"><span>5' Exon</span><input id="single-five-exon" type="number" min="1" placeholder="e.g. 5" /></label>
+                <label class="field"><span>3' Exon</span><input id="single-three-exon" type="number" min="1" placeholder="e.g. 12" /></label>
+                <label class="field"><span>5' Genomic</span><input id="single-five-genomic" type="text" placeholder="chr1:12345" /></label>
+                <label class="field"><span>3' Genomic</span><input id="single-three-genomic" type="text" placeholder="chr2:67890" /></label>
+                <label class="field"><span>5' Transcript</span><input id="single-five-transcript" type="text" placeholder="NM_..." /></label>
+                <label class="field"><span>3' Transcript</span><input id="single-three-transcript" type="text" placeholder="NM_..." /></label>
+              </div>
+            </details>
+            <button id="add-fusion-btn" type="button">+ Add to queue</button>
+            <div id="fusion-queue" class="hidden">
+              <div class="queue-header">
+                <span id="queue-count" class="field-label">0 queued</span>
+                <button id="clear-queue-btn" class="text-button" type="button">Clear all</button>
+              </div>
+              <ul id="queue-list" class="queue-list"></ul>
+            </div>
+          </div>
+
+          <!-- Batch mode -->
+          <div id="batch-mode" class="hidden">
+            <div class="batch-grid-wrap">
+              <div class="batch-grid-scroll">
+                <table class="batch-grid">
+                  <colgroup>
+                    <col style="width:28px" />
+                    <col style="min-width:140px" />
+                    <col style="min-width:110px" />
+                    <col style="min-width:62px" />
+                    <col style="min-width:62px" />
+                    <col style="min-width:100px" />
+                    <col style="min-width:100px" />
+                    <col style="min-width:105px" />
+                    <col style="min-width:105px" />
+                    <col style="width:30px" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th class="grid-rn"></th>
+                      <th class="grid-th grid-th-required">Fusion *</th>
+                      <th class="grid-th grid-th-optional">Tumor Type</th>
+                      <th class="grid-th grid-th-optional">5′ Exon</th>
+                      <th class="grid-th grid-th-optional">3′ Exon</th>
+                      <th class="grid-th grid-th-optional">5′ Genomic</th>
+                      <th class="grid-th grid-th-optional">3′ Genomic</th>
+                      <th class="grid-th grid-th-optional">5′ Transcript</th>
+                      <th class="grid-th grid-th-optional">3′ Transcript</th>
+                      <th class="grid-del-header"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="batch-grid-body"></tbody>
+                </table>
+              </div>
+              <div class="batch-grid-footer">
+                <button id="add-row-btn" class="text-button" type="button">+ Add row</button>
+                <span class="field-hint" id="batch-hint"></span>
+              </div>
+              <p class="batch-legend">* Required · <em>italic</em> columns are optional</p>
+            </div>
+          </div>
 
           <div class="api-url-row">
             <span class="field-label">Backend URL</span>
@@ -41,7 +112,48 @@
             <button class="text-button" id="save-api-url" type="button">Save</button>
           </div>
 
+          <label class="field hidden" id="annotate-backend-field">
+            <span>Local Backend</span>
+            <select id="annotate-local-backend">
+              <option value="">Anthropic SDK</option>
+              <option value="claude-code">Claude Code</option>
+              <option value="codex">Codex</option>
+              <option value="antigravity">Antigravity</option>
+            </select>
+          </label>
+
           <button class="primary-action" id="run-button" type="button">Run</button>
+        </section>
+
+        <section class="panel hidden" id="benchmark-panel">
+          <div class="section-heading">
+            <h2>Benchmark</h2>
+          </div>
+
+          <label class="field">
+            <span>Holdout Genes</span>
+            <input id="benchmark-max-genes" type="number" min="1" placeholder="All" />
+          </label>
+
+          <label class="field">
+            <span>LLM Judge</span>
+            <select id="benchmark-judge">
+              <option value="skip" selected>Skip</option>
+              <option value="run">Run</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Backend</span>
+            <select id="benchmark-local-backend">
+              <option value="">SDK</option>
+              <option value="claude-code">Claude Code</option>
+              <option value="codex">Codex</option>
+              <option value="antigravity">Antigravity</option>
+            </select>
+          </label>
+
+          <button class="primary-action" id="run-benchmark-button" type="button">Run Benchmark</button>
         </section>
 
         <section class="panel compact">
@@ -56,7 +168,7 @@
       <main class="workspace">
         <header class="workspace-header">
           <div>
-            <h2>Results</h2>
+            <h2 id="workspace-title">Results</h2>
             <p id="run-summary">Run annotations to populate this review area.</p>
           </div>
           <div class="actions">

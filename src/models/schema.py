@@ -29,6 +29,11 @@ class LiteratureRecord(BaseModel):
     publication_types: list[str] = []
 
 
+class SupportingQuote(BaseModel):
+    pmid: str
+    quote: str
+
+
 class GeneAnnotation(BaseModel):
     """One row in Nicole's spreadsheet, keyed by gene."""
 
@@ -43,12 +48,14 @@ class GeneAnnotation(BaseModel):
     signaling_pathways: Optional[str] = None
     gene_summary: Optional[str] = None
     citations: List[str] = Field(default_factory=list)  # verified PMIDs only
+    supporting_quotes: List[SupportingQuote] = Field(default_factory=list)
     date_annotated: str = Field(
         default_factory=lambda: date.today().strftime("%-m/%-d/%y")
     )
 
     # Internal quality metadata (not exported to Nicole's sheet)
     retrieval_count: int = 0
+    retrieved_pmids: List[str] = Field(default_factory=list)
     insufficient_evidence: bool = False
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     error: Optional[str] = None

@@ -16,7 +16,7 @@ import os
 import re
 import shlex
 import tempfile
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import anthropic
 
@@ -26,15 +26,114 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_LOCAL_BACKEND = "claude-code"
 LOCAL_BACKENDS = ("claude-code", "codex", "antigravity")
+SDK_PROVIDERS = ("anthropic", "bedrock")
+
+_BEDROCK_MODEL_ALIASES = {
+    "claude-haiku-4-5-20251001": "anthropic.claude-haiku-4-5-20251001-v1:0",
+    "claude-sonnet-4-5-20250929": "anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "claude-opus-4-1-20250805": "anthropic.claude-opus-4-1-20250805-v1:0",
+}
+
+AsyncSDKClient = Union[anthropic.AsyncAnthropic, anthropic.AsyncAnthropicBedrock]
+SyncSDKClient = Union[anthropic.Anthropic, anthropic.AnthropicBedrock]
 
 
-def _make_sdk_client() -> anthropic.AsyncAnthropic:
+def resolve_sdk_provider() -> str:
+    """Return the configured Anthropic SDK transport."""
+    provider = settings.anthropic_sdk_provider.strip().lower()
+    if provider in {"anthropic", "direct", "api"}:
+        return "anthropic"
+    if provider in {"bedrock", "aws", "aws-bedrock"}:
+        return "bedrock"
+    raise ValueError(
+        f"Unsupported ANTHROPIC_SDK_PROVIDER {settings.anthropic_sdk_provider!r}. "
+        f"Expected one of: {', '.join(SDK_PROVIDERS)}"
+    )
+
+
+def _bedrock_region() -> str:
+    return (
+        settings.bedrock_aws_default_region
+        or settings.aws_region
+        or settings.aws_default_region
+        or "us-east-1"
+    )
+
+
+def _bedrock_base_url() -> Optional[str]:
+    if not settings.bedrock_reverse_proxy:
+        return None
+    if settings.bedrock_reverse_proxy.startswith(("http://", "https://")):
+        return settings.bedrock_reverse_proxy
+    return f"https://{settings.bedrock_reverse_proxy}"
+
+
+def _bedrock_client_kwargs() -> Dict[str, Any]:
+    kwargs: Dict[str, Any] = {
+        "aws_region": _bedrock_region(),
+    }
+    if settings.bedrock_aws_access_key_id:
+        kwargs["aws_access_key"] = settings.bedrock_aws_access_key_id
+    if settings.bedrock_aws_secret_access_key:
+        kwargs["aws_secret_key"] = settings.bedrock_aws_secret_access_key
+    if settings.bedrock_aws_session_token:
+        kwargs["aws_session_token"] = settings.bedrock_aws_session_token
+    aws_profile = settings.bedrock_aws_profile or settings.aws_profile
+    if aws_profile:
+        kwargs["aws_profile"] = aws_profile
+    base_url = _bedrock_base_url()
+    if base_url:
+        kwargs["base_url"] = base_url
+    return kwargs
+
+
+def make_async_sdk_client() -> AsyncSDKClient:
+    if resolve_sdk_provider() == "bedrock":
+        return anthropic.AsyncAnthropicBedrock(**_bedrock_client_kwargs())
+
     if not settings.anthropic_api_key:
         raise RuntimeError(
             "ANTHROPIC_API_KEY is not set. "
-            "Either add it to .env or run with --local to use a local agent CLI."
+            "Either add it to .env, set ANTHROPIC_SDK_PROVIDER=bedrock, "
+            "or run with --local to use a local agent CLI."
         )
     return anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+
+
+def make_sync_sdk_client() -> SyncSDKClient:
+    if resolve_sdk_provider() == "bedrock":
+        return anthropic.AnthropicBedrock(**_bedrock_client_kwargs())
+
+    if not settings.anthropic_api_key:
+        raise RuntimeError(
+            "ANTHROPIC_API_KEY is not set. "
+            "Either add it to .env, set ANTHROPIC_SDK_PROVIDER=bedrock, "
+            "or run with --local to use a local agent CLI."
+        )
+    return anthropic.Anthropic(api_key=settings.anthropic_api_key)
+
+
+def resolve_sdk_model(model: str, purpose: str = "") -> str:
+    """Resolve the model name for the configured SDK transport."""
+    if resolve_sdk_provider() != "bedrock":
+        return model
+
+    if purpose == "synthesis" and settings.bedrock_synthesis_model:
+        return settings.bedrock_synthesis_model
+    if purpose == "selection" and settings.bedrock_selection_model:
+        return settings.bedrock_selection_model
+
+    if model in _BEDROCK_MODEL_ALIASES:
+        return _BEDROCK_MODEL_ALIASES[model]
+    if model.startswith(("anthropic.", "us.anthropic.", "global.anthropic.")):
+        return model
+
+    raise RuntimeError(
+        "Bedrock SDK mode requires Bedrock model IDs. "
+        f"Got {model!r}. Set BEDROCK_SYNTHESIS_MODEL/BEDROCK_SELECTION_MODEL "
+        "or set SYNTHESIS_MODEL/SELECTION_MODEL to Bedrock IDs such as "
+        "'anthropic.claude-haiku-4-5-20251001-v1:0'."
+    )
 
 
 def resolve_local_backend(local_mode: bool = False, local_backend: Optional[str] = None) -> Optional[str]:
@@ -60,6 +159,7 @@ async def complete_with_tool(
     max_tokens: int = 2048,
     local_mode: bool = False,
     local_backend: Optional[str] = None,
+    model_purpose: str = "",
 ) -> Dict[str, Any]:
     """
     Call an LLM with a single required tool and return the tool input dict.
@@ -71,7 +171,11 @@ async def complete_with_tool(
     if backend:
         return await _complete_local(system=system, user=user, tool=tool, backend=backend)
     return await _complete_sdk(
-        model=model, system=system, user=user, tool=tool, max_tokens=max_tokens
+        model=resolve_sdk_model(model, model_purpose),
+        system=system,
+        user=user,
+        tool=tool,
+        max_tokens=max_tokens,
     )
 
 
@@ -83,7 +187,7 @@ async def _complete_sdk(
     tool: Dict[str, Any],
     max_tokens: int,
 ) -> Dict[str, Any]:
-    client = _make_sdk_client()
+    client = make_async_sdk_client()
     response = await client.messages.create(
         model=model,
         max_tokens=max_tokens,

@@ -101,6 +101,7 @@ async def select_papers_for_synthesis(
             max_tokens=512,
             local_mode=local_mode,
             local_backend=local_backend,
+            model_purpose="selection",
         )
 
         selected_pmids = [

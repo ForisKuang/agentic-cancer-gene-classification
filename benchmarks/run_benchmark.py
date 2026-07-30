@@ -186,6 +186,60 @@ def print_per_gene_debug(per_gene_report: List[Dict]) -> None:
     print()
 
 
+async def run_benchmark(
+    *,
+    holdout_path: Path = DEFAULT_HOLDOUT,
+    results_path: Optional[Path] = None,
+    no_judge: bool = False,
+    local_backend: Optional[str] = None,
+    max_genes: Optional[int] = None,
+) -> Dict:
+    """Run or score the holdout benchmark and return the full report."""
+    # --- Load holdout ---
+    logger.info("Loading holdout from %s", holdout_path)
+    holdout = load_holdout(holdout_path)
+    if max_genes is not None:
+        holdout = holdout[:max_genes]
+    logger.info("Holdout: %d genes", len(holdout))
+
+    # --- Run or load pipeline ---
+    if results_path:
+        logger.info("Loading existing pipeline results from %s", results_path)
+        with open(results_path) as f:
+            pipeline_result = json.load(f)
+    else:
+        fusions = _get_fusions_from_holdout(holdout)
+        logger.info("Running pipeline on %d fusions from holdout...", len(fusions))
+        pipeline_result = await _run_pipeline(fusions, local_backend=local_backend)
+
+    # --- Align ---
+    aligned_pred, aligned_gold = _align_predictions(holdout, pipeline_result)
+
+    # --- Categorical metrics ---
+    from benchmarks.metrics import compute_categorical_metrics
+    metrics = compute_categorical_metrics(aligned_pred, aligned_gold)
+    per_gene_report = build_per_gene_report(aligned_pred, aligned_gold)
+
+    # --- LLM judge ---
+    judge_results = None
+    if not no_judge:
+        from benchmarks.judge import run_judge
+        genes = [g["gene"] for g in aligned_gold]
+        pred_summaries = [p.get("gene_summary") for p in aligned_pred]
+        gold_summaries = [g.get("gene_summary") for g in aligned_gold]
+        logger.info("Running LLM-as-a-judge on %d gene summaries...", len(genes))
+        judge_results = run_judge(genes, pred_summaries, gold_summaries)
+
+    return {
+        "holdout_path": str(holdout_path),
+        "n_genes": len(holdout),
+        "categorical_metrics": metrics,
+        "per_gene_report": per_gene_report,
+        "judge": judge_results,
+        "pipeline_result": pipeline_result,
+    }
+
+
 def main() -> None:
     from src.pipeline.llm_client import DEFAULT_LOCAL_BACKEND, LOCAL_BACKENDS
 
@@ -234,63 +288,31 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # --- Load holdout ---
-    logger.info("Loading holdout from %s", args.holdout)
-    holdout = load_holdout(args.holdout)
-    logger.info("Holdout: %d genes", len(holdout))
-
-    # --- Run or load pipeline ---
-    if args.results:
-        logger.info("Loading existing pipeline results from %s", args.results)
-        with open(args.results) as f:
-            pipeline_result = json.load(f)
-    else:
-        fusions = _get_fusions_from_holdout(holdout)
-        logger.info("Running pipeline on %d fusions from holdout...", len(fusions))
-        pipeline_result = asyncio.run(_run_pipeline(fusions, local_backend=args.local))
+    full_report = asyncio.run(
+        run_benchmark(
+            holdout_path=args.holdout,
+            results_path=args.results,
+            no_judge=args.no_judge,
+            local_backend=args.local,
+        )
+    )
 
     if args.results_csv:
         from src.models.schema import AnnotationResult
         from src.pipeline.results_export import write_annotation_results_csv
 
         write_annotation_results_csv(
-            AnnotationResult.model_validate(pipeline_result),
+            AnnotationResult.model_validate(full_report["pipeline_result"]),
             args.results_csv,
         )
         logger.info("Pipeline results CSV written to %s", args.results_csv)
 
-    # --- Align ---
-    aligned_pred, aligned_gold = _align_predictions(holdout, pipeline_result)
-
-    # --- Categorical metrics ---
-    from benchmarks.metrics import compute_categorical_metrics
-    metrics = compute_categorical_metrics(aligned_pred, aligned_gold)
-    per_gene_report = build_per_gene_report(aligned_pred, aligned_gold)
-
-    # --- LLM judge ---
-    judge_results = None
-    if not args.no_judge:
-        from benchmarks.judge import run_judge
-        genes = [g["gene"] for g in aligned_gold]
-        pred_summaries = [p.get("gene_summary") for p in aligned_pred]
-        gold_summaries = [g.get("gene_summary") for g in aligned_gold]
-        logger.info("Running LLM-as-a-judge on %d gene summaries...", len(genes))
-        judge_results = run_judge(genes, pred_summaries, gold_summaries)
-
     # --- Report ---
-    print_report(metrics, judge_results)
-    print_per_gene_debug(per_gene_report)
+    print_report(full_report["categorical_metrics"], full_report["judge"])
+    print_per_gene_debug(full_report["per_gene_report"])
 
     # --- Optional JSON output ---
     if args.output:
-        full_report = {
-            "holdout_path": str(args.holdout),
-            "n_genes": len(holdout),
-            "categorical_metrics": metrics,
-            "per_gene_report": per_gene_report,
-            "judge": judge_results,
-            "pipeline_result": pipeline_result,
-        }
         with open(args.output, "w") as f:
             json.dump(full_report, f, indent=2)
         logger.info("Full report written to %s", args.output)

@@ -2,11 +2,6 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install system deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
 # Optional local-agent CLIs for development-only local backend mode.
 # Build with: docker build --build-arg INSTALL_LOCAL_AGENTS=true ...
 ARG INSTALL_LOCAL_AGENTS=false
@@ -33,6 +28,7 @@ RUN pip install --no-cache-dir hatchling && \
     tenacity
 
 COPY src/ ./src/
+COPY benchmarks/ ./benchmarks/
 
 # Non-root user for K8s security context
 RUN useradd -m appuser && chown -R appuser /app
@@ -41,6 +37,6 @@ USER appuser
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=4).read()" || exit 1
 
 CMD ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

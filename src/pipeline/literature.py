@@ -28,7 +28,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from src.config import settings
 from src.models.schema import LiteratureRecord
-from src.pipeline.llm_client import complete_with_tool
+from src.pipeline.llm_client import complete_with_tool, make_async_sdk_client, resolve_sdk_model
 
 logger = logging.getLogger(__name__)
 
@@ -483,12 +483,12 @@ async def _tier2_agentic_retrieve(
 
     messages = [{"role": "user", "content": user_message}]
     tool_calls_made = 0
-    client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+    client = make_async_sdk_client()
 
     async with httpx.AsyncClient() as http_client:
         while tool_calls_made < MAX_AGENTIC_TOOL_CALLS:
             response = await client.messages.create(
-                model=settings.synthesis_model,
+                model=resolve_sdk_model(settings.synthesis_model, "synthesis"),
                 max_tokens=1024,
                 system=_AGENTIC_SYSTEM,
                 tools=[_SEARCH_PUBMED_TOOL, _DONE_TOOL],

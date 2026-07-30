@@ -16,13 +16,10 @@ from __future__ import annotations
 import logging
 from typing import Dict, List, Optional
 
-import anthropic
-
 from src.config import settings
+from src.pipeline.llm_client import make_sync_sdk_client, resolve_sdk_model
 
 logger = logging.getLogger(__name__)
-
-_client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
 JUDGE_SYSTEM_PROMPT = """\
 You are an expert cancer genomics curator evaluating the quality of LLM-generated gene summaries.
@@ -64,8 +61,9 @@ def _judge_one(gene: str, predicted: Optional[str], reference: Optional[str]) ->
         "Score the predicted summary against the reference."
     )
 
-    response = _client.messages.create(
-        model=settings.synthesis_model,
+    client = make_sync_sdk_client()
+    response = client.messages.create(
+        model=resolve_sdk_model(settings.synthesis_model, "synthesis"),
         max_tokens=256,
         system=[
             {
