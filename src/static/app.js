@@ -3,7 +3,7 @@ const ONCOKB_TOKEN_KEY = "agcg.oncokbToken";
 const NCBI_KEY_KEY = "agcg.ncbiApiKey";
 
 const GRID_COLUMNS = [
-  { key: "fusion",           label: "Fusion",        required: true,  type: "text",   width: 140 },
+  { key: "fusion",           label: "Gene/Fusion",   required: true,  type: "text",   width: 140 },
   { key: "tumor_type",       label: "Tumor Type",    required: false, type: "text",   width: 110 },
   { key: "five_exon",        label: "5′ Exon",       required: false, type: "number", width: 62 },
   { key: "three_exon",       label: "3′ Exon",       required: false, type: "number", width: 62 },
@@ -155,7 +155,7 @@ function switchView(view) {
   } else if (state.currentResult) {
     renderAnnotationResult(state.currentResult);
   } else {
-    renderEmptyState("No results yet", "Paste fusions, then click Run to annotate.");
+    renderEmptyState("No results yet", "Enter genes or fusions, then click Run to annotate.");
     elements.runSummary.textContent = "Run annotations to populate this review area.";
   }
 }
@@ -201,7 +201,7 @@ function buildSingleItem() {
 function addToQueue() {
   const item = buildSingleItem();
   if (!item) {
-    setMessage("Enter a fusion name before adding to queue.", "error");
+    setMessage("Enter a gene or fusion before adding to queue.", "error");
     return;
   }
   clearMessage();
@@ -235,7 +235,7 @@ function clearQueue() {
 function renderQueue() {
   const count = state.queue.length;
   elements.fusionQueue.classList.toggle("hidden", count === 0);
-  elements.queueCount.textContent = `${count} fusion${count === 1 ? "" : "s"} queued`;
+  elements.queueCount.textContent = `${count} input${count === 1 ? "" : "s"} queued`;
   elements.queueList.replaceChildren();
   state.queue.forEach((item, i) => {
     const meta = [
@@ -300,7 +300,7 @@ function renderGrid(focusAfter = null) {
 function updateBatchHint() {
   const filled = state.batchRows.filter(r => r.fusion.trim()).length;
   elements.batchHint.textContent = filled
-    ? `${filled} fusion${filled === 1 ? "" : "s"} ready.`
+    ? `${filled} input${filled === 1 ? "" : "s"} ready.`
     : "";
 }
 
@@ -444,7 +444,7 @@ function getGridData() {
 // Unified input parsing
 // ---------------------------------------------------------------------------
 
-function parseFusions() {
+function parseInputs() {
   if (state.inputMode === "batch") {
     return getGridData();
   }
@@ -566,12 +566,12 @@ function setInstallOutput(title, body, type = "info") {
 // ---------------------------------------------------------------------------
 
 async function runAnnotation() {
-  const fusionInputs = parseFusions();
-  if (!fusionInputs.length) {
+  const annotationInputs = parseInputs();
+  if (!annotationInputs.length) {
     setMessage(
       state.inputMode === "single"
-        ? "Add at least one fusion to the queue before running."
-        : "Enter at least one fusion in the Fusion column before running.",
+        ? "Add at least one gene or fusion to the queue before running."
+        : "Enter at least one gene or fusion in the Gene/Fusion column before running.",
       "error"
     );
     return;
@@ -582,11 +582,11 @@ async function runAnnotation() {
 
   setRunning(true);
   clearMessage();
-  setMessage(`Submitting ${fusionInputs.length} fusion${fusionInputs.length === 1 ? "" : "s"} for annotation…`, "info");
+  setMessage(`Submitting ${annotationInputs.length} input${annotationInputs.length === 1 ? "" : "s"} for annotation...`, "info");
 
   try {
     const localBackend = elements.annotateLocalBackend.value || undefined;
-    const body = { fusions: fusionInputs };
+    const body = { fusions: annotationInputs };
     if (localBackend) body.local_backend = localBackend;
     const response = await fetch(apiUrl("/v1/annotate"), {
       method: "POST",
@@ -741,9 +741,10 @@ function renderAnnotationResult(result) {
   elements.exportJson.disabled = !hasAnnotations;
 
   const total = result.genes_annotated;
+  const inputCount = result.fusions_processed || 0;
   elements.runSummary.textContent =
     `${total} gene${total === 1 ? "" : "s"} annotated from ` +
-    `${result.fusions_processed} fusion${result.fusions_processed === 1 ? "" : "s"}.`;
+    `${inputCount} input${inputCount === 1 ? "" : "s"}.`;
 
   if (!hasAnnotations) {
     renderEmptyState(
@@ -764,7 +765,7 @@ function renderAnnotationResult(result) {
       <header>
         <div>
           <h3>${escapeHtml(annotation.gene)}</h3>
-          <div class="subtle">${escapeHtml(formatList(annotation.fusions))}</div>
+          <div class="subtle">${escapeHtml(annotation.fusions?.length ? formatList(annotation.fusions) : "Gene lookup")}</div>
           <div class="review-badges">${renderCompactBadges(annotation)}</div>
         </div>
         <span class="status-pill">${escapeHtml(annotation.date_annotated || "")}</span>

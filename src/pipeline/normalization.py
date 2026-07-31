@@ -1,6 +1,6 @@
 """
 Gene symbol normalization via the HGNC and Ensembl REST APIs.
-Splits fusions into partner genes and resolves each symbol to its
+Splits fusion inputs into partner genes and resolves each symbol to its
 canonical HUGO identifier. Ensembl IDs are batch-resolved when possible;
 unannotated loci are routed to the insufficient-evidence path.
 """
@@ -24,7 +24,7 @@ HGNC_TIMEOUT_SECONDS = 5.0
 ENSEMBL_TIMEOUT_SECONDS = 8.0
 NORMALIZATION_CONCURRENCY = 6
 
-# Separators used in fusion notation
+# Separators used in fusion notation.
 FUSION_SEPARATORS = re.compile(r"[:]{2}|--|/")
 
 
@@ -37,6 +37,12 @@ def split_fusion(fusion: str) -> Tuple[str, Optional[str]]:
     if len(parts) == 2:
         return parts[0].strip(), parts[1].strip()
     return parts[0].strip(), None
+
+
+def is_fusion_input(value: str) -> bool:
+    """Return true when an input contains two non-empty fusion partners."""
+    gene1, gene2 = split_fusion(value)
+    return bool(gene1 and gene2)
 
 
 def _is_ensembl_id(symbol: str) -> bool:
@@ -193,10 +199,10 @@ async def normalize_fusions(
     fusions: list[str],
 ) -> Dict[str, Tuple[ResolvedGene, list[str]]]:
     """
-    Given a list of fusion strings, return a mapping of
-    canonical_symbol -> (ResolvedGene, [fusion_strings involving this gene]).
+    Given a list of gene or fusion strings, return a mapping of
+    canonical_symbol -> (ResolvedGene, [input strings involving this gene]).
 
-    Each gene appears once regardless of how many fusions involve it.
+    Each gene appears once regardless of how many inputs involve it.
     """
     gene_to_fusions: Dict[str, list[str]] = {}
     gene_symbols: Set[str] = set()

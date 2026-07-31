@@ -1,11 +1,11 @@
 """
 CLI entry point for manual invocation.
 Usage:
-  # Annotate from a text file (one fusion per line)
-  python -m src.cli --input fusions.txt --output results.json
+  # Annotate from a text file (one gene or fusion per line)
+  python -m src.cli --input inputs.txt --output results.json
 
   # Annotate from command-line args
-  python -m src.cli --fusions "ANKRD13A::ACACB" "ASAP3::HNRNPR"
+  python -m src.cli --fusions "ALK" "ANKRD13A::ACACB" "ASAP3::HNRNPR"
 """
 
 from __future__ import annotations
@@ -27,13 +27,13 @@ def parse_args() -> argparse.Namespace:
     group.add_argument(
         "--input",
         metavar="FILE",
-        help="Path to a text file with one fusion per line (e.g. GENE1::GENE2)",
+        help="Path to a text file with one gene or fusion per line (e.g. ALK or GENE1::GENE2)",
     )
     group.add_argument(
         "--fusions",
         nargs="+",
-        metavar="FUSION",
-        help="One or more fusion strings inline (e.g. ANKRD13A::ACACB)",
+        metavar="INPUT",
+        help="One or more gene or fusion strings inline (e.g. ALK or ANKRD13A::ACACB)",
     )
     parser.add_argument(
         "--output",
@@ -71,7 +71,7 @@ def main() -> None:
         fusions = args.fusions
 
     if not fusions:
-        print("No fusions provided.", file=sys.stderr)
+        print("No genes or fusions provided.", file=sys.stderr)
         sys.exit(1)
 
     if args.local:

@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Agentic Cancer Gene Classification",
     description=(
-        "M0: LLM annotation engine for candidate cancer gene fusions. "
+        "M0: LLM annotation engine for candidate cancer genes and gene fusions. "
         "Automates Nicole's MSK TARGET Gene Triaging workflow."
     ),
     version="0.1.0",
@@ -92,14 +92,14 @@ async def dev_status() -> DevStatusResponse:
 @app.post("/v1/annotate", response_model=AnnotationResult)
 async def annotate(request: AnnotateRequest) -> AnnotationResult:
     """
-    Annotate a list of candidate gene fusions.
+    Annotate a list of candidate genes or gene fusions.
 
-    Each fusion is split into its partner genes. The unit of annotation
+    Each fusion is split into its partner genes; singleton genes are used directly. The unit of annotation
     is the gene. Returns one annotation row per unique gene, matching
     the MSK TARGET Gene Triaging schema.
 
     Input supports plain strings or structured objects with optional tumor_type and breakpoint fields:
-    `{ "fusions": [{"fusion": "GENE1::GENE2", "tumor_type": "LUAD"}] }`
+    `{ "fusions": ["ALK", {"fusion": "EML4::ALK", "tumor_type": "LUAD"}] }`
     """
     try:
         result = await run_pipeline(request.fusions, local_backend=request.local_backend)

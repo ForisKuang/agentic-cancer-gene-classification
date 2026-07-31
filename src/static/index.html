@@ -10,7 +10,7 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
-          <h1>Gene Fusion Annotation</h1>
+          <h1>Gene Annotation</h1>
           <p>Run, review, and export curation-ready results.</p>
         </div>
 
@@ -31,8 +31,8 @@
           <!-- Single entry mode -->
           <div id="single-mode">
             <label class="field">
-              <span>Fusion <span class="required-star">*</span></span>
-              <input id="single-fusion" type="text" placeholder="TP53::BRAF" autocomplete="off" spellcheck="false" />
+              <span>Gene or Fusion <span class="required-star">*</span></span>
+              <input id="single-fusion" type="text" placeholder="ALK or EML4::ALK" autocomplete="off" spellcheck="false" />
             </label>
             <label class="field">
               <span>Tumor Type</span>
@@ -79,7 +79,7 @@
                   <thead>
                     <tr>
                       <th class="grid-rn"></th>
-                      <th class="grid-th grid-th-required">Fusion *</th>
+                      <th class="grid-th grid-th-required">Gene/Fusion *</th>
                       <th class="grid-th grid-th-optional">Tumor Type</th>
                       <th class="grid-th grid-th-optional">5′ Exon</th>
                       <th class="grid-th grid-th-optional">3′ Exon</th>
@@ -184,7 +184,7 @@
           <section class="results-window" id="results-window">
             <div class="empty-state">
               <h3>No results yet</h3>
-              <p>Paste fusions, then click Run to annotate.</p>
+              <p>Enter genes or fusions, then click Run to annotate.</p>
             </div>
           </section>
         </div>
