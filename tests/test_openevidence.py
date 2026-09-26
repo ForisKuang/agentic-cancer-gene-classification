@@ -268,10 +268,11 @@ def test_build_question_plain_gene_with_tumor_type():
 
 
 def test_build_question_fusion_gene():
-    """`fusion` is a raw "GENE1::GENE2" input string — the exact shape
-    orchestrator.py's _annotate_gene threads through from its
-    already-validated `fusions` list (see normalization.is_fusion_input),
-    not a hand-picked tuple of gene names."""
+    """`fusion` is a raw "GENE1::GENE2" input string — the exact shape the
+    sidecar endpoint's `fusion` query param (GET /v1/genes/{gene}/openevidence
+    in main.py) and openevidence_warmup's per-gene fusion derivation (see
+    normalization.is_fusion_input) pass through, not a hand-picked tuple of
+    gene names."""
     assert _build_question("ALK", fusion="EML4::ALK") == (
         "What NCCN, ASCO, or ESMO clinical practice guideline recommendations "
         "or clinical trial evidence address targeted therapy for the "
