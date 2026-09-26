@@ -12,6 +12,12 @@ Proves review gap #1: when settings.openevidence_enabled is off, the
 frontend must render no OpenEvidence sidecar card and issue no GET
 /v1/genes/{gene}/openevidence request — not just fall back to a runtime
 available:false response after a wasted round-trip.
+
+Also proves the sidecar sends the gene's fusion (annotation.fusions[0], the
+same value openevidence_warmup.py warms) as `fusion=` so fusion inputs hit
+the backend's fusion-specific cache slot, that fusion and plain-gene lookups
+for the same gene don't share a client-side cache entry, and that a fusion
+gene still issues zero requests with the flag off.
 """
 
 from __future__ import annotations

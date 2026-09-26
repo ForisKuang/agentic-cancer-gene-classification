@@ -64,7 +64,7 @@ const state = {
   // precedent" disclosure never re-fetches.
   fusionPartnerEvidenceByKey: {},
   // In-flight/completed GET /v1/genes/{gene}/openevidence lookups, keyed by
-  // gene|tumorType, so re-rendering the results list never re-fetches. This
+  // gene|tumorType|fusion, so re-rendering the results list never re-fetches. This
   // sidecar is fetched independently of the core annotation result and
   // never blocks rendering the rest of the page (see renderOpenEvidenceCard).
   openEvidenceByGene: {},
@@ -2088,7 +2088,7 @@ function enqueueOpenEvidenceFetch(job) {
 function fetchGeneOpenEvidence(
   gene,
   tumorType,
-  { cancerAssociated, insufficientEvidence, corePmids, coreTitles } = {}
+  { cancerAssociated, insufficientEvidence, corePmids, coreTitles, fusion } = {}
 ) {
   // Defense in depth: renderOpenEvidenceCard is the only caller today and
   // already gates on state.openevidenceEnabled before ever reaching this
@@ -2097,12 +2097,17 @@ function fetchGeneOpenEvidence(
   if (!state.openevidenceEnabled) {
     return Promise.resolve({ available: false });
   }
-  const key = `${gene}|${tumorType || ""}`;
+  // `fusion` is part of the key because the server asks (and caches) a
+  // fusion-specific question when it's present — see _cache_key in
+  // src/pipeline/openevidence.py — so a fusion and a plain-gene lookup for
+  // the same gene are different answers and must not share a promise.
+  const key = `${gene}|${tumorType || ""}|${fusion || ""}`;
   if (state.openEvidenceByGene[key]) {
     return state.openEvidenceByGene[key];
   }
   const params = new URLSearchParams();
   if (tumorType) params.set("tumor_type", tumorType);
+  if (fusion) params.set("fusion", fusion);
   // Lets the server skip the live call for a gene it's already confident has
   // no cancer association — see GET /v1/genes/{gene}/openevidence's gating
   // docstring in main.py. Omitted (undefined/null) rather than sent as
@@ -2264,6 +2269,12 @@ function renderOpenEvidenceCard(annotation) {
       insufficientEvidence: annotation.insufficient_evidence,
       corePmids: annotation.citations,
       coreTitles: (annotation.evidence_cards || []).map((card) => card.title).filter(Boolean),
+      // annotation.fusions holds only fusion-shaped inputs for this gene, in
+      // input order (annotate_one's associated_fusions in orchestrator.py).
+      // The first one is the same fusion the offline warmup passes to
+      // get_gene_analysis (openevidence_warmup.py's warm_one), so this
+      // request hits the cache slot warmup filled.
+      fusion: annotation.fusions?.[0],
     })
       .then((response) => renderOpenEvidenceCardBody(card, body, response))
       .catch(() => card.remove())

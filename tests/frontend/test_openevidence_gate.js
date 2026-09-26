@@ -193,12 +193,98 @@ async function test_sidecar_appears_after_late_flag_resolution_for_already_rende
   );
 }
 
+function openEvidenceCallsOf(calls) {
+  return calls.filter((url) => url.includes("/openevidence"));
+}
+
+function fusionParamOf(url) {
+  const query = url.includes("?") ? url.slice(url.indexOf("?") + 1) : "";
+  return new URLSearchParams(query).get("fusion");
+}
+
+async function flushFetchQueue() {
+  for (let i = 0; i < 5; i += 1) await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+// The backend asks (and caches) a fusion-specific question when `fusion` is
+// sent — see _cache_key in src/pipeline/openevidence.py — and the offline
+// warmup fills that fusion-specific slot with annotation.fusions[0]'s value.
+// The rendered card must send the same fusion so it hits that slot.
+async function test_fusion_gene_sends_fusion_param_and_plain_gene_does_not() {
+  const { sandbox, calls } = await withFetchLog({ enabled: false, openevidence_enabled: true });
+  await sandbox.loadDevStatus();
+
+  const fusionAnnotation = { ...fakeAnnotation("ALK"), fusions: ["EML4::ALK"] };
+  const plainAnnotation = fakeAnnotation("TP53");
+  assert.notStrictEqual(sandbox.renderOpenEvidenceCard(fusionAnnotation), null);
+  assert.notStrictEqual(sandbox.renderOpenEvidenceCard(plainAnnotation), null);
+  await flushFetchQueue();
+
+  const openEvidenceCalls = openEvidenceCallsOf(calls);
+  const alkCall = openEvidenceCalls.find((url) => url.startsWith("/v1/genes/ALK/openevidence"));
+  const tp53Call = openEvidenceCalls.find((url) => url.startsWith("/v1/genes/TP53/openevidence"));
+  assert.ok(alkCall, `expected an ALK OpenEvidence request; saw: ${JSON.stringify(openEvidenceCalls)}`);
+  assert.ok(tp53Call, `expected a TP53 OpenEvidence request; saw: ${JSON.stringify(openEvidenceCalls)}`);
+
+  assert.ok(
+    alkCall.includes("fusion=EML4%3A%3AALK"),
+    `fusion gene must send URL-encoded fusion=EML4::ALK; saw: ${alkCall}`
+  );
+  assert.strictEqual(fusionParamOf(alkCall), "EML4::ALK");
+  assert.strictEqual(
+    fusionParamOf(tp53Call),
+    null,
+    `plain gene must not send a fusion param; saw: ${tp53Call}`
+  );
+}
+
+async function test_fusion_and_plain_requests_for_same_gene_do_not_share_cache() {
+  const { sandbox, calls } = await withFetchLog({ enabled: false, openevidence_enabled: true });
+  await sandbox.loadDevStatus();
+
+  await sandbox.fetchGeneOpenEvidence("ALK", "NSCLC", { fusion: "EML4::ALK" });
+  await sandbox.fetchGeneOpenEvidence("ALK", "NSCLC", {});
+  let openEvidenceCalls = openEvidenceCallsOf(calls);
+  assert.strictEqual(
+    openEvidenceCalls.length,
+    2,
+    `fusion and plain lookups for the same gene must each fetch; saw: ${JSON.stringify(openEvidenceCalls)}`
+  );
+  assert.strictEqual(fusionParamOf(openEvidenceCalls[0]), "EML4::ALK");
+  assert.strictEqual(fusionParamOf(openEvidenceCalls[1]), null);
+
+  // Each variant is still cached under its own key — repeats don't re-fetch.
+  await sandbox.fetchGeneOpenEvidence("ALK", "NSCLC", { fusion: "EML4::ALK" });
+  await sandbox.fetchGeneOpenEvidence("ALK", "NSCLC", {});
+  openEvidenceCalls = openEvidenceCallsOf(calls);
+  assert.strictEqual(openEvidenceCalls.length, 2, `repeat lookups must hit the client cache; saw: ${JSON.stringify(openEvidenceCalls)}`);
+  assert.strictEqual(Object.keys(sandbox.state.openEvidenceByGene).length, 2);
+}
+
+async function test_fusion_gene_disabled_issues_no_fetch() {
+  const { sandbox, calls } = await withFetchLog({ enabled: false, openevidence_enabled: false });
+  await sandbox.loadDevStatus();
+  assert.strictEqual(sandbox.state.openevidenceEnabled, false);
+
+  const fusionAnnotation = { ...fakeAnnotation("ALK"), fusions: ["EML4::ALK"] };
+  assert.strictEqual(sandbox.renderOpenEvidenceCard(fusionAnnotation), null);
+  const response = await sandbox.fetchGeneOpenEvidence("ALK", null, { fusion: "EML4::ALK" });
+  assert.strictEqual(response.available, false);
+  await flushFetchQueue();
+
+  assert.deepStrictEqual(openEvidenceCallsOf(calls), []);
+  assert.strictEqual(Object.keys(sandbox.state.openEvidenceByGene).length, 0);
+}
+
 const TESTS = [
   test_default_state_is_disabled_before_dev_status_resolves,
   test_disabled_renders_no_card_and_issues_no_fetch,
   test_fetchGeneOpenEvidence_is_a_noop_when_disabled,
   test_enabled_still_renders_card_and_fetches,
   test_sidecar_appears_after_late_flag_resolution_for_already_rendered_genes,
+  test_fusion_gene_sends_fusion_param_and_plain_gene_does_not,
+  test_fusion_and_plain_requests_for_same_gene_do_not_share_cache,
+  test_fusion_gene_disabled_issues_no_fetch,
 ];
 
 async function main() {
