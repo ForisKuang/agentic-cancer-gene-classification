@@ -30,8 +30,6 @@ from src.pipeline.openevidence import (
     _cache_key,
     _iter_sse_payloads,
     _parse_sse_events,
-    mark_refresh_attempted,
-    was_refresh_recently_attempted,
 )
 
 # Verbatim (real, live-captured) NCCN guideline citation — note the absence
@@ -270,10 +268,11 @@ def test_build_question_plain_gene_with_tumor_type():
 
 
 def test_build_question_fusion_gene():
-    """`fusion` is a raw "GENE1::GENE2" input string — the exact shape
-    orchestrator.py's _annotate_gene threads through from its
-    already-validated `fusions` list (see normalization.is_fusion_input),
-    not a hand-picked tuple of gene names."""
+    """`fusion` is a raw "GENE1::GENE2" input string — the exact shape the
+    sidecar endpoint's `fusion` query param (GET /v1/genes/{gene}/openevidence
+    in main.py) and openevidence_warmup's per-gene fusion derivation (see
+    normalization.is_fusion_input) pass through, not a hand-picked tuple of
+    gene names."""
     assert _build_question("ALK", fusion="EML4::ALK") == (
         "What NCCN, ASCO, or ESMO clinical practice guideline recommendations "
         "or clinical trial evidence address targeted therapy for the "
@@ -602,36 +601,3 @@ async def test_get_gene_analysis_does_not_retry_on_timeout():
             await client.get_gene_analysis("BRAF", client=http_client)
 
     assert attempts["count"] == 1
-
-
-@pytest.mark.asyncio
-async def test_was_refresh_recently_attempted_reflects_mark_refresh_attempted(_require_redis):
-    """The cooldown primitives used by the gene-annotation reuse check to
-    bound repeated freshness-driven re-synthesis attempts: unattempted by
-    default, True immediately after marking, for a distinct gene/tumor_type
-    only (not globally)."""
-    assert await was_refresh_recently_attempted("BRAF") is False
-
-    await mark_refresh_attempted("BRAF")
-
-    assert await was_refresh_recently_attempted("BRAF") is True
-    # A different gene, or the same gene with a different tumor_type, is a
-    # distinct cooldown key — unaffected by BRAF's mark.
-    assert await was_refresh_recently_attempted("TP53") is False
-    assert await was_refresh_recently_attempted("BRAF", tumor_type="melanoma") is False
-
-
-@pytest.mark.asyncio
-async def test_was_refresh_recently_attempted_expires_after_cooldown(_require_redis, monkeypatch):
-    """The cooldown is bounded, not permanent — once
-    OPENEVIDENCE_REFRESH_COOLDOWN_SECONDS elapses, another attempt is
-    allowed again."""
-    import asyncio
-
-    monkeypatch.setattr(settings, "openevidence_refresh_cooldown_seconds", 1)
-
-    await mark_refresh_attempted("BRAF")
-    assert await was_refresh_recently_attempted("BRAF") is True
-
-    await asyncio.sleep(1.2)  # let the 1-second TTL genuinely expire
-    assert await was_refresh_recently_attempted("BRAF") is False

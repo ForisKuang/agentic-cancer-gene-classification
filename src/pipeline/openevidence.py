@@ -2,17 +2,21 @@
 OpenEvidence supplementary evidence lookup.
 
 Off by default (settings.openevidence_enabled). When enabled, this posts a
-closed, targeted question — gene classification (+ optional tumor type), or
-fusion-partner oncogenicity when the gene is part of a fusion — to
-OpenEvidence's streaming analysis endpoint and returns accumulated prose plus
-a deduplicated citation list.
+closed, targeted question — clinical practice guideline / trial evidence for
+targeted therapy of a gene (+ optional tumor type), or of a specific fusion
+when one is given (see _build_question) — to OpenEvidence's streaming
+analysis endpoint and returns accumulated prose plus a deduplicated citation
+list.
 
-This is a SUPPLEMENTARY input to synthesis, not a LiteratureRecord
-replacement: OpenEvidence citations are not guaranteed to be PMIDs in the
-retrieved literature set, so they must never be passed through
-src.pipeline.citation_precision.filter_and_rank_citations or merged into
-GeneAnnotation.citations. Callers must always surface this output as clearly
-labeled unverified/supplementary evidence.
+Consumed only by the on-demand, non-blocking sidecar endpoint
+(GET /v1/genes/{gene}/openevidence in main.py), which distills the analysis
+into an independent UI card (see distill_additive_openevidence), and by the
+offline cache warmup (src.pipeline.openevidence_warmup). It is NOT part of
+core gene annotation or synthesis: OpenEvidence citations are not guaranteed
+to be PMIDs in the retrieved literature set, so they must never be passed
+through src.pipeline.citation_precision.filter_and_rank_citations or merged
+into GeneAnnotation.citations. Callers must always surface this output as
+clearly labeled unverified/supplementary evidence.
 """
 
 from __future__ import annotations
@@ -33,7 +37,7 @@ from src.models.schema import (
     OpenEvidenceGuideline,
     OpenEvidenceTrialMention,
 )
-from src.pipeline.cache import _get_client, cached_call
+from src.pipeline.cache import cached_call
 from src.pipeline.normalization import split_fusion
 
 logger = logging.getLogger(__name__)
@@ -63,7 +67,8 @@ def _is_transient_openevidence_error(exc: BaseException) -> bool:
     meant to be a quick, best-effort supplementary lookup — a timeout is
     treated as "no supplementary evidence available this time", the same
     normal, non-alarming outcome as any other best-effort lookup failure
-    (see orchestrator.py's _maybe_fetch_openevidence_context).
+    (the sidecar endpoint returns {"available": false} — see
+    GET /v1/genes/{gene}/openevidence in main.py).
     """
     if isinstance(exc, httpx.TimeoutException):
         return False
@@ -82,10 +87,10 @@ def _is_transient_openevidence_error(exc: BaseException) -> bool:
 
 
 def _cache_key(gene: str, tumor_type: Optional[str] = None, fusion: Optional[str] = None) -> str:
-    """Shared cache-key derivation, used both to fetch/store a live analysis
-    (OpenEvidenceClient.get_gene_analysis) and to passively peek whether one
-    already exists (has_cached_analysis), so the two paths can never drift
-    apart on key format.
+    """Cache-key derivation for OpenEvidenceClient.get_gene_analysis — the
+    single fetch/store path shared by the sidecar endpoint and the offline
+    warmup (src.pipeline.openevidence_warmup), so a warmed entry lands in the
+    same slot a sidecar request with the same gene/tumor_type/fusion reads.
 
     `fusion` is included whenever it resolves to two real partner genes (the
     same gating _build_question uses to decide whether to ask the
@@ -105,84 +110,6 @@ def _cache_key(gene: str, tumor_type: Optional[str] = None, fusion: Optional[str
         if gene1 and gene2:
             key["fusion"] = f"{gene1.strip().upper()}::{gene2.strip().upper()}"
     return "openevidence:" + json.dumps(key, sort_keys=True)
-
-
-async def has_cached_analysis(
-    gene: str, tumor_type: Optional[str] = None, fusion: Optional[str] = None
-) -> bool:
-    """Whether a Redis cache entry already exists for this gene/tumor_type/
-    fusion — a passive peek that makes no live HTTP call and needs no API
-    key.
-
-    Used by the gene-annotation reuse/staleness check (see
-    orchestrator.py's _maybe_reuse_cached_annotation) to detect when
-    OpenEvidence data has become available since a stored annotation was
-    last synthesized without it — e.g. via benchmarks/warm_openevidence_cache.py,
-    or a slow live call that finished after that gene's synthesis had
-    already proceeded without it. `fusion` must match whatever fusion (if
-    any) the corresponding get_gene_analysis call would use, or this peeks
-    the wrong cache slot (see _cache_key). Fails closed (returns False) if
-    Redis is unreachable, consistent with this being a best-effort
-    supplementary signal, never something that should block or error out a
-    cache read.
-    """
-    key = _cache_key(gene, tumor_type, fusion=fusion)
-    try:
-        return bool(await _get_client().exists(key))
-    except Exception as exc:
-        logger.warning("OpenEvidence cache existence check failed for %s: %s", gene, exc)
-        return False
-
-
-def _refresh_attempt_key(
-    gene: str, tumor_type: Optional[str] = None, fusion: Optional[str] = None
-) -> str:
-    key: Dict[str, str] = {"gene": gene.strip().upper(), "tumor_type": (tumor_type or "").strip().lower()}
-    if fusion:
-        gene1, gene2 = split_fusion(fusion)
-        if gene1 and gene2:
-            key["fusion"] = f"{gene1.strip().upper()}::{gene2.strip().upper()}"
-    return "openevidence:refresh_attempt:" + json.dumps(key, sort_keys=True)
-
-
-async def mark_refresh_attempted(
-    gene: str, tumor_type: Optional[str] = None, fusion: Optional[str] = None
-) -> None:
-    """Record that a freshness-triggered refresh was just attempted for this
-    gene/tumor_type/fusion, so the gene-annotation reuse check won't
-    re-trigger another one until OPENEVIDENCE_REFRESH_COOLDOWN_SECONDS has
-    passed — even if the refresh attempt itself never ends up populating
-    openevidence_supplementary (e.g. a downstream synthesis error unrelated
-    to OpenEvidence skips persisting the refreshed annotation entirely).
-    Recorded via a self-expiring Redis key rather than a persisted
-    annotation field, since the cooldown must apply regardless of whether
-    the refreshed annotation gets persisted at all. `fusion` is included so
-    a generic-question refresh attempt and a fusion-specific one for the
-    same gene/tumor_type get independent cooldowns, consistent with
-    _cache_key.
-    """
-    key = _refresh_attempt_key(gene, tumor_type, fusion=fusion)
-    try:
-        await _get_client().set(key, "1", ex=settings.openevidence_refresh_cooldown_seconds)
-    except Exception as exc:
-        logger.warning("Failed to record OpenEvidence refresh attempt for %s: %s", gene, exc)
-
-
-async def was_refresh_recently_attempted(
-    gene: str, tumor_type: Optional[str] = None, fusion: Optional[str] = None
-) -> bool:
-    """Whether a freshness-triggered refresh was attempted for this
-    gene/tumor_type/fusion within the cooldown window. Fails closed (returns
-    False, i.e. "safe to attempt") if Redis is unreachable — consistent
-    with has_cached_analysis, this is a best-effort signal, not something
-    that should itself block a cache read.
-    """
-    key = _refresh_attempt_key(gene, tumor_type, fusion=fusion)
-    try:
-        return bool(await _get_client().exists(key))
-    except Exception as exc:
-        logger.warning("OpenEvidence refresh-attempt check failed for %s: %s", gene, exc)
-        return False
 
 
 def _build_question(gene: str, tumor_type: Optional[str] = None, fusion: Optional[str] = None) -> str:
@@ -386,7 +313,7 @@ def _build_analysis(question: str, events: List[dict]) -> OpenEvidenceAnalysis:
 
 
 # Domains that identify a citation as a clinical practice guideline rather
-# than a journal article, per Task 2's distillation spec.
+# than a journal article.
 _GUIDELINE_URL_DOMAINS = ("nccn.org", "asco.org", "esmo.org")
 
 # Non-exhaustive seed list of well-known trial acronyms — a sentence naming
@@ -414,7 +341,7 @@ def _split_sentences(text: str) -> List[str]:
 
 def _extract_guidelines(citations: List[OpenEvidenceCitation]) -> List[OpenEvidenceGuideline]:
     """Clinical practice guideline references — citations whose URL points
-    at NCCN, ASCO, or ESMO, per Task 2's distillation spec."""
+    at NCCN, ASCO, or ESMO."""
     guidelines: List[OpenEvidenceGuideline] = []
     for citation in citations:
         url = citation.url or ""
@@ -433,7 +360,7 @@ def _extract_guidelines(citations: List[OpenEvidenceCitation]) -> List[OpenEvide
 
 def _extract_trial_mentions(text: str) -> List[OpenEvidenceTrialMention]:
     """Sentences naming a known clinical trial acronym or an outcome
-    statistic (PFS/OS/HR/ORR/DFS), per Task 2's distillation spec."""
+    statistic (PFS/OS/HR/ORR/DFS)."""
     mentions: List[OpenEvidenceTrialMention] = []
     for sentence in _split_sentences(text):
         trial_match = _TRIAL_ACRONYM_PATTERN.search(sentence)
@@ -832,7 +759,8 @@ class OpenEvidenceClient:
         """Return a supplementary, unverified OpenEvidence analysis for `gene`.
 
         `fusion`, when the gene is part of a fusion (a raw "GENE1::GENE2"
-        input string — see orchestrator.py's _annotate_gene), makes the
+        input string — passed through by the sidecar endpoint's `fusion`
+        query param, or derived per gene by openevidence_warmup), makes the
         question fusion-specific via _build_question instead of asking about
         `gene` in isolation.
 

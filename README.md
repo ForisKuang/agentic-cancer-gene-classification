@@ -104,6 +104,26 @@ running.
 
 Do not commit `.env` or paste real keys into tracked files.
 
+### Optional feature flags
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `OPENEVIDENCE_ENABLED` | `false` | Shows an on-demand, non-blocking OpenEvidence guideline/trial evidence card per gene (`GET /v1/genes/{gene}/openevidence`); never part of core annotation or synthesis. |
+| `PMID_DISTILLATION_ENABLED` | `false` | Distills retrieved abstracts in the background into the permanent MySQL `pmid_evidence` cache for reuse by later synthesis runs. |
+| `FEEDBACK_ISSUE_CREATION_ENABLED` | `true` | Drafts and files curator feedback as GitHub issues; when `false`, feedback is still stored but no issue is drafted or created. |
+
+Turning on OpenEvidence also needs these (see `.env.example`):
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `OPENEVIDENCE_API_KEY` | _(empty)_ | Required for live calls; org-provisioned access (see https://github.com/oncokb/oe-api-exp). Cached results are served without it. |
+| `OPENEVIDENCE_BASE_URL` | `https://api.openevidence.com` | API base URL. |
+| `OPENEVIDENCE_MODEL` | `darwin` | OpenEvidence model name; also part of the cache key. |
+| `OPENEVIDENCE_TIMEOUT_SECONDS` | `60` | Per-call timeout; a timeout is not retried and just hides the card. |
+| `OPENEVIDENCE_CACHE_TTL_SECONDS` | `604800` | Redis TTL for cached analyses (one week). |
+| `OPENEVIDENCE_SIDECAR_CONCURRENCY` | `3` | Max concurrent live OpenEvidence calls across all sidecar requests. |
+| `OPENEVIDENCE_WARMUP_CONCURRENCY` | `5` | Concurrency for the offline `benchmarks/warm_openevidence_cache.py` warmup. |
+
 ## Run With Anthropic SDK
 
 For the direct Anthropic API, set `ANTHROPIC_API_KEY` in `.env`:

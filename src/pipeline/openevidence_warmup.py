@@ -55,24 +55,19 @@ async def warm_openevidence_cache(
     cached_call (see src.pipeline.cache), so re-running this against genes
     that are already warm is a cache hit — no duplicate live HTTP call.
 
-    Mirrors orchestrator.py's annotate_one() in deriving each gene's
-    associated fusion (if any) from its own raw `gene_inputs` and passing it
-    into get_gene_analysis as `fusion`. This matters because
-    get_gene_analysis's cache key (see openevidence.py's _cache_key) now
-    includes `fusion` whenever present, so a generic-question warmup and a
-    fusion-specific live request occupy separate cache slots — if warmup
-    derived a different (or no) fusion here than a live annotation request
-    for the same gene would use, it would warm the WRONG slot: the live
-    request would still take a cache miss and pay full live-call latency,
-    silently defeating the point of warming ahead of it. Deriving the same
-    fusion context here that annotate_one() would derive keeps the two paths
-    asking, and therefore caching, the same question under the same key for
-    the same gene.
+    Derives each gene's associated fusion (if any) from its own raw
+    `gene_inputs` — the same way orchestrator.py's annotate_one() derives
+    `associated_fusions` — and passes it into get_gene_analysis as `fusion`.
+    get_gene_analysis's cache key (see openevidence.py's _cache_key)
+    includes `fusion` whenever present, so a generic-question entry and a
+    fusion-specific one occupy separate cache slots: a warmed entry is only
+    a hit for a later sidecar request (GET /v1/genes/{gene}/openevidence in
+    main.py) that asks with the same gene/tumor_type/fusion.
 
     No-op when settings.openevidence_enabled is false: the feature flag is
-    supposed to make OpenEvidence off end-to-end, not just skipped in the
-    live annotation path, so warmup must not make any OpenEvidenceClient
-    calls (or construct one) while it's off either.
+    supposed to make OpenEvidence off end-to-end, not just hidden from the
+    sidecar endpoint, so warmup must not make any OpenEvidenceClient calls
+    (or construct one) while it's off either.
     """
     if not settings.openevidence_enabled:
         return {

@@ -148,13 +148,15 @@ class Settings(BaseSettings):
     fusion_annotation_api_timeout_seconds: float = 15.0
     fusion_context_cache_ttl_seconds: int = 604800
 
-    # Optional: OpenEvidence supplementary evidence lookup for gene synthesis.
-    # Off by default — adds a clearly-labeled, unverified "Supplementary
-    # AI-synthesized evidence (unverified, from OpenEvidence)" section to the
-    # synthesis prompt. Its citations are never treated as verified PMIDs.
-    # Requires org-provisioned API access (Order Form) — see
-    # github.com/oncokb/oe-api-exp. Leave disabled until access, pricing,
-    # rate limits, and redistribution rights are confirmed.
+    # Optional: OpenEvidence clinical-guideline / trial evidence lookup.
+    # Off by default. When enabled, the UI renders an independent, on-demand
+    # card per gene from GET /v1/genes/{gene}/openevidence (see main.py) —
+    # never part of core gene annotation or the synthesis prompt, and its
+    # citations are never treated as verified PMIDs. Live (uncached) calls
+    # require org-provisioned API access (Order Form) — see
+    # github.com/oncokb/oe-api-exp; already-cached results are served without
+    # a key. Leave disabled until access, pricing, rate limits, and
+    # redistribution rights are confirmed.
     openevidence_enabled: bool = False
     openevidence_api_key: str = ""
     openevidence_base_url: str = "https://api.openevidence.com"
@@ -164,9 +166,10 @@ class Settings(BaseSettings):
     # a more realistic floor than the old 30s default, but OpenEvidence may
     # still frequently exceed even this for complex questions. That's an
     # accepted tradeoff: this lookup is explicitly best-effort/supplementary
-    # (see orchestrator.py's _maybe_fetch_openevidence_context), a timeout
-    # is not retried (see openevidence.py's _is_transient_openevidence_error),
-    # and it never blocks or fails the core gene annotation either way.
+    # (the sidecar endpoint returns {"available": false} on failure), a
+    # timeout is not retried (see openevidence.py's
+    # _is_transient_openevidence_error), and it never blocks or fails the core
+    # gene annotation either way.
     openevidence_timeout_seconds: float = 60.0
     openevidence_cache_ttl_seconds: int = 604800
     # Concurrency for benchmarks/warm_openevidence_cache.py, deliberately
@@ -174,20 +177,17 @@ class Settings(BaseSettings):
     # not live annotation traffic and can safely fan out wider than the
     # semaphore that gates concurrent per-gene annotation requests.
     openevidence_warmup_concurrency: int = 5
-    # Cooldown before the gene-annotation reuse check (see orchestrator.py's
-    # _maybe_reuse_cached_annotation) will re-trigger another OpenEvidence-
-    # freshness-driven re-synthesis for the same gene after one was already
-    # attempted. Without this, a refresh that keeps failing to actually
-    # populate openevidence_supplementary — e.g. a downstream synthesis
-    # error unrelated to OpenEvidence, which skips persisting the refreshed
-    # annotation entirely — would re-trigger a full re-synthesis attempt on
-    # every single subsequent read of that gene, forever.
+    # Currently unused. It was the cooldown for the pre-sidecar
+    # OpenEvidence-freshness-driven re-synthesis, which no longer exists now
+    # that OpenEvidence is served only by the on-demand sidecar endpoint.
+    # Kept so existing deployments that set
+    # OPENEVIDENCE_REFRESH_COOLDOWN_SECONDS still load unchanged.
     openevidence_refresh_cooldown_seconds: int = 900
     # Caps concurrent live OpenEvidence calls across ALL requests to
     # GET /v1/genes/{gene}/openevidence (see main.py). Without this, a single
     # batch-result page can fire one call per rendered gene card the moment
     # it loads — e.g. 20 concurrent 130-185s calls — with nothing left to
-    # throttle it once OpenEvidence was taken out of annotation_gene_concurrency's
+    # throttle it, since OpenEvidence is not part of annotation_gene_concurrency's
     # gated critical path (see orchestrator.py's _annotate_gene).
     openevidence_sidecar_concurrency: int = 3
 
