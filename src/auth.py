@@ -69,6 +69,8 @@ class UserProfile(BaseModel):
     first_login_at: str
     last_login_at: str
     login_count: int = 1
+    annotation_count: int = 0
+    last_annotation_at: Optional[str] = None
 
 
 class AuthUserResponse(BaseModel):
@@ -83,6 +85,8 @@ class AuthUserResponse(BaseModel):
     first_login_at: Optional[str] = None
     last_login_at: Optional[str] = None
     login_count: int = 1
+    annotation_count: int = 0
+    last_annotation_at: Optional[str] = None
 
 
 class AuthMeResponse(BaseModel):
@@ -92,6 +96,7 @@ class AuthMeResponse(BaseModel):
     allowed_domains: List[str] = Field(default_factory=list)
     saml_enabled: bool = False
     jit_provisioning_enabled: bool = True
+    dev_login_enabled: bool = False
 
 
 class SAMLAssertionData(BaseModel):
@@ -240,6 +245,21 @@ async def provision_or_update_user(
 
     await save_user_profile(profile)
     return profile
+
+
+async def record_user_annotation_activity(email: str, count: int = 1) -> None:
+    """Updates user profile usage metrics in the user store upon annotation completion."""
+    clean_email = email.strip().lower()
+    profile = await get_user_profile(clean_email)
+    if profile:
+        now_iso = datetime.now(timezone.utc).isoformat()
+        updated = profile.model_copy(
+            update={
+                "annotation_count": profile.annotation_count + max(1, count),
+                "last_annotation_at": now_iso,
+            }
+        )
+        await save_user_profile(updated)
 
 
 # ---------------------------------------------------------------------------
@@ -457,6 +477,16 @@ def get_google_auth_url(redirect_uri: str, state: str) -> str:
 
 
 async def exchange_google_code(code: str, redirect_uri: str) -> Dict[str, Any]:
+    if not settings.google_client_secret or not settings.google_client_secret.strip():
+        logger.error("Google OAuth token exchange failed: GOOGLE_CLIENT_SECRET is missing or empty in environment.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=(
+                "Google OAuth misconfigured: GOOGLE_CLIENT_SECRET is not set in the server environment. "
+                "Ensure Kubernetes Secret 'acgc' has GOOGLE_CLIENT_SECRET and the pod has been restarted."
+            ),
+        )
+
     data = {
         "code": code,
         "client_id": settings.google_client_id,

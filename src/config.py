@@ -256,6 +256,7 @@ class Settings(BaseSettings):
     datadog_statsd_host: str = ""
     datadog_statsd_port: int = 0
     datadog_user_id_header: str = "x-user-id"
+    datadog_tag_user_metrics: bool = True
     # Fixed, low-cardinality watchlist for per-gene latency breakdowns.
     # Tagging gene.total_duration_ms with the raw gene symbol would make it a
     # high-cardinality custom metric (one tag value per unique gene queried);

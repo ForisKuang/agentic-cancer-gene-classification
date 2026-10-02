@@ -49,6 +49,7 @@ from src.auth import (
     list_user_profiles,
     parse_saml_response,
     provision_or_update_user,
+    record_user_annotation_activity,
     render_access_denied_html,
     require_admin,
     require_auth,
@@ -73,7 +74,16 @@ from src.models.schema import (
     GeneAnnotation,
     LocalBackend,
 )
-from src.observability import increment, record_user_seen, tag_current_span
+from src.observability import (
+    get_user_context,
+    increment,
+    record_user_action,
+    record_user_seen,
+    reset_user_context,
+    set_user_context,
+    tag_current_span,
+    tag_user,
+)
 from src.pipeline.cache import cached_call
 from src.pipeline.enrichment import enrich_gene_annotations
 from src.pipeline.fusion_context import annotate_fusion_position_contexts, parsed_input_from_fields
@@ -94,12 +104,19 @@ _log_record_factory = logging.getLogRecordFactory()
 
 def _datadog_log_record_factory(*args, **kwargs):
     record = _log_record_factory(*args, **kwargs)
+    user_ctx = get_user_context()
+    usr_id = user_ctx.get("user_id") or "-"
+    usr_email = user_ctx.get("email") or "-"
+    usr_name = user_ctx.get("name") or "-"
     defaults = {
         "dd.service": os.getenv("DD_SERVICE", "agentic-cancer-gene-classification"),
         "dd.env": os.getenv("DD_ENV", ""),
         "dd.version": os.getenv("DD_VERSION", ""),
         "dd.trace_id": "0",
         "dd.span_id": "0",
+        "usr.id": usr_id,
+        "usr.email": usr_email,
+        "usr.name": usr_name,
     }
     for key, value in defaults.items():
         if key not in record.__dict__:
@@ -113,7 +130,7 @@ logging.basicConfig(
     format=(
         "%(asctime)s %(levelname)s %(name)s "
         "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s "
-        "dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] — %(message)s"
+        "dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s usr.id=%(usr.id)s] — %(message)s"
     ),
     stream=sys.stdout,
 )
@@ -124,6 +141,15 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.run_store = await RunStore.create()
+    logger.info(
+        "Application startup: auth_enabled=%s, google_client_id_configured=%s, "
+        "google_client_secret_configured=%s (len=%d), auth_secret_key_configured=%s",
+        settings.auth_enabled,
+        bool(settings.google_client_id.strip()),
+        bool(settings.google_client_secret.strip()),
+        len(settings.google_client_secret.strip()),
+        bool(settings.auth_secret_key.strip()),
+    )
     yield
     await app.state.run_store.close()
 
@@ -158,9 +184,44 @@ async def no_cache_static(request: Request, call_next):
     # app.js/styles.css after a deploy on a plain reload, not just a hard
     # refresh — force revalidation on every request for both.
     response = await call_next(request)
-    if request.url.path == "/" or request.url.path.startswith("/static/"):
+    if request.url.path in ("/", "/login") or request.url.path.startswith("/static/"):
         response.headers["Cache-Control"] = "no-cache"
     return response
+
+
+@app.middleware("http")
+async def user_context_middleware(request: Request, call_next):
+    user = get_current_user(request)
+    if not user:
+        header_val = request.headers.get(settings.datadog_user_id_header)
+        if header_val and header_val.strip():
+            clean_email = header_val.strip().lower()
+            clean_domain = clean_email.split("@")[-1] if "@" in clean_email else ""
+            user = AuthenticatedUser(
+                email=clean_email,
+                name=clean_email.split("@")[0],
+                domain=clean_domain,
+                provider="header",
+            )
+
+    token = set_user_context(
+        user_id=user.email if user else None,
+        email=user.email if user else None,
+        name=user.name if user else None,
+        role=user.role if user else None,
+        domain=user.domain if user else None,
+    )
+    if user:
+        tag_user(
+            user_id=user.email,
+            email=user.email,
+            name=user.name,
+            role=user.role,
+        )
+    try:
+        return await call_next(request)
+    finally:
+        reset_user_context(token)
 
 
 class DevStatusResponse(BaseModel):
@@ -459,23 +520,68 @@ def _record_annotation_request_metrics(
         f"skip_literature_for_oncokb:{request.skip_literature_for_oncokb}",
     ]
     record_user_seen(user_id, tags=tags)
+    fusions_count = len(request.fusions) if isinstance(request, AnnotateRequest) else 1
+    sample_inputs = (
+        ",".join(
+            (item if isinstance(item, str) else item.fusion)
+            for item in request.fusions[:5]
+        )
+        if isinstance(request, AnnotateRequest)
+        else request.gene
+    )
+    effective_user = user.email if user else (user_id or "anonymous")
+    record_user_action(
+        user_id=effective_user,
+        action="annotate",
+        details={
+            "mode": request.mode,
+            "inputs_count": fusions_count,
+            "inputs": sample_inputs,
+            "backend": request.local_backend or "sdk",
+        },
+        tags=tags,
+    )
     tag_current_span(
         {
             "acgc.user.present": bool(user_id),
-            "acgc.user.email": user.email if user else "",
+            "acgc.user.email": user.email if user else (user_id or ""),
             "acgc.user.domain": user.domain if user else "",
-            "acgc.fusions.requested": (
-                len(request.fusions) if isinstance(request, AnnotateRequest) else 1
-            ),
+            "acgc.fusions.requested": fusions_count,
             "acgc.mode": request.mode,
             "acgc.local_backend": request.local_backend or "sdk",
             "acgc.skip_literature_for_oncokb": request.skip_literature_for_oncokb,
+            "usr.id": effective_user,
+            "usr.email": effective_user,
         }
     )
+    if user:
+        tag_user(
+            user_id=user.email,
+            email=user.email,
+            name=user.name,
+            role=user.role,
+        )
 
 
 @app.get("/")
-async def root() -> FileResponse:
+async def root(request: Request) -> Response:
+    if settings.auth_enabled:
+        user = get_current_user(request)
+        if not user:
+            return RedirectResponse(url="/login", status_code=303)
+    return FileResponse(_STATIC_DIR / "index.html")
+
+
+@app.get("/login")
+async def login_page(request: Request, redirect_to: Optional[str] = "/") -> Response:
+    if not settings.auth_enabled:
+        return RedirectResponse(url="/", status_code=303)
+    user = get_current_user(request)
+    if user:
+        return RedirectResponse(url=redirect_to or "/", status_code=303)
+    login_html = _STATIC_DIR / "login.html"
+    if login_html.exists():
+        return FileResponse(login_html)
     return FileResponse(_STATIC_DIR / "index.html")
 
 
@@ -505,6 +611,7 @@ async def auth_me(request: Request) -> AuthMeResponse:
         allowed_domains=settings.allowed_domains_list,
         saml_enabled=settings.saml_enabled,
         jit_provisioning_enabled=settings.jit_provisioning_enabled,
+        dev_login_enabled=settings.dev_login_enabled,
     )
 
 
@@ -616,6 +723,11 @@ async def auth_callback_google(
     target_url = state_data.get("redirect_to") or "/"
     response = RedirectResponse(url=target_url, status_code=303)
     set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
+    record_user_action(
+        user.email,
+        action="login",
+        details={"provider": user.provider, "domain": user.domain, "role": user.role},
+    )
     return response
 
 
@@ -731,6 +843,11 @@ async def auth_saml_acs(request: Request) -> Response:
     target_url = relay_state or "/"
     response = RedirectResponse(url=target_url, status_code=303)
     set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
+    record_user_action(
+        user.email,
+        action="login",
+        details={"provider": user.provider, "domain": user.domain, "role": user.role},
+    )
     return response
 
 
@@ -747,7 +864,8 @@ async def auth_saml_metadata(request: Request) -> Response:
 @app.get("/auth/logout")
 @app.post("/auth/logout")
 async def auth_logout() -> Response:
-    response = RedirectResponse(url="/", status_code=303)
+    target = "/login" if settings.auth_enabled else "/"
+    response = RedirectResponse(url=target, status_code=303)
     clear_session_cookie(response)
     return response
 
@@ -816,6 +934,11 @@ async def auth_dev_login(
     session_token = create_session_token(user)
     response = RedirectResponse(url=redirect_to or "/", status_code=303)
     set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
+    record_user_action(
+        user.email,
+        action="login",
+        details={"provider": user.provider, "domain": user.domain, "role": user.role},
+    )
     return response
 
 
@@ -870,6 +993,16 @@ async def annotate(
         raise HTTPException(status_code=500, detail=str(e)) from e
 
     await _persist_run_result(http_request, request.model_dump(), result)
+    if current_user and current_user.email:
+        await record_user_annotation_activity(current_user.email, count=result.genes_annotated)
+    record_user_action(
+        user_id=current_user.email if current_user else _request_user_id(http_request),
+        action="annotate_complete",
+        details={
+            "duration_ms": round(result.timings_ms.get("total", 0.0), 1),
+            "genes_annotated": result.genes_annotated,
+        },
+    )
 
     return result
 
@@ -927,8 +1060,24 @@ async def create_annotation_job(
             current.genes_total = result.genes_annotated
             current.timings_ms = result.timings_ms
             await _store_annotation_job(current)
+            if current_user and current_user.email:
+                await record_user_annotation_activity(current_user.email, count=result.genes_annotated)
+            record_user_action(
+                user_id=current_user.email if current_user else _request_user_id(http_request),
+                action="job_complete",
+                details={
+                    "job_id": job_id,
+                    "duration_ms": round(result.timings_ms.get("total", 0.0), 1),
+                    "genes_completed": result.genes_annotated,
+                },
+            )
         except Exception as exc:
             logger.exception("Annotation job %s failed", job_id)
+            record_user_action(
+                user_id=current_user.email if current_user else _request_user_id(http_request),
+                action="job_error",
+                details={"job_id": job_id, "error": str(exc)},
+            )
             current = await _get_annotation_job(job_id)
             current.status = "failed"
             current.error = str(exc)
@@ -1118,6 +1267,17 @@ async def annotate_gene(
 
     if not result.annotations:
         raise HTTPException(status_code=500, detail="No gene annotation was returned")
+
+    if current_user and current_user.email:
+        await record_user_annotation_activity(current_user.email, count=1)
+    record_user_action(
+        user_id=current_user.email if current_user else _request_user_id(http_request),
+        action="annotate_gene_complete",
+        details={
+            "gene": request.gene,
+            "duration_ms": round(result.timings_ms.get("total", 0.0), 1),
+        },
+    )
     return result.annotations[0]
 
 
@@ -1546,10 +1706,14 @@ async def submit_feedback(
     reported issue can be traced back to the exact run that produced it,
     without needing the curator to describe what they did from memory.
     """
-    # TODO: Decide endpoint authentication and CORS policy with product owners.
     _check_feedback_rate_limit(http_request)
     feedback_id = str(uuid.uuid4())
     increment("feedback.submitted", tags=[f"category:{payload.category}"])
+    record_user_action(
+        user_id=current_user.email if current_user else _request_user_id(http_request),
+        action="feedback",
+        details={"category": payload.category, "gene": payload.gene or ""},
+    )
     await http_request.app.state.run_store.save_feedback(
         feedback_id=feedback_id,
         created_at=datetime.now(timezone.utc),

@@ -20,6 +20,7 @@ from src.auth import (
     list_user_profiles,
     parse_saml_response,
     provision_or_update_user,
+    record_user_annotation_activity,
     verify_oauth_state,
 )
 from src.config import settings
@@ -158,12 +159,18 @@ def test_auth_logout(monkeypatch):
     client.cookies.set(settings.auth_cookie_name, "dummy-token")
     resp = client.get("/auth/logout", follow_redirects=False)
     assert resp.status_code == 303
-    assert resp.headers["location"] == "/"
+    assert resp.headers["location"] == "/login"
     # Check Set-Cookie clears the cookie
     assert any(
         settings.auth_cookie_name in cookie and ('max-age=0' in cookie.lower() or 'expires=' in cookie.lower() or '""' in cookie)
         for cookie in resp.headers.get_list("set-cookie")
     )
+
+    # When auth is disabled, logout redirects to root
+    monkeypatch.setattr(settings, "auth_enabled", False)
+    resp2 = client.get("/auth/logout", follow_redirects=False)
+    assert resp2.status_code == 303
+    assert resp2.headers["location"] == "/"
 
 
 def test_dev_login_allowed_and_blocked(monkeypatch):
@@ -640,5 +647,115 @@ def test_mskcc_email_works_out_of_the_box(monkeypatch):
     assert user.email == "oncologist@mskcc.org"
     assert user.domain == "mskcc.org"
     assert user.status == "active"
+
+
+@pytest.mark.asyncio
+async def test_user_annotation_usage_tracking(monkeypatch):
+    monkeypatch.setattr(settings, "auth_enabled", True)
+    monkeypatch.setattr(settings, "auth_secret_key", "secret-usage-key-12345")
+
+    profile = await provision_or_update_user(
+        email="power.curator@mskcc.org",
+        name="Power Curator",
+        domain="mskcc.org",
+        provider="google",
+    )
+    assert profile.annotation_count == 0
+    assert profile.last_annotation_at is None
+
+    await record_user_annotation_activity("power.curator@mskcc.org", count=3)
+    updated = await list_user_profiles()
+    curator_prof = next(u for u in updated if u.email == "power.curator@mskcc.org")
+    assert curator_prof.annotation_count == 3
+    assert curator_prof.last_annotation_at is not None
+
+    await record_user_annotation_activity("power.curator@mskcc.org", count=2)
+    updated2 = await list_user_profiles()
+    curator_prof2 = next(u for u in updated2 if u.email == "power.curator@mskcc.org")
+    assert curator_prof2.annotation_count == 5
+
+
+def test_user_context_middleware_populates_context_from_cookie(monkeypatch):
+    monkeypatch.setattr(settings, "auth_enabled", True)
+    monkeypatch.setattr(settings, "auth_secret_key", "secret-ctx-key-12345")
+
+    user = AuthenticatedUser(
+        email="ctx.curator@mskcc.org",
+        name="Context Curator",
+        domain="mskcc.org",
+        role="curator",
+    )
+    token = create_session_token(user)
+
+    client = TestClient(app)
+    client.cookies.set(settings.auth_cookie_name, token)
+    resp = client.get("/health")
+    assert resp.status_code == 200
+
+
+def test_login_page_and_root_redirects(monkeypatch):
+    monkeypatch.setattr(settings, "auth_enabled", True)
+    monkeypatch.setattr(settings, "auth_secret_key", "secret-login-key-12345")
+    client = TestClient(app)
+
+    # 1. Unauthenticated request to / redirects to /login (303)
+    resp = client.get("/", follow_redirects=False)
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+    # 2. Unauthenticated request to /login returns the login page (200)
+    resp_login = client.get("/login", follow_redirects=False)
+    assert resp_login.status_code == 200
+    assert "Sign in" in resp_login.text or "Sign In" in resp_login.text
+    assert "mskcc.org" in resp_login.text
+
+    # 3. Authenticated request to /login redirects to root or redirect_to
+    user = AuthenticatedUser(
+        email="doctor@mskcc.org",
+        name="Doctor",
+        domain="mskcc.org",
+    )
+    token = create_session_token(user)
+    client.cookies.set(settings.auth_cookie_name, token)
+
+    resp_auth_login = client.get("/login", follow_redirects=False)
+    assert resp_auth_login.status_code == 303
+    assert resp_auth_login.headers["location"] == "/"
+
+    resp_auth_redirect = client.get("/login?redirect_to=/jobs/123", follow_redirects=False)
+    assert resp_auth_redirect.status_code == 303
+    assert resp_auth_redirect.headers["location"] == "/jobs/123"
+
+    # 4. Authenticated request to / serves index.html (200)
+    resp_root_auth = client.get("/", follow_redirects=False)
+    assert resp_root_auth.status_code == 200
+
+    # 5. When auth_enabled is False, /login redirects to /
+    monkeypatch.setattr(settings, "auth_enabled", False)
+    client.cookies.clear()
+    resp_no_auth = client.get("/login", follow_redirects=False)
+    assert resp_no_auth.status_code == 303
+    assert resp_no_auth.headers["location"] == "/"
+
+
+def test_logout_redirects_to_login(monkeypatch):
+    monkeypatch.setattr(settings, "auth_enabled", True)
+    monkeypatch.setattr(settings, "auth_secret_key", "secret-logout-key-12345")
+    client = TestClient(app)
+
+    user = AuthenticatedUser(
+        email="doctor@mskcc.org",
+        name="Doctor",
+        domain="mskcc.org",
+    )
+    token = create_session_token(user)
+    client.cookies.set(settings.auth_cookie_name, token)
+
+    resp = client.get("/auth/logout", follow_redirects=False)
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+    set_cookie = resp.headers.get("set-cookie", "")
+    assert settings.auth_cookie_name in set_cookie
+
 
 
