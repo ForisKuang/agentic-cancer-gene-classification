@@ -97,7 +97,11 @@
               window.location.href = redirectTo;
               return;
             }
-            if (data.saml_enabled && samlBtn) {
+            if (data.keycloak_enabled && samlBtn) {
+              samlBtn.href = `/auth/keycloak/login?redirect_to=${encodedRedirect}`;
+              samlBtn.classList.remove('hidden');
+            } else if (data.saml_enabled && samlBtn) {
+              samlBtn.href = `/auth/saml/login?redirect_to=${encodedRedirect}`;
               samlBtn.classList.remove('hidden');
             }
             if (data.dev_login_enabled && devWrap) {

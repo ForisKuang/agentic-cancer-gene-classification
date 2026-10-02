@@ -97,6 +97,7 @@ class AuthMeResponse(BaseModel):
     saml_enabled: bool = False
     jit_provisioning_enabled: bool = True
     dev_login_enabled: bool = False
+    keycloak_enabled: bool = False
 
 
 class SAMLAssertionData(BaseModel):
@@ -190,6 +191,7 @@ async def provision_or_update_user(
     provider: str = "google",
     groups: Optional[List[str]] = None,
     claims: Optional[Dict[str, Any]] = None,
+    role: Optional[str] = None,
 ) -> UserProfile:
     """
     Just-In-Time (JIT) provisioning: creates a new user profile on first login,
@@ -202,23 +204,25 @@ async def provision_or_update_user(
     user_claims = claims or {}
 
     # Derive role from SAML/OIDC groups or defaults
-    role = settings.jit_default_role
+    effective_role = role or settings.jit_default_role
     if any(g in settings.saml_admin_groups_list for g in user_groups):
-        role = "admin"
+        effective_role = "admin"
+    if any(g in settings.keycloak_admin_roles_list for g in user_groups):
+        effective_role = "admin"
 
     existing = await get_user_profile(clean_email)
     if existing is None:
         status_val = "pending" if settings.jit_require_admin_approval else "active"
         logger.info(
             "JIT provisioning new user: %s (domain=%s, role=%s, provider=%s, status=%s, groups=%s)",
-            clean_email, extracted_domain, role, provider, status_val, user_groups,
+            clean_email, extracted_domain, effective_role, provider, status_val, user_groups,
         )
         profile = UserProfile(
             email=clean_email,
             name=name or clean_email,
             picture=picture,
             domain=extracted_domain,
-            role=role,
+            role=effective_role,
             status=status_val,
             provider=provider,
             groups=user_groups,
@@ -229,7 +233,7 @@ async def provision_or_update_user(
         )
     else:
         logger.info("JIT sync for returning user %s (login_count=%d)", clean_email, existing.login_count + 1)
-        resolved_role = "admin" if (role == "admin" or existing.role == "admin") else existing.role
+        resolved_role = "admin" if (effective_role == "admin" or existing.role == "admin") else existing.role
         merged_groups = list(dict.fromkeys(existing.groups + user_groups))
         profile = existing.model_copy(
             update={
@@ -864,3 +868,171 @@ def render_access_denied_html(email: str, reason: str, login_url: str = "/auth/l
 </body>
 </html>
 """
+
+
+# ---------------------------------------------------------------------------
+# Keycloak OIDC & PingID SSO Helpers (keycloak.oncokb.org)
+# ---------------------------------------------------------------------------
+
+
+def get_keycloak_realm_base_url() -> str:
+    base = settings.keycloak_url.rstrip("/")
+    realm = settings.keycloak_realm.strip()
+    return f"{base}/realms/{realm}"
+
+
+def get_keycloak_auth_url(redirect_uri: str, state: str, idp_hint: Optional[str] = None) -> str:
+    """Constructs Keycloak OpenID Connect authorization URL.
+
+    If idp_hint is provided (or defaults to keycloak_ping_idp_alias, e.g. 'msk-ping'),
+    appends kc_idp_hint to redirect directly to MSK PingFederate without presenting
+    an intermediate Keycloak login screen.
+    """
+    realm_url = get_keycloak_realm_base_url()
+    auth_endpoint = f"{realm_url}/protocol/openid-connect/auth"
+    params = {
+        "client_id": settings.keycloak_client_id,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "redirect_uri": redirect_uri,
+        "state": state,
+    }
+    hint = idp_hint if idp_hint is not None else settings.keycloak_ping_idp_alias
+    if hint and hint.strip() and hint.strip().lower() != "none":
+        params["kc_idp_hint"] = hint.strip()
+
+    return f"{auth_endpoint}?{urlencode(params)}"
+
+
+async def exchange_keycloak_code(code: str, redirect_uri: str) -> Dict[str, Any]:
+    """Exchanges authorization code for OIDC tokens with Keycloak token endpoint."""
+    if not settings.keycloak_client_secret or not settings.keycloak_client_secret.strip():
+        logger.error("Keycloak token exchange failed: KEYCLOAK_CLIENT_SECRET is missing or empty in environment.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=(
+                "Keycloak OAuth misconfigured: KEYCLOAK_CLIENT_SECRET is not set in the server environment. "
+                "Ensure Kubernetes Secret has KEYCLOAK_CLIENT_SECRET and the pod has been restarted."
+            ),
+        )
+
+    realm_url = get_keycloak_realm_base_url()
+    token_endpoint = f"{realm_url}/protocol/openid-connect/token"
+    data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirect_uri,
+        "client_id": settings.keycloak_client_id,
+        "client_secret": settings.keycloak_client_secret,
+    }
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        resp = await client.post(token_endpoint, data=data)
+        if resp.status_code != 200:
+            logger.error("Failed Keycloak token exchange (%s): %s", resp.status_code, resp.text)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Keycloak authentication failed during token exchange: {resp.text}",
+            )
+        return resp.json()
+
+
+async def get_keycloak_user_info(access_token: str) -> Dict[str, Any]:
+    """Fetches user claims from Keycloak userinfo endpoint."""
+    realm_url = get_keycloak_realm_base_url()
+    userinfo_endpoint = f"{realm_url}/protocol/openid-connect/userinfo"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        resp = await client.get(userinfo_endpoint, headers=headers)
+        if resp.status_code != 200:
+            logger.error("Failed to fetch Keycloak user info (%s): %s", resp.status_code, resp.text)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to retrieve user profile from Keycloak.",
+            )
+        return resp.json()
+
+
+def parse_keycloak_user(token_data: Dict[str, Any], userinfo: Dict[str, Any]) -> AuthenticatedUser:
+    """Parses user claims from Keycloak token data and userinfo response."""
+    email = userinfo.get("email") or ""
+    if not email and "id_token" in token_data:
+        try:
+            parts = token_data["id_token"].split(".")
+            if len(parts) >= 2:
+                payload_json = base64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)).decode("utf-8")
+                id_claims = json.loads(payload_json)
+                email = id_claims.get("email", "")
+        except Exception:
+            pass
+
+    clean_email = email.strip().lower()
+    if not clean_email or "@" not in clean_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Keycloak user profile does not contain a valid email address.",
+        )
+
+    # Name extraction
+    name = userinfo.get("name")
+    if not name:
+        given = userinfo.get("given_name", "").strip()
+        family = userinfo.get("family_name", "").strip()
+        if given or family:
+            name = f"{given} {family}".strip()
+        else:
+            name = userinfo.get("preferred_username") or clean_email.split("@")[0]
+
+    domain = clean_email.split("@")[-1]
+
+    # Roles and groups extraction
+    groups: List[str] = []
+    if "groups" in userinfo and isinstance(userinfo["groups"], list):
+        groups.extend(userinfo["groups"])
+    if "roles" in userinfo and isinstance(userinfo["roles"], list):
+        groups.extend(userinfo["roles"])
+
+    for tok_key in ("access_token", "id_token"):
+        tok = token_data.get(tok_key)
+        if tok and isinstance(tok, str) and "." in tok:
+            try:
+                parts = tok.split(".")
+                if len(parts) >= 2:
+                    p = json.loads(base64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)).decode("utf-8"))
+                    realm_access = p.get("realm_access", {})
+                    if isinstance(realm_access, dict):
+                        roles = realm_access.get("roles", [])
+                        if isinstance(roles, list):
+                            groups.extend(roles)
+                    resource_access = p.get("resource_access", {})
+                    if isinstance(resource_access, dict):
+                        client_access = resource_access.get(settings.keycloak_client_id, {})
+                        if isinstance(client_access, dict):
+                            roles = client_access.get("roles", [])
+                            if isinstance(roles, list):
+                                groups.extend(roles)
+                    if "groups" in p and isinstance(p["groups"], list):
+                        groups.extend(p["groups"])
+            except Exception:
+                pass
+
+    unique_groups = sorted(list(set(groups)))
+
+    # Determine user role
+    role = settings.jit_default_role
+    admin_roles = set(settings.keycloak_admin_roles_list)
+    if admin_roles and any(r in admin_roles for r in unique_groups):
+        role = "admin"
+    elif settings.saml_admin_groups_list and any(g in set(settings.saml_admin_groups_list) for g in unique_groups):
+        role = "admin"
+
+    return AuthenticatedUser(
+        email=clean_email,
+        name=name,
+        picture=userinfo.get("picture"),
+        domain=domain,
+        role=role,
+        status="active",
+        provider="keycloak",
+        groups=unique_groups,
+    )
+

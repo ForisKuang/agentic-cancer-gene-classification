@@ -215,10 +215,36 @@ class Settings(BaseSettings):
     saml_allowed_groups: str = ""  # Comma-separated list of required SAML groups (optional)
     saml_admin_groups: str = ""  # Groups that map to the "admin" role
 
+    # Keycloak OIDC & PingID SSO Settings (via keycloak.oncokb.org)
+    keycloak_url: str = "https://keycloak.oncokb.org"
+    keycloak_realm: str = "oncokb-public"
+    keycloak_client_id: str = ""
+    keycloak_client_secret: str = ""
+    keycloak_ping_idp_alias: str = "msk-ping"
+    keycloak_redirect_uri: str = ""  # If left empty, computed from request or public_app_base_url
+    keycloak_allowed_roles: str = ""  # Optional comma-separated list of required Keycloak roles
+    keycloak_admin_roles: str = ""  # Keycloak roles that map to "admin" role
+
     # JIT (Just-In-Time) Provisioning Settings
     jit_provisioning_enabled: bool = True
     jit_default_role: str = "curator"  # Default role for new users: curator, annotator, viewer
     jit_require_admin_approval: bool = False  # If True, new JIT users start in pending status
+
+    @property
+    def keycloak_enabled(self) -> bool:
+        return bool(self.keycloak_url.strip() and self.keycloak_client_id.strip())
+
+    @property
+    def keycloak_allowed_roles_list(self) -> List[str]:
+        if not self.keycloak_allowed_roles:
+            return []
+        return [r.strip() for r in self.keycloak_allowed_roles.split(",") if r.strip()]
+
+    @property
+    def keycloak_admin_roles_list(self) -> List[str]:
+        if not self.keycloak_admin_roles:
+            return []
+        return [r.strip() for r in self.keycloak_admin_roles.split(",") if r.strip()]
 
     @property
     def allowed_domains_list(self) -> List[str]:

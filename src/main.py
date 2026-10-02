@@ -23,7 +23,7 @@ from urllib.parse import parse_qs
 
 import httpx
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -40,13 +40,17 @@ from src.auth import (
     create_oauth_state,
     create_session_token,
     exchange_google_code,
+    exchange_keycloak_code,
     generate_sp_metadata_xml,
     get_current_user,
     get_google_auth_url,
     get_google_user_info,
+    get_keycloak_auth_url,
+    get_keycloak_user_info,
     is_email_allowed,
     is_saml_group_allowed,
     list_user_profiles,
+    parse_keycloak_user,
     parse_saml_response,
     provision_or_update_user,
     record_user_annotation_activity,
@@ -612,6 +616,7 @@ async def auth_me(request: Request) -> AuthMeResponse:
         saml_enabled=settings.saml_enabled,
         jit_provisioning_enabled=settings.jit_provisioning_enabled,
         dev_login_enabled=settings.dev_login_enabled,
+        keycloak_enabled=settings.keycloak_enabled,
     )
 
 
@@ -629,6 +634,9 @@ async def auth_login(
         google_url = get_google_auth_url(redirect_uri=redirect_uri, state=state)
         return RedirectResponse(url=google_url)
 
+    if settings.keycloak_enabled:
+        return RedirectResponse(url=f"/auth/keycloak/login?redirect_to={redirect_to or '/'}")
+
     if settings.saml_enabled and settings.saml_idp_sso_url.strip():
         return RedirectResponse(url=f"/auth/saml/login?redirect_to={redirect_to or '/'}")
 
@@ -637,7 +645,7 @@ async def auth_login(
 
     raise HTTPException(
         status_code=500,
-        detail="No authentication provider configured. Please configure Google OAuth or Enterprise SAML.",
+        detail="No authentication provider configured. Please configure Google OAuth, Keycloak, or Enterprise SAML.",
     )
 
 
@@ -859,6 +867,125 @@ async def auth_saml_metadata(request: Request) -> Response:
         sp_entity_id=settings.saml_sp_entity_id or None,
     )
     return Response(content=xml_content, media_type="application/xml")
+
+
+@app.get("/auth/keycloak/login")
+async def auth_keycloak_login(
+    request: Request,
+    redirect_to: Optional[str] = "/",
+    idp_hint: Optional[str] = None,
+) -> Response:
+    if not settings.keycloak_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Keycloak SSO is not configured on this server.",
+        )
+    if settings.keycloak_redirect_uri.strip():
+        redirect_uri = settings.keycloak_redirect_uri.strip()
+    else:
+        redirect_uri = f"{_public_app_base_url(request)}/auth/callback/keycloak"
+
+    state = create_oauth_state(redirect_to=redirect_to or "/")
+    keycloak_url = get_keycloak_auth_url(redirect_uri=redirect_uri, state=state, idp_hint=idp_hint)
+    return RedirectResponse(url=keycloak_url, status_code=status.HTTP_303_SEE_OTHER)
+
+
+@app.get("/auth/callback/keycloak")
+async def auth_callback_keycloak(
+    request: Request,
+    code: Optional[str] = None,
+    state: Optional[str] = None,
+    error: Optional[str] = None,
+    error_description: Optional[str] = None,
+) -> Response:
+    if error:
+        logger.warning("Keycloak authentication error: %s - %s", error, error_description)
+        return HTMLResponse(
+            render_access_denied_html(
+                email="Unknown",
+                reason=f"Keycloak authentication failed: {error_description or error}",
+            ),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not code or not state:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing authorization code or state.")
+
+    state_data = verify_oauth_state(state)
+    if not state_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OAuth state parameter.",
+        )
+
+    redirect_to = state_data.get("redirect_to") or "/"
+
+    if settings.keycloak_redirect_uri.strip():
+        redirect_uri = settings.keycloak_redirect_uri.strip()
+    else:
+        redirect_uri = f"{_public_app_base_url(request)}/auth/callback/keycloak"
+
+    token_data = await exchange_keycloak_code(code, redirect_uri)
+    access_token = token_data.get("access_token")
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Keycloak did not return an access token.",
+        )
+
+    userinfo = await get_keycloak_user_info(access_token)
+    user = parse_keycloak_user(token_data, userinfo)
+
+    # Validate authorization (domain & optional role check)
+    is_allowed, reason = is_email_allowed(user.email)
+    if not is_allowed:
+        logger.warning("Rejected Keycloak user with unauthorized domain: %s (%s)", user.email, reason)
+        return HTMLResponse(
+            render_access_denied_html(email=user.email, reason=reason),
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Optional Keycloak role gate
+    allowed_roles = set(settings.keycloak_allowed_roles_list)
+    if allowed_roles and not any(r in allowed_roles for r in user.groups):
+        reason = f"User roles ({', '.join(user.groups) or 'none'}) do not meet required roles ({', '.join(allowed_roles)})."
+        logger.warning("Rejected Keycloak user %s: %s", user.email, reason)
+        return HTMLResponse(
+            render_access_denied_html(email=user.email, reason=reason),
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    # JIT Provisioning
+    if settings.jit_provisioning_enabled:
+        profile = await provision_or_update_user(
+            email=user.email,
+            name=user.name,
+            picture=user.picture,
+            domain=user.domain,
+            provider="keycloak",
+            role=user.role,
+            groups=user.groups,
+        )
+        if profile.status == "pending":
+            return HTMLResponse(
+                render_access_denied_html(
+                    email=user.email,
+                    reason="Your account has been provisioned but is pending administrator approval before access is granted.",
+                ),
+                status_code=status.HTTP_403_FORBIDDEN,
+            )
+        user.role = profile.role
+        user.status = profile.status
+
+    session_token = create_session_token(user)
+    response = RedirectResponse(url=redirect_to, status_code=status.HTTP_303_SEE_OTHER)
+    set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
+    record_user_action(
+        user.email,
+        action="login_keycloak",
+        details={"provider": "keycloak", "domain": user.domain, "role": user.role},
+    )
+    return response
 
 
 @app.get("/auth/logout")
