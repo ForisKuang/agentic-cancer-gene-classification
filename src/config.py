@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -58,6 +60,8 @@ class Settings(BaseSettings):
     aws_default_region: str = ""
     aws_profile: str = ""
     acgc_dev_mode: bool = False
+    agcg_dev_mode: bool = False
+    public_app_base_url: str = "https://acgc.oncokb.org"
     pubmed_max_results: int = 50
     fusion_evidence_max_results: int = 20
     fusion_evidence_cache_ttl_seconds: int = 604800
@@ -190,6 +194,55 @@ class Settings(BaseSettings):
     # throttle it, since OpenEvidence is not part of annotation_gene_concurrency's
     # gated critical path (see orchestrator.py's _annotate_gene).
     openevidence_sidecar_concurrency: int = 3
+
+    # Authentication & SSO Settings
+    auth_enabled: bool = False
+    auth_secret_key: str = ""
+    auth_cookie_name: str = "agcg_session"
+    auth_session_ttl_seconds: int = 604800  # 7 days
+    allowed_email_domains: str = "mskcc.org,openevidence.com"
+    allowed_emails: str = ""  # Optional comma-separated list of individual authorized emails
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = ""  # If left empty, computed from request or public_app_base_url
+    dev_login_enabled: bool = False  # Allows mock SSO login during local development/testing
+
+    # Enterprise SAML & SSO Settings
+    saml_enabled: bool = False
+    saml_sp_entity_id: str = ""  # If empty, defaults to {PUBLIC_APP_BASE_URL}/auth/saml/metadata
+    saml_idp_sso_url: str = ""  # IdP Single Sign-On HTTP-POST / Redirect URL
+    saml_idp_entity_id: str = ""  # IdP Issuer / Entity ID
+    saml_allowed_groups: str = ""  # Comma-separated list of required SAML groups (optional)
+    saml_admin_groups: str = ""  # Groups that map to the "admin" role
+
+    # JIT (Just-In-Time) Provisioning Settings
+    jit_provisioning_enabled: bool = True
+    jit_default_role: str = "curator"  # Default role for new users: curator, annotator, viewer
+    jit_require_admin_approval: bool = False  # If True, new JIT users start in pending status
+
+    @property
+    def allowed_domains_list(self) -> List[str]:
+        if not self.allowed_email_domains:
+            return []
+        return [d.strip().lower() for d in self.allowed_email_domains.split(",") if d.strip()]
+
+    @property
+    def allowed_emails_list(self) -> List[str]:
+        if not self.allowed_emails:
+            return []
+        return [e.strip().lower() for e in self.allowed_emails.split(",") if e.strip()]
+
+    @property
+    def saml_allowed_groups_list(self) -> List[str]:
+        if not self.saml_allowed_groups:
+            return []
+        return [g.strip() for g in self.saml_allowed_groups.split(",") if g.strip()]
+
+    @property
+    def saml_admin_groups_list(self) -> List[str]:
+        if not self.saml_admin_groups:
+            return []
+        return [g.strip() for g in self.saml_admin_groups.split(",") if g.strip()]
 
     log_level: str = "INFO"
 

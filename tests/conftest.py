@@ -51,3 +51,10 @@ def _reset_ncbi_rate_limiter():
     literature_module._ncbi_rate_limiter = None
     yield
     literature_module._ncbi_rate_limiter = None
+
+
+@pytest.fixture(autouse=True)
+def _default_auth_disabled(monkeypatch):
+    """Ensure tests run with auth_enabled=False by default (individual auth tests monkeypatch it to True)."""
+    from src.config import settings
+    monkeypatch.setattr(settings, "auth_enabled", False)

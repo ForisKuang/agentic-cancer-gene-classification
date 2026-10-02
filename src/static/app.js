@@ -49,6 +49,12 @@ const state = {
   inputMode: "single",
   queue: [],
   batchRows: Array.from({ length: 5 }, emptyRow),
+  auth: {
+    enabled: false,
+    authenticated: false,
+    user: null,
+    allowedDomains: [],
+  },
   enrichmentByGene: new Map(),
   // Breakpoint fields from the most recent submission, keyed by the exact
   // fusion string as submitted (matches GeneAnnotation.fusions entries) —
@@ -111,6 +117,19 @@ const elements = {
   runSummary: document.querySelector("#run-summary"),
   sidebarResizer: document.querySelector("#sidebar-resizer"),
   workspaceTitle: document.querySelector("#workspace-title"),
+  // auth elements
+  userAuthBar: document.querySelector("#user-auth-bar"),
+  userProfile: document.querySelector("#user-profile"),
+  userAvatar: document.querySelector("#user-avatar"),
+  userName: document.querySelector("#user-name"),
+  userRole: document.querySelector("#user-role"),
+  userEmail: document.querySelector("#user-email"),
+  signoutBtn: document.querySelector("#signout-btn"),
+  userSignin: document.querySelector("#user-signin"),
+  headerSigninBtn: document.querySelector("#header-signin-btn"),
+  authGateModal: document.querySelector("#auth-gate-modal"),
+  modalGoogleSigninBtn: document.querySelector("#modal-google-signin-btn"),
+  modalSamlSigninBtn: document.querySelector("#modal-saml-signin-btn"),
   // mode tabs
   tabSingle: document.querySelector("#tab-single"),
   tabBatch: document.querySelector("#tab-batch"),
@@ -234,6 +253,74 @@ function initSidebarResize() {
     if (!inlineWidth) return;
     setSidebarWidth(parseFloat(inlineWidth));
   });
+}
+
+// ---------------------------------------------------------------------------
+// Authentication & SSO status
+// ---------------------------------------------------------------------------
+
+async function checkAuth() {
+  try {
+    const response = await fetch("/auth/me");
+    if (!response.ok) return;
+    const payload = await response.json();
+    state.auth = payload;
+
+    if (!payload.auth_enabled) {
+      if (elements.userAuthBar) elements.userAuthBar.classList.add("hidden");
+      if (elements.authGateModal) elements.authGateModal.classList.add("hidden");
+      return;
+    }
+
+    if (elements.userAuthBar) elements.userAuthBar.classList.remove("hidden");
+
+    const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+    const loginHref = `/auth/login?redirect_to=${returnUrl}`;
+    const samlHref = `/auth/saml/login?redirect_to=${returnUrl}`;
+    if (elements.headerSigninBtn) elements.headerSigninBtn.href = loginHref;
+    if (elements.modalGoogleSigninBtn) elements.modalGoogleSigninBtn.href = loginHref;
+    if (elements.modalSamlSigninBtn) {
+      elements.modalSamlSigninBtn.href = samlHref;
+      if (payload.saml_enabled) {
+        elements.modalSamlSigninBtn.classList.remove("hidden");
+      } else {
+        elements.modalSamlSigninBtn.classList.add("hidden");
+      }
+    }
+
+    if (payload.authenticated && payload.user) {
+      if (elements.userProfile) elements.userProfile.classList.remove("hidden");
+      if (elements.userSignin) elements.userSignin.classList.add("hidden");
+      if (elements.authGateModal) elements.authGateModal.classList.add("hidden");
+
+      if (elements.userName) elements.userName.textContent = payload.user.name || payload.user.email;
+      if (elements.userRole) {
+        const role = payload.user.role || "curator";
+        elements.userRole.textContent = role;
+        elements.userRole.className = `user-role-badge role-${role.toLowerCase()}`;
+      }
+      if (elements.userEmail) elements.userEmail.textContent = payload.user.email;
+
+      if (elements.userAvatar) {
+        if (payload.user.picture) {
+          elements.userAvatar.innerHTML = `<img src="${payload.user.picture}" alt="" />`;
+        } else {
+          const initial = (payload.user.name || payload.user.email || "?").charAt(0).toUpperCase();
+          elements.userAvatar.textContent = initial;
+        }
+      }
+
+      if (elements.signoutBtn) {
+        elements.signoutBtn.href = "/auth/logout";
+      }
+    } else {
+      if (elements.userProfile) elements.userProfile.classList.add("hidden");
+      if (elements.userSignin) elements.userSignin.classList.remove("hidden");
+      if (elements.authGateModal) elements.authGateModal.classList.remove("hidden");
+    }
+  } catch (err) {
+    console.warn("Auth status check failed", err);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -3333,3 +3420,4 @@ renderGrid();
 updateExportState();
 loadDevStatus();
 loadSharedRun();
+checkAuth();
