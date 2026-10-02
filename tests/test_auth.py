@@ -15,9 +15,12 @@ from src.auth import (
     create_oauth_state,
     create_session_token,
     decode_session_token,
+    exchange_keycloak_code,
+    get_keycloak_auth_url,
     is_email_allowed,
     is_saml_group_allowed,
     list_user_profiles,
+    parse_keycloak_user,
     parse_saml_response,
     provision_or_update_user,
     record_user_annotation_activity,
@@ -756,6 +759,209 @@ def test_logout_redirects_to_login(monkeypatch):
     assert resp.headers["location"] == "/login"
     set_cookie = resp.headers.get("set-cookie", "")
     assert settings.auth_cookie_name in set_cookie
+
+
+def test_keycloak_auth_url_construction(monkeypatch):
+    monkeypatch.setattr(settings, "keycloak_url", "https://keycloak.oncokb.org")
+    monkeypatch.setattr(settings, "keycloak_realm", "oncokb-public")
+    monkeypatch.setattr(settings, "keycloak_client_id", "acgc")
+    monkeypatch.setattr(settings, "keycloak_ping_idp_alias", "msk-ping")
+
+    # 1. Default auth URL includes kc_idp_hint=msk-ping
+    url = get_keycloak_auth_url(
+        redirect_uri="https://acgc.oncokb.org/auth/callback/keycloak",
+        state="state-12345",
+    )
+    parsed = urlparse(url)
+    assert parsed.scheme == "https"
+    assert parsed.netloc == "keycloak.oncokb.org"
+    assert parsed.path == "/realms/oncokb-public/protocol/openid-connect/auth"
+    qs = parse_qs(parsed.query)
+    assert qs["client_id"] == ["acgc"]
+    assert qs["response_type"] == ["code"]
+    assert qs["scope"] == ["openid email profile"]
+    assert qs["redirect_uri"] == ["https://acgc.oncokb.org/auth/callback/keycloak"]
+    assert qs["state"] == ["state-12345"]
+    assert qs["kc_idp_hint"] == ["msk-ping"]
+
+    # 2. Explicit idp_hint override
+    url_google = get_keycloak_auth_url(
+        redirect_uri="https://acgc.oncokb.org/auth/callback/keycloak",
+        state="state-12345",
+        idp_hint="google",
+    )
+    qs_google = parse_qs(urlparse(url_google).query)
+    assert qs_google["kc_idp_hint"] == ["google"]
+
+    # 3. Suppress idp_hint with "none"
+    url_none = get_keycloak_auth_url(
+        redirect_uri="https://acgc.oncokb.org/auth/callback/keycloak",
+        state="state-12345",
+        idp_hint="none",
+    )
+    qs_none = parse_qs(urlparse(url_none).query)
+    assert "kc_idp_hint" not in qs_none
+
+
+def test_keycloak_login_endpoint(monkeypatch):
+    monkeypatch.setattr(settings, "auth_enabled", True)
+    monkeypatch.setattr(settings, "auth_secret_key", "secret-login-key-12345")
+    monkeypatch.setattr(settings, "keycloak_url", "https://keycloak.oncokb.org")
+    monkeypatch.setattr(settings, "keycloak_realm", "oncokb-public")
+    monkeypatch.setattr(settings, "keycloak_client_id", "acgc")
+    monkeypatch.setattr(settings, "keycloak_ping_idp_alias", "msk-ping")
+    client = TestClient(app)
+
+    # 1. Normal login redirect uses msk-ping idp hint by default
+    resp = client.get("/auth/keycloak/login?redirect_to=/jobs/456", follow_redirects=False)
+    assert resp.status_code == 303
+    loc = resp.headers["location"]
+    assert "keycloak.oncokb.org" in loc
+    assert "kc_idp_hint=msk-ping" in loc
+    assert "client_id=acgc" in loc
+
+    # 2. Explicit idp_hint query param
+    resp2 = client.get("/auth/keycloak/login?idp_hint=google", follow_redirects=False)
+    assert resp2.status_code == 303
+    assert "kc_idp_hint=google" in resp2.headers["location"]
+
+    # 3. Returns 501 when Keycloak client ID is not configured
+    monkeypatch.setattr(settings, "keycloak_client_id", "")
+    resp_unconfigured = client.get("/auth/keycloak/login", follow_redirects=False)
+    assert resp_unconfigured.status_code == 501
+
+
+@pytest.mark.asyncio
+async def test_keycloak_callback_flow(monkeypatch):
+    monkeypatch.setattr(settings, "auth_enabled", True)
+    monkeypatch.setattr(settings, "auth_secret_key", "secret-kc-key-12345")
+    monkeypatch.setattr(settings, "allowed_email_domains", "mskcc.org,openevidence.com")
+    monkeypatch.setattr(settings, "keycloak_url", "https://keycloak.oncokb.org")
+    monkeypatch.setattr(settings, "keycloak_realm", "oncokb-public")
+    monkeypatch.setattr(settings, "keycloak_client_id", "acgc")
+    monkeypatch.setattr(settings, "keycloak_client_secret", "mock-kc-secret")
+    monkeypatch.setattr(settings, "keycloak_admin_roles", "acgc-admin")
+    client = TestClient(app)
+
+    state = create_oauth_state(redirect_to="/results/job-kc-1")
+
+    fake_tokens = {
+        "access_token": "mock-access-token",
+        "id_token": "mock-id-token",
+    }
+
+    # Case A: Successful MSK user login with admin role mapping
+    fake_userinfo_msk = {
+        "email": "oncologist@mskcc.org",
+        "name": "MSK Oncologist",
+        "given_name": "MSK",
+        "family_name": "Oncologist",
+        "preferred_username": "oncomsk",
+        "groups": ["acgc-admin", "curators"],
+    }
+    with patch("src.main.exchange_keycloak_code", AsyncMock(return_value=fake_tokens)), \
+         patch("src.main.get_keycloak_user_info", AsyncMock(return_value=fake_userinfo_msk)):
+
+        resp = client.get(
+            f"/auth/callback/keycloak?code=fake-code-123&state={state}",
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        assert resp.headers["location"] == "/results/job-kc-1"
+        cookie = resp.cookies.get(settings.auth_cookie_name)
+        assert cookie is not None
+        user = decode_session_token(cookie)
+        assert user is not None
+        assert user.email == "oncologist@mskcc.org"
+        assert user.provider == "keycloak"
+        assert user.role == "admin"
+
+    # Case B: Unauthorized domain rejected with 403
+    fake_userinfo_external = {
+        "email": "intruder@gmail.com",
+        "name": "External User",
+    }
+    with patch("src.main.exchange_keycloak_code", AsyncMock(return_value=fake_tokens)), \
+         patch("src.main.get_keycloak_user_info", AsyncMock(return_value=fake_userinfo_external)):
+
+        resp_bad_domain = client.get(
+            f"/auth/callback/keycloak?code=fake-code-123&state={state}",
+            follow_redirects=False,
+        )
+        assert resp_bad_domain.status_code == 403
+        assert "Domain Not Authorized" in resp_bad_domain.text
+
+    # Case C: Keycloak upstream error
+    resp_err = client.get(
+        "/auth/callback/keycloak?error=access_denied&error_description=User+declined",
+        follow_redirects=False,
+    )
+    assert resp_err.status_code == 400
+
+    # Case D: Missing or invalid state
+    resp_bad_state = client.get(
+        "/auth/callback/keycloak?code=code-123&state=corrupted.state",
+        follow_redirects=False,
+    )
+    assert resp_bad_state.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_keycloak_exchange_missing_secret(monkeypatch):
+    monkeypatch.setattr(settings, "keycloak_url", "https://keycloak.oncokb.org")
+    monkeypatch.setattr(settings, "keycloak_client_id", "acgc")
+    monkeypatch.setattr(settings, "keycloak_client_secret", "")
+
+    from fastapi import HTTPException
+    with pytest.raises(HTTPException) as exc_info:
+        await exchange_keycloak_code("fake-code", "https://redirect.example.com")
+    assert exc_info.value.status_code == 500
+    assert "KEYCLOAK_CLIENT_SECRET" in exc_info.value.detail
+
+
+def test_auth_me_reflects_keycloak_status(monkeypatch):
+    monkeypatch.setattr(settings, "auth_enabled", True)
+    monkeypatch.setattr(settings, "auth_secret_key", "secret-test-key")
+    monkeypatch.setattr(settings, "keycloak_url", "https://keycloak.oncokb.org")
+    monkeypatch.setattr(settings, "keycloak_client_id", "acgc")
+    client = TestClient(app)
+
+    resp = client.get("/auth/me")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["keycloak_enabled"] is True
+
+
+def test_parse_keycloak_user(monkeypatch):
+    monkeypatch.setattr(settings, "keycloak_client_id", "acgc")
+    monkeypatch.setattr(settings, "keycloak_admin_roles", "acgc-admin,super-admin")
+    from fastapi import HTTPException
+
+    # 1. Normal user claims from userinfo
+    token_data = {"access_token": "token1", "id_token": "id1"}
+    userinfo = {
+        "email": "curator@mskcc.org",
+        "given_name": "Curator",
+        "family_name": "User",
+        "roles": ["acgc-admin"],
+    }
+    user = parse_keycloak_user(token_data, userinfo)
+    assert user.email == "curator@mskcc.org"
+    assert user.name == "Curator User"
+    assert user.role == "admin"
+    assert user.provider == "keycloak"
+
+    # 2. Email fallback to JWT payload if not in userinfo
+    fake_jwt_payload = base64.urlsafe_b64encode(b'{"email":"jwt.user@mskcc.org"}').decode().rstrip("=")
+    token_data_jwt = {"access_token": "token2", "id_token": f"header.{fake_jwt_payload}.sig"}
+    user2 = parse_keycloak_user(token_data_jwt, {"name": "JWT User"})
+    assert user2.email == "jwt.user@mskcc.org"
+    assert user2.name == "JWT User"
+
+    # 3. Missing email raises HTTPException 400
+    with pytest.raises(HTTPException) as exc_info:
+        parse_keycloak_user({}, {"name": "No Email"})
+    assert exc_info.value.status_code == 400
 
 
 
