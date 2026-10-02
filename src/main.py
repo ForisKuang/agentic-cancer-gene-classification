@@ -19,16 +19,42 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Coroutine, Dict, List, Literal, Optional
+from urllib.parse import parse_qs
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from benchmarks.run_benchmark import DEFAULT_HOLDOUT, run_benchmark
+from src.auth import (
+    AuthenticatedUser,
+    AuthMeResponse,
+    AuthUserResponse,
+    UserProfile,
+    build_saml_authn_request,
+    clear_session_cookie,
+    create_oauth_state,
+    create_session_token,
+    exchange_google_code,
+    generate_sp_metadata_xml,
+    get_current_user,
+    get_google_auth_url,
+    get_google_user_info,
+    is_email_allowed,
+    is_saml_group_allowed,
+    list_user_profiles,
+    parse_saml_response,
+    provision_or_update_user,
+    render_access_denied_html,
+    require_admin,
+    require_auth,
+    set_session_cookie,
+    verify_oauth_state,
+)
 from src.config import settings
 from src.logging_utils import install_secret_redaction_filter
 from src.models.schema import (
@@ -401,16 +427,32 @@ async def _persist_fusion_evidence(
         logger.exception("Failed to persist fusion evidence for run %s", run_id)
 
 
-def _request_user_id(request: Request) -> Optional[str]:
-    value = request.headers.get(settings.datadog_user_id_header)
-    return value.strip() if value and value.strip() else None
+def _public_app_base_url(request: Request) -> str:
+    configured = settings.public_app_base_url.strip().rstrip("/")
+    if configured:
+        return configured
+    return str(request.base_url).rstrip("/")
+
+
+def _request_user_id(request: Request, current_user: Optional[AuthenticatedUser] = None) -> Optional[str]:
+    header_val = request.headers.get(settings.datadog_user_id_header)
+    if header_val and header_val.strip():
+        return header_val.strip()
+    if isinstance(current_user, AuthenticatedUser) and current_user.email and current_user.provider != "local":
+        return current_user.email
+    user = get_current_user(request)
+    if user and user.email and user.provider != "local":
+        return user.email
+    return None
 
 
 def _record_annotation_request_metrics(
     request: AnnotateRequest | GeneAnnotateRequest,
     http_request: Request,
+    current_user: Optional[AuthenticatedUser] = None,
 ) -> None:
-    user_id = _request_user_id(http_request)
+    user = current_user if isinstance(current_user, AuthenticatedUser) else None
+    user_id = _request_user_id(http_request, user)
     tags = [
         f"mode:{request.mode}",
         f"local_backend:{request.local_backend or 'sdk'}",
@@ -420,6 +462,11 @@ def _record_annotation_request_metrics(
     tag_current_span(
         {
             "acgc.user.present": bool(user_id),
+            "acgc.user.email": user.email if user else "",
+            "acgc.user.domain": user.domain if user else "",
+            "acgc.fusions.requested": (
+                len(request.fusions) if isinstance(request, AnnotateRequest) else 1
+            ),
             "acgc.mode": request.mode,
             "acgc.local_backend": request.local_backend or "sdk",
             "acgc.skip_literature_for_oncokb": request.skip_literature_for_oncokb,
@@ -437,6 +484,348 @@ async def health() -> dict:
     return {"status": "ok"}
 
 
+@app.get("/auth/me", response_model=AuthMeResponse)
+async def auth_me(request: Request) -> AuthMeResponse:
+    user = get_current_user(request)
+    return AuthMeResponse(
+        auth_enabled=settings.auth_enabled,
+        authenticated=bool(user),
+        user=AuthUserResponse(
+            email=user.email,
+            name=user.name,
+            picture=user.picture,
+            domain=user.domain,
+            role=user.role,
+            status=user.status,
+            provider=user.provider,
+            groups=user.groups,
+        )
+        if user
+        else None,
+        allowed_domains=settings.allowed_domains_list,
+        saml_enabled=settings.saml_enabled,
+        jit_provisioning_enabled=settings.jit_provisioning_enabled,
+    )
+
+
+@app.get("/auth/login")
+async def auth_login(
+    request: Request,
+    redirect_to: Optional[str] = "/",
+) -> Response:
+    if settings.google_client_id.strip():
+        if settings.google_redirect_uri.strip():
+            redirect_uri = settings.google_redirect_uri.strip()
+        else:
+            redirect_uri = f"{_public_app_base_url(request)}/auth/callback/google"
+        state = create_oauth_state(redirect_to=redirect_to or "/")
+        google_url = get_google_auth_url(redirect_uri=redirect_uri, state=state)
+        return RedirectResponse(url=google_url)
+
+    if settings.saml_enabled and settings.saml_idp_sso_url.strip():
+        return RedirectResponse(url=f"/auth/saml/login?redirect_to={redirect_to or '/'}")
+
+    if settings.dev_login_enabled or settings.agcg_dev_mode:
+        return RedirectResponse(url=f"/auth/dev/login?redirect_to={redirect_to or '/'}")
+
+    raise HTTPException(
+        status_code=500,
+        detail="No authentication provider configured. Please configure Google OAuth or Enterprise SAML.",
+    )
+
+
+@app.get("/auth/callback/google")
+async def auth_callback_google(
+    request: Request,
+    code: Optional[str] = None,
+    state: Optional[str] = None,
+    error: Optional[str] = None,
+) -> Response:
+    if error:
+        return HTMLResponse(
+            render_access_denied_html(
+                email="Unknown",
+                reason=f"Google OAuth authorization error: {error}",
+            ),
+            status_code=400,
+        )
+
+    if not code or not state:
+        raise HTTPException(status_code=400, detail="Missing OAuth authorization code or state")
+
+    state_data = verify_oauth_state(state)
+    if not state_data:
+        raise HTTPException(status_code=400, detail="Invalid or expired OAuth state token")
+
+    redirect_uri = settings.google_redirect_uri.strip() or f"{_public_app_base_url(request)}/auth/callback/google"
+
+    tokens = await exchange_google_code(code, redirect_uri=redirect_uri)
+    access_token = tokens.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=400, detail="Failed to obtain access token from Google")
+
+    userinfo = await get_google_user_info(access_token)
+    email = str(userinfo.get("email") or "").strip().lower()
+    email_verified = bool(userinfo.get("email_verified"))
+
+    if not email_verified:
+        return HTMLResponse(
+            render_access_denied_html(
+                email=email,
+                reason="Google reports that this email address is unverified.",
+            ),
+            status_code=403,
+        )
+
+    allowed, reason = is_email_allowed(email)
+    if not allowed:
+        logger.warning("Rejected unauthorized domain login attempt: %s", email)
+        return HTMLResponse(
+            render_access_denied_html(email=email, reason=reason),
+            status_code=403,
+        )
+
+    profile = await provision_or_update_user(
+        email=email,
+        name=str(userinfo.get("name") or email),
+        picture=userinfo.get("picture"),
+        domain=email.split("@")[-1],
+        provider="google",
+    )
+
+    if profile.status == "pending":
+        return HTMLResponse(
+            render_access_denied_html(
+                email=email,
+                reason="Your account has been provisioned but is pending administrator approval before access is granted.",
+            ),
+            status_code=403,
+        )
+
+    user = AuthenticatedUser(
+        email=profile.email,
+        name=profile.name,
+        picture=profile.picture,
+        domain=profile.domain,
+        role=profile.role,
+        status=profile.status,
+        provider=profile.provider,
+        groups=profile.groups,
+    )
+    session_token = create_session_token(user)
+    target_url = state_data.get("redirect_to") or "/"
+    response = RedirectResponse(url=target_url, status_code=303)
+    set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
+    return response
+
+
+@app.get("/auth/saml/login")
+async def auth_saml_login(
+    request: Request,
+    redirect_to: Optional[str] = "/",
+) -> Response:
+    if not settings.saml_enabled:
+        raise HTTPException(status_code=400, detail="Enterprise SAML SSO is not enabled")
+    if not settings.saml_idp_sso_url.strip():
+        raise HTTPException(
+            status_code=500,
+            detail="SAML IdP SSO URL is not configured. Please set SAML_IDP_SSO_URL in your environment.",
+        )
+    acs_url = f"{_public_app_base_url(request)}/auth/saml/acs"
+    _, redirect_url = build_saml_authn_request(acs_url=acs_url, relay_state=redirect_to or "/")
+    return RedirectResponse(url=redirect_url)
+
+
+@app.post("/auth/saml/acs")
+@app.get("/auth/saml/acs")
+async def auth_saml_acs(request: Request) -> Response:
+    if not settings.saml_enabled:
+        raise HTTPException(status_code=400, detail="Enterprise SAML SSO is not enabled")
+
+    saml_response = None
+    relay_state = None
+    content_type = request.headers.get("content-type", "")
+
+    if "application/json" in content_type:
+        try:
+            body_json = await request.json()
+            saml_response = body_json.get("SAMLResponse")
+            relay_state = body_json.get("RelayState")
+        except (ValueError, TypeError, KeyError) as exc:
+            logger.debug("Failed parsing SAML JSON payload: %s", exc)
+
+    if not saml_response:
+        try:
+            raw_body = (await request.body()).decode("utf-8", errors="replace")
+            parsed = parse_qs(raw_body)
+            saml_response = parsed.get("SAMLResponse", [None])[0]
+            relay_state = parsed.get("RelayState", [None])[0]
+        except (ValueError, TypeError, KeyError) as exc:
+            logger.debug("Failed parsing SAML form-urlencoded body: %s", exc)
+
+    if not saml_response:
+        saml_response = request.query_params.get("SAMLResponse")
+        relay_state = relay_state or request.query_params.get("RelayState")
+
+    if not saml_response:
+        raise HTTPException(status_code=400, detail="Missing SAMLResponse in request")
+
+    assertion = parse_saml_response(saml_response)
+    email = assertion.name_id.strip().lower()
+
+    if not email:
+        raise HTTPException(status_code=400, detail="SAML assertion did not contain an email address")
+
+    # Domain verification
+    allowed, domain_reason = is_email_allowed(email)
+    if not allowed:
+        logger.warning("Rejected unauthorized domain SAML login attempt: %s", email)
+        return HTMLResponse(
+            render_access_denied_html(email=email, reason=domain_reason),
+            status_code=403,
+        )
+
+    # SAML Group claim verification
+    group_allowed, group_reason = is_saml_group_allowed(assertion.groups)
+    if not group_allowed:
+        logger.warning(
+            "Rejected SAML user %s due to unauthorized group membership: %s",
+            email,
+            assertion.groups,
+        )
+        return HTMLResponse(
+            render_access_denied_html(email=email, reason=group_reason),
+            status_code=403,
+        )
+
+    # JIT Provisioning
+    profile = await provision_or_update_user(
+        email=email,
+        name=assertion.display_name or email,
+        domain=email.split("@")[-1],
+        provider="saml",
+        groups=assertion.groups,
+        claims=assertion.attributes,
+    )
+
+    if profile.status == "pending":
+        return HTMLResponse(
+            render_access_denied_html(
+                email=email,
+                reason="Your account has been provisioned but is pending administrator approval before access is granted.",
+            ),
+            status_code=403,
+        )
+
+    user = AuthenticatedUser(
+        email=profile.email,
+        name=profile.name,
+        picture=profile.picture,
+        domain=profile.domain,
+        role=profile.role,
+        status=profile.status,
+        provider=profile.provider,
+        groups=profile.groups,
+    )
+    session_token = create_session_token(user)
+    target_url = relay_state or "/"
+    response = RedirectResponse(url=target_url, status_code=303)
+    set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
+    return response
+
+
+@app.get("/auth/saml/metadata")
+async def auth_saml_metadata(request: Request) -> Response:
+    acs_url = f"{_public_app_base_url(request)}/auth/saml/acs"
+    xml_content = generate_sp_metadata_xml(
+        acs_url=acs_url,
+        sp_entity_id=settings.saml_sp_entity_id or None,
+    )
+    return Response(content=xml_content, media_type="application/xml")
+
+
+@app.get("/auth/logout")
+@app.post("/auth/logout")
+async def auth_logout() -> Response:
+    response = RedirectResponse(url="/", status_code=303)
+    clear_session_cookie(response)
+    return response
+
+
+@app.get("/auth/dev/login")
+async def auth_dev_login(
+    request: Request,
+    email: Optional[str] = None,
+    name: Optional[str] = None,
+    role: Optional[str] = None,
+    redirect_to: Optional[str] = "/",
+) -> Response:
+    if not (settings.dev_login_enabled or settings.agcg_dev_mode):
+        raise HTTPException(status_code=404, detail="Dev login is disabled in production")
+
+    if not email:
+        return HTMLResponse(
+            """<!doctype html>
+<html>
+<head>
+  <title>Dev Login Selector — AGCG</title>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #f5f7f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .card { background: white; border: 1px solid #cdd6dc; border-radius: 8px; padding: 28px; max-width: 460px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    h2 { margin-top: 0; }
+    p { color: #60717c; font-size: 14px; }
+    a.btn { display: block; margin: 10px 0; padding: 12px; background: #0f766e; color: white; text-decoration: none; border-radius: 6px; text-align: center; font-weight: 500; font-size: 14px; }
+    a.btn-denied { background: #b42318; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>SSO Dev Login Selector</h2>
+    <p>Choose a mock identity to test domain verification (@mskcc.org and @openevidence.com):</p>
+    <a class="btn" href="/auth/dev/login?email=curator@mskcc.org&name=MSK%20Curator">Log in as curator@mskcc.org (MSK domain - Allowed)</a>
+    <a class="btn" href="/auth/dev/login?email=scientist@openevidence.com&name=OpenEvidence%20Scientist">Log in as scientist@openevidence.com (OpenEvidence domain - Allowed)</a>
+    <a class="btn" href="/auth/dev/login?email=admin@mskcc.org&name=MSK%20Admin&role=admin">Log in as admin@mskcc.org (MSK Admin)</a>
+    <a class="btn btn-denied" href="/auth/dev/login?email=unauthorized@gmail.com&name=Unauthorized%20User">Test Unauthorized domain (unauthorized@gmail.com - Blocked)</a>
+  </div>
+</body>
+</html>
+"""
+        )
+
+    allowed, reason = is_email_allowed(email)
+    if not allowed:
+        return HTMLResponse(render_access_denied_html(email=email, reason=reason), status_code=403)
+
+    clean_email = email.strip().lower()
+    profile = await provision_or_update_user(
+        email=clean_email,
+        name=name or clean_email,
+        domain=clean_email.split("@")[-1],
+        provider="dev",
+        groups=["admin-group"] if role == "admin" else [],
+    )
+    user = AuthenticatedUser(
+        email=profile.email,
+        name=profile.name,
+        domain=profile.domain,
+        role=role or profile.role,
+        status=profile.status,
+        provider="dev",
+        groups=profile.groups,
+    )
+    session_token = create_session_token(user)
+    response = RedirectResponse(url=redirect_to or "/", status_code=303)
+    set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
+    return response
+
+
+@app.get("/auth/users", response_model=List[UserProfile])
+async def auth_list_users(
+    current_user: AuthenticatedUser = Depends(require_admin),
+) -> List[UserProfile]:
+    return await list_user_profiles()
+
+
 @app.get("/v1/dev/status", response_model=DevStatusResponse)
 async def dev_status() -> DevStatusResponse:
     # Piggybacks on the existing page-load bootstrap call rather than adding
@@ -451,7 +840,11 @@ async def dev_status() -> DevStatusResponse:
 
 
 @app.post("/v1/annotate", response_model=AnnotationResult)
-async def annotate(request: AnnotateRequest, http_request: Request) -> AnnotationResult:
+async def annotate(
+    request: AnnotateRequest,
+    http_request: Request,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> AnnotationResult:
     """
     Annotate a list of candidate genes or gene fusions.
 
@@ -462,7 +855,7 @@ async def annotate(request: AnnotateRequest, http_request: Request) -> Annotatio
     Input supports plain strings or structured objects with optional tumor_type and breakpoint fields:
     `{ "fusions": ["ALK", {"fusion": "EML4::ALK", "tumor_type": "LUAD"}] }`
     """
-    _record_annotation_request_metrics(request, http_request)
+    _record_annotation_request_metrics(request, http_request, current_user)
     try:
         result = await run_pipeline(
             request.fusions,
@@ -485,8 +878,9 @@ async def annotate(request: AnnotateRequest, http_request: Request) -> Annotatio
 async def create_annotation_job(
     request: AnnotateRequest,
     http_request: Request,
+    current_user: AuthenticatedUser = Depends(require_auth),
 ) -> AnnotationJobCreateResponse:
-    _record_annotation_request_metrics(request, http_request)
+    _record_annotation_request_metrics(request, http_request, current_user)
     await _evict_stale_annotation_jobs()
 
     job_id = str(uuid.uuid4())
@@ -548,13 +942,17 @@ async def create_annotation_job(
 
 
 @app.get("/v1/annotate/jobs/{job_id}", response_model=AnnotationJobStatusResponse)
-async def get_annotation_job(job_id: str) -> AnnotationJobStatusResponse:
+async def get_annotation_job(
+    job_id: str,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> AnnotationJobStatusResponse:
     return await _get_annotation_job(job_id)
 
 
 @app.post("/v1/annotate/enrichment/jobs", response_model=EnrichmentJobCreateResponse)
 async def create_enrichment_job(
     request: EnrichmentRequest,
+    current_user: AuthenticatedUser = Depends(require_auth),
 ) -> EnrichmentJobCreateResponse:
     """Lazily enrich already-returned core annotations in the background."""
     job_id = str(uuid.uuid4())
@@ -609,7 +1007,10 @@ async def create_enrichment_job(
 
 
 @app.get("/v1/annotate/enrichment/jobs/{job_id}", response_model=EnrichmentJobStatusResponse)
-async def get_enrichment_job(job_id: str) -> EnrichmentJobStatusResponse:
+async def get_enrichment_job(
+    job_id: str,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> EnrichmentJobStatusResponse:
     return await _get_enrichment_job(job_id)
 
 
@@ -617,6 +1018,7 @@ async def get_enrichment_job(job_id: str) -> EnrichmentJobStatusResponse:
 async def create_fusion_evidence_job(
     request: FusionEvidenceJobRequest,
     http_request: Request,
+    current_user: AuthenticatedUser = Depends(require_auth),
 ) -> FusionEvidenceJobCreateResponse:
     """Run exact fusion-pair PubMed evidence retrieval outside the annotation critical path."""
     fusion_inputs = _fusion_evidence_inputs(request.fusions)
@@ -678,19 +1080,26 @@ async def create_fusion_evidence_job(
 
 
 @app.get("/v1/fusion-evidence/jobs/{job_id}", response_model=FusionEvidenceJobStatusResponse)
-async def get_fusion_evidence_job(job_id: str) -> FusionEvidenceJobStatusResponse:
+async def get_fusion_evidence_job(
+    job_id: str,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> FusionEvidenceJobStatusResponse:
     return await _get_fusion_evidence_job(job_id)
 
 
 @app.post("/v1/annotate/gene", response_model=GeneAnnotation)
-async def annotate_gene(request: GeneAnnotateRequest, http_request: Request) -> GeneAnnotation:
+async def annotate_gene(
+    request: GeneAnnotateRequest,
+    http_request: Request,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> GeneAnnotation:
     """
     Annotate a single gene and return the result-card payload as JSON.
 
     This is a convenience endpoint for external REST clients. For batch runs or
     mixed gene/fusion inputs, use POST /v1/annotate.
     """
-    _record_annotation_request_metrics(request, http_request)
+    _record_annotation_request_metrics(request, http_request, current_user)
     gene_input = FusionInput(gene=request.gene, tumor_type=request.tumor_type)
     try:
         result = await run_pipeline(
@@ -713,7 +1122,11 @@ async def annotate_gene(request: GeneAnnotateRequest, http_request: Request) -> 
 
 
 @app.get("/v1/annotate/{run_id}", response_model=AnnotationResult)
-async def get_annotation_run(run_id: str, http_request: Request) -> AnnotationResult:
+async def get_annotation_run(
+    run_id: str,
+    http_request: Request,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> AnnotationResult:
     """Fetch a previously-computed annotation run by ID, without recomputing it."""
     stored = await http_request.app.state.run_store.get_run(run_id)
     if stored is None:
@@ -729,7 +1142,10 @@ async def get_annotation_run(run_id: str, http_request: Request) -> AnnotationRe
 
 
 @app.post("/v1/fusion-context", response_model=FusionContextResponse)
-async def fusion_context(request: FusionInput) -> FusionContextResponse:
+async def fusion_context(
+    request: FusionInput,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> FusionContextResponse:
     """
     On-demand protein-domain-retention and treatment-knowledge lookup for a single
     fusion, via the sibling fusion-annotation service. Deliberately NOT part of
@@ -782,6 +1198,7 @@ async def get_gene_openevidence(
     insufficient_evidence: bool = False,
     core_pmids: List[str] = Query(default=[]),
     core_titles: List[str] = Query(default=[]),
+    current_user: AuthenticatedUser = Depends(require_auth),
 ) -> OpenEvidenceSidecarResponse:
     """
     On-demand, non-blocking OpenEvidence lookup for a single gene, rendered
@@ -862,7 +1279,10 @@ async def get_gene_openevidence(
 
 
 @app.post("/v1/fusion-partner-evidence", response_model=FusionPartnerEvidenceResult)
-async def fusion_partner_evidence(request: FusionPartnerEvidenceRequest) -> FusionPartnerEvidenceResult:
+async def fusion_partner_evidence(
+    request: FusionPartnerEvidenceRequest,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> FusionPartnerEvidenceResult:
     """
     On-demand check for whether a fusion partner gene has precedent as an oncogenic
     fusion partner elsewhere — a different question from /v1/fusion-evidence/jobs,
@@ -1116,7 +1536,11 @@ def _check_feedback_rate_limit(request: Request) -> None:
 
 
 @app.post("/v1/feedback", response_model=FeedbackResponse, status_code=201)
-async def submit_feedback(payload: FeedbackRequest, http_request: Request) -> FeedbackResponse:
+async def submit_feedback(
+    payload: FeedbackRequest,
+    http_request: Request,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> FeedbackResponse:
     """
     Beta feedback intake. Stores run_id/gene alongside the message so a
     reported issue can be traced back to the exact run that produced it,
@@ -1153,7 +1577,10 @@ async def submit_feedback(payload: FeedbackRequest, http_request: Request) -> Fe
 
 
 @app.post("/v1/dev/benchmark")
-async def benchmark(request: BenchmarkRequest) -> dict:
+async def benchmark(
+    request: BenchmarkRequest,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> dict:
     require_dev_mode()
     try:
         return await run_benchmark(
