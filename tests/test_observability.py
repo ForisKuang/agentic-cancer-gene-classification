@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from contextlib import contextmanager
 
 from fastapi.testclient import TestClient
@@ -455,4 +456,117 @@ def test_annotate_endpoint_records_user_header(monkeypatch):
     assert seen == {
         "user_id": "curator@example.com",
         "tags": ["mode:core", "local_backend:sdk", "skip_literature_for_oncokb:False"],
+    }
+
+
+def test_user_context_lifecycle():
+    token = observability.set_user_context(
+        user_id="curator@mskcc.org",
+        email="curator@mskcc.org",
+        name="MSK Curator",
+        role="curator",
+        domain="mskcc.org",
+    )
+    ctx = observability.get_user_context()
+    assert ctx["user_id"] == "curator@mskcc.org"
+    assert ctx["email"] == "curator@mskcc.org"
+    assert ctx["name"] == "MSK Curator"
+    assert ctx["role"] == "curator"
+    assert ctx["domain"] == "mskcc.org"
+
+    observability.reset_user_context(token)
+    assert observability.get_user_context() == {}
+
+
+def test_datadog_log_record_factory_injects_user_context():
+    token = observability.set_user_context(
+        user_id="curator@mskcc.org",
+        email="curator@mskcc.org",
+        name="MSK Curator",
+    )
+    try:
+        record = logging.LogRecord("test", logging.INFO, "test.py", 10, "Hello", (), None)
+        record = main._datadog_log_record_factory(
+            record.name, record.levelno, record.pathname, record.lineno,
+            record.msg, record.args, record.exc_info
+        )
+        assert getattr(record, "usr.id") == "curator@mskcc.org"
+        assert getattr(record, "usr.email") == "curator@mskcc.org"
+        assert getattr(record, "usr.name") == "MSK Curator"
+    finally:
+        observability.reset_user_context(token)
+
+
+def test_record_user_action_structured_logging_and_metrics(monkeypatch, caplog):
+    fake_statsd = FakeStatsd()
+    monkeypatch.setattr("src.observability.settings.datadog_metrics_enabled", True)
+    monkeypatch.setattr("src.observability._statsd_client", fake_statsd)
+    monkeypatch.setattr("src.observability.settings.datadog_tag_user_metrics", True)
+
+    with caplog.at_level(logging.INFO):
+        observability.record_user_action(
+            "curator@mskcc.org",
+            action="annotate",
+            details={"mode": "core", "inputs_count": 2},
+            tags=["mode:core"],
+        )
+
+    # Check DogStatsD metrics
+    assert ("set", "users.active", stable_user_key("curator@mskcc.org"), ["mode:core"]) in fake_statsd.calls
+    assert (
+        "increment",
+        "users.activity",
+        1,
+        ["mode:core", "action:annotate", "user:curator@mskcc.org"],
+    ) in fake_statsd.calls
+
+    # Check structured log
+    assert any(
+        "USER_ACTION: action=annotate user=curator@mskcc.org mode=core inputs_count=2" in rec.message
+        for rec in caplog.records
+    )
+
+
+def test_record_user_action_anonymous(monkeypatch, caplog):
+    fake_statsd = FakeStatsd()
+    monkeypatch.setattr("src.observability.settings.datadog_metrics_enabled", True)
+    monkeypatch.setattr("src.observability._statsd_client", fake_statsd)
+
+    with caplog.at_level(logging.INFO):
+        observability.record_user_action(None, action="request")
+
+    assert fake_statsd.calls == [
+        ("increment", "users.anonymous_requests", 1, ["action:request"])
+    ]
+    assert any("USER_ACTION: action=request user=anonymous" in rec.message for rec in caplog.records)
+
+
+def test_tag_user_sets_active_span_metadata(monkeypatch):
+    class FakeSpan:
+        def __init__(self):
+            self.tags = {}
+
+        def set_tags(self, tags):
+            self.tags.update(tags)
+
+    fake_span = FakeSpan()
+
+    class FakeTracer:
+        def current_span(self):
+            return fake_span
+
+    monkeypatch.setitem(__import__("sys").modules, "ddtrace", type("_mod", (), {"tracer": FakeTracer()}))
+
+    observability.tag_user(
+        user_id="curator@mskcc.org",
+        email="curator@mskcc.org",
+        name="MSK Curator",
+        role="curator",
+    )
+
+    assert fake_span.tags == {
+        "usr.id": "curator@mskcc.org",
+        "usr.email": "curator@mskcc.org",
+        "usr.name": "MSK Curator",
+        "usr.role": "curator",
     }

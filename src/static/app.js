@@ -275,18 +275,8 @@ async function checkAuth() {
     if (elements.userAuthBar) elements.userAuthBar.classList.remove("hidden");
 
     const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-    const loginHref = `/auth/login?redirect_to=${returnUrl}`;
-    const samlHref = `/auth/saml/login?redirect_to=${returnUrl}`;
-    if (elements.headerSigninBtn) elements.headerSigninBtn.href = loginHref;
-    if (elements.modalGoogleSigninBtn) elements.modalGoogleSigninBtn.href = loginHref;
-    if (elements.modalSamlSigninBtn) {
-      elements.modalSamlSigninBtn.href = samlHref;
-      if (payload.saml_enabled) {
-        elements.modalSamlSigninBtn.classList.remove("hidden");
-      } else {
-        elements.modalSamlSigninBtn.classList.add("hidden");
-      }
-    }
+    const loginPageHref = `/login?redirect_to=${returnUrl}`;
+    if (elements.headerSigninBtn) elements.headerSigninBtn.href = loginPageHref;
 
     if (payload.authenticated && payload.user) {
       if (elements.userProfile) elements.userProfile.classList.remove("hidden");
@@ -316,7 +306,8 @@ async function checkAuth() {
     } else {
       if (elements.userProfile) elements.userProfile.classList.add("hidden");
       if (elements.userSignin) elements.userSignin.classList.remove("hidden");
-      if (elements.authGateModal) elements.authGateModal.classList.remove("hidden");
+      if (elements.authGateModal) elements.authGateModal.classList.add("hidden");
+      window.location.href = loginPageHref;
     }
   } catch (err) {
     console.warn("Auth status check failed", err);

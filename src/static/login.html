@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign In — Cancer Gene Classification</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon-180.png" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body class="login-body">
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-header">
+          <div class="login-logo-wrap">
+            <img src="/static/favicon.svg" alt="Cancer Gene Classification Logo" width="40" height="40" />
+          </div>
+          <h1 class="login-title">Cancer Gene Classification</h1>
+          <p class="login-lead">MSK TARGET Gene Triaging Platform</p>
+        </div>
+
+        <div class="login-divider"></div>
+
+        <div class="login-content">
+          <h2>Sign in to continue</h2>
+          <p class="login-desc">
+            Access to this curation portal is restricted to authorized personnel from approved institutional domains.
+          </p>
+
+          <div class="login-domains">
+            <span class="login-domain-pill">@mskcc.org</span>
+            <span class="login-domain-pill">@openevidence.com</span>
+          </div>
+
+          <div class="login-buttons">
+            <a class="login-btn-saml hidden" id="saml-btn" href="/auth/saml/login">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+              <span>Enterprise SSO (MSK Login)</span>
+            </a>
+
+            <a class="login-btn-google" id="google-btn" href="/auth/login">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span>Sign in with Google</span>
+            </a>
+
+            <div class="login-dev-wrap hidden" id="dev-login-wrap">
+              <span class="login-dev-divider">or</span>
+              <a class="login-dev-link" id="dev-login-link" href="/auth/dev/login">
+                Dev / Mock SSO Login &rarr;
+              </a>
+            </div>
+          </div>
+
+          <div class="login-footer">
+            <p>
+              Only verified accounts with <code>@mskcc.org</code> or <code>@openevidence.com</code> are permitted.
+            </p>
+            <p class="login-support">
+              Authorized sessions remain valid for 7 days. Need access? Contact the OncoKB team.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (async function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get('redirect_to') || '/';
+        const encodedRedirect = encodeURIComponent(redirectTo);
+
+        const googleBtn = document.getElementById('google-btn');
+        const samlBtn = document.getElementById('saml-btn');
+        const devWrap = document.getElementById('dev-login-wrap');
+        const devLink = document.getElementById('dev-login-link');
+
+        if (googleBtn) googleBtn.href = `/auth/login?redirect_to=${encodedRedirect}`;
+        if (samlBtn) samlBtn.href = `/auth/saml/login?redirect_to=${encodedRedirect}`;
+        if (devLink) devLink.href = `/auth/dev/login?redirect_to=${encodedRedirect}`;
+
+        try {
+          const resp = await fetch('/auth/me');
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.authenticated && data.user) {
+              window.location.href = redirectTo;
+              return;
+            }
+            if (data.saml_enabled && samlBtn) {
+              samlBtn.classList.remove('hidden');
+            }
+            if (data.dev_login_enabled && devWrap) {
+              devWrap.classList.remove('hidden');
+            }
+          }
+        } catch (e) {
+          console.warn('Auth check on login page failed', e);
+        }
+      })();
+    </script>
+  </body>
+</html>
