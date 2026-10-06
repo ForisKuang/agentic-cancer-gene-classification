@@ -6,14 +6,20 @@ OncoKB (tests/test_db_lookups.py) and PubMed (tests/test_literature_cache.py).
 
 Event fixtures below are the REAL, confirmed shapes — verified against both
 the official OpenEvidence API docs and a live-captured streaming response
-(HTTP 200, real API key, question about BRAF V600E in melanoma). There is no
-`[DONE]` sentinel anywhere in the real contract; citation data is nested
-under event["reference"]["reference_detail"], not flat top-level fields.
+(HTTP 200, real API key, question about BRAF V600E in melanoma). Citation
+data is nested under event["reference"]["reference_detail"], not flat
+top-level fields. Full raw osler SSE streams (sanitized: request/analysis ids
+replaced, no auth data) live in tests/fixtures/openevidence/ — they carry the
+real request-id/analysis-id/[DONE] framing and InlineGenerationStep widget
+deltas that the hand-written fixtures here don't.
 """
 
 from __future__ import annotations
 
 import json
+import logging
+import re
+from pathlib import Path
 
 import httpx
 import pytest
@@ -22,6 +28,7 @@ from tenacity import RetryError
 from src.config import settings
 from src.models.schema import OpenEvidenceCitation
 from src.pipeline import cache as cache_module
+from src.pipeline import openevidence as openevidence_module
 from src.pipeline.openevidence import (
     OpenEvidenceClient,
     OpenEvidenceConfigurationError,
@@ -30,6 +37,7 @@ from src.pipeline.openevidence import (
     _cache_key,
     _iter_sse_payloads,
     _parse_sse_events,
+    distill_openevidence,
 )
 
 # Verbatim (real, live-captured) NCCN guideline citation — note the absence
@@ -601,3 +609,161 @@ async def test_get_gene_analysis_does_not_retry_on_timeout():
             await client.get_gene_analysis("BRAF", client=http_client)
 
     assert attempts["count"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Real wire-format regressions (tests/fixtures/openevidence/*_osler_raw.sse,
+# captured 2026-10-06 from the live /streaming/analysis endpoint, model=osler)
+# ---------------------------------------------------------------------------
+
+_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "openevidence"
+
+# gene -> (fixture, expected consensus_role prefix)
+_REAL_STREAMS = {
+    "EGFR": ("egfr_osler_raw.sse", "Targeted therapy for EGFR alterations is overwhelmingly a non–"),
+    "TP53": ("tp53_osler_raw.sse", "No TP53-directed targeted therapy is currently approved or endorsed"),
+    "ALK": ("alk_osler_raw.sse", "ALK inhibitors are the standard targeted therapy for ALK-rearranged"),
+}
+_WIDGET_MARKER = "REACTCOMPONENT!:!InlineGenerationStep!:!"
+
+
+def _real_stream(gene: str) -> str:
+    return (_FIXTURE_DIR / _REAL_STREAMS[gene][0]).read_text()
+
+
+def _raw_joined_text(raw: str) -> str:
+    """Every `text` delta on the wire, concatenated, with no cleaning."""
+    return "".join(event.get("text", "") for event in _parse_sse_events(raw) if "table" not in event)
+
+
+def _leading_only_strip_text(raw: str) -> str:
+    """analysis.text exactly as the pre-fix leading-only strip produced and
+    cached it: the first complete leading widget removed, nothing else."""
+    text = _raw_joined_text(raw)
+    _, end = json.JSONDecoder().raw_decode(text[len(_WIDGET_MARKER):])
+    return text[len(_WIDGET_MARKER) + end:].lstrip()
+
+
+def test_real_stream_second_leading_widget_arrives_headless_on_the_wire():
+    """Root cause, pinned to the raw capture: the first leading widget is
+    complete, but the next widget state's marker, `{"steps": [{"` and most of
+    its first callid UUID never reach the wire — the very next delta starts
+    four characters before that UUID ends."""
+    for gene in _REAL_STREAMS:
+        text = _raw_joined_text(_real_stream(gene))
+        assert text.startswith(_WIDGET_MARKER)
+        assert text.count(_WIDGET_MARKER) in (1, 3)  # leading + optional mid-answer pair
+        orphan = _leading_only_strip_text(_real_stream(gene))
+        assert re.match(r'[0-9a-f]{4}", "kind": "search"', orphan), orphan[:40]
+
+
+@pytest.mark.parametrize("gene", sorted(_REAL_STREAMS))
+def test_real_stream_parses_without_malformed_payload_warnings(gene, caplog):
+    """request-id / analysis-id named events and the trailing [DONE] are
+    protocol framing, not malformed deltas."""
+    raw = _real_stream(gene)
+    assert "event: request-id" in raw and "event: analysis-id" in raw and "data: [DONE]" in raw
+    with caplog.at_level(logging.WARNING, logger="src.pipeline.openevidence"):
+        events = _parse_sse_events(raw)
+    assert not [r for r in caplog.records if "malformed" in r.getMessage()]
+    assert len(events) == raw.count("\ndata: {") + raw.startswith("data: {")
+
+
+@pytest.mark.parametrize("gene", sorted(_REAL_STREAMS))
+def test_real_stream_text_has_no_widget_metadata(gene):
+    analysis = _build_analysis("q", _parse_sse_events(_real_stream(gene)))
+
+    assert "REACTCOMPONENT" not in analysis.text
+    assert '"callid"' not in analysis.text
+    assert "InlineGenerationStep" not in analysis.text
+    assert '"paragraphindex"' not in analysis.text
+    assert analysis.text == analysis.text.strip()
+
+
+@pytest.mark.parametrize("gene", sorted(_REAL_STREAMS))
+def test_real_stream_consensus_role_starts_with_prose(gene):
+    analysis = _build_analysis("q", _parse_sse_events(_real_stream(gene)))
+    consensus_role = distill_openevidence(analysis).consensus_role
+
+    assert consensus_role is not None
+    assert consensus_role.startswith(_REAL_STREAMS[gene][1])
+    assert "callid" not in consensus_role and '"kind"' not in consensus_role
+
+
+@pytest.mark.parametrize("gene", sorted(_REAL_STREAMS))
+def test_real_stream_preserves_all_prose_citations_and_markers(gene):
+    """Only widget JSON is removed: every citation marker, every distinct
+    citation, and every non-whitespace character of prose on the wire
+    survives, in order."""
+    raw = _real_stream(gene)
+    raw_text = _raw_joined_text(raw)
+    analysis = _build_analysis("q", _parse_sse_events(raw))
+
+    assert re.findall(r"\[\[\d+\]\]", analysis.text) == re.findall(r"\[\[\d+\]\]", raw_text)
+    wire_keys = {
+        str(event["reference"]["citation_key"])
+        for event in _parse_sse_events(raw)
+        if isinstance(event.get("reference"), dict)
+    }
+    assert {c.citation_key for c in analysis.citations} == wire_keys
+    # Rebuild the expected text by deleting each widget's exact JSON span from
+    # the raw join (decoded independently of the code under test), then
+    # compare ignoring whitespace, which the fix normalizes at widget seams.
+    widget_free = raw_text
+    for orphan in re.findall(r'[0-9a-f]{4}", "kind": "search".*?"summary": "[^"]*"\}', raw_text[:2000]):
+        widget_free = widget_free.replace(orphan, "", 1)
+    while _WIDGET_MARKER in widget_free:
+        start = widget_free.index(_WIDGET_MARKER)
+        _, end = json.JSONDecoder().raw_decode(widget_free, start + len(_WIDGET_MARKER))
+        widget_free = widget_free[:start] + widget_free[end:]
+    assert re.sub(r"\s+", "", analysis.text) == re.sub(r"\s+", "", widget_free)
+    assert analysis.text.rstrip().endswith("?")  # the trailing follow-up question
+
+
+def test_real_stream_mid_answer_trial_matching_widgets_are_removed():
+    """osler emits an active/finished "matchclinicaltrials" widget pair in the
+    middle of the answer; the prose on both sides is kept and joined with a
+    paragraph break."""
+    raw_text = _raw_joined_text(_real_stream("ALK"))
+    assert raw_text.count('"id": "matchclinicaltrials"') == 2
+
+    analysis = _build_analysis("q", _parse_sse_events(_real_stream("ALK")))
+
+    assert "matchclinicaltrials" not in analysis.text
+    assert "Matching clinical trials" not in analysis.text
+    assert (
+        "the following active trials may be relevant:\n\n"
+        "The search returned 16 available trials."
+    ) in analysis.text
+
+
+def test_strip_widgets_handles_mid_answer_widget_in_synthetic_split_stream():
+    widget = _WIDGET_MARKER + json.dumps(
+        {"steps": [{"callid": "x", "label": 'Matching "trials" {}', "done": False}], "done": False, "summary": "s"}
+    )
+    text = "Lead sentence.[[1]]\n" + widget + widget + "\n\n\nTrailing [[2]] prose."
+    deltas = [text[i:i + 7] for i in range(0, len(text), 7)]
+    analysis = _build_analysis("q", [{"text": delta} for delta in deltas])
+
+    assert analysis.text == "Lead sentence.[[1]]\n\nTrailing [[2]] prose."
+
+
+@pytest.mark.asyncio
+async def test_get_gene_analysis_cleans_widget_leak_from_already_cached_entry(monkeypatch):
+    """Prod Redis already holds analyses built by the leading-only strip —
+    text starting with the headless widget tail and still carrying mid-answer
+    widgets. Reading one back must yield clean text (and a clean card) with no
+    cache flush and no live call."""
+    raw = _real_stream("ALK")
+    stale_text = _leading_only_strip_text(raw)
+    assert stale_text.startswith(tuple("0123456789abcdef")) and _WIDGET_MARKER in stale_text
+    fresh = _build_analysis("q", _parse_sse_events(raw))
+
+    async def fake_cached_call(key, compute, ttl_seconds=None):
+        return {"question": "q", "text": stale_text, "citations": []}
+
+    monkeypatch.setattr(openevidence_module, "cached_call", fake_cached_call)
+    analysis = await OpenEvidenceClient(api_key="").get_gene_analysis("ALK")
+
+    assert analysis.text == fresh.text
+    assert distill_openevidence(analysis).consensus_role.startswith(_REAL_STREAMS["ALK"][1])
