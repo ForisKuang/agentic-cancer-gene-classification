@@ -97,11 +97,10 @@ from src.pipeline.llm_client import complete_with_tool
 from src.pipeline.normalization import is_fusion_input
 from src.pipeline.openevidence import (
     OpenEvidenceClient,
-    claim_inflight_marker,
+    claim_lookup,
     distill_additive_openevidence,
     distilled_openevidence_has_additive_content,
     get_cached_gene_analysis,
-    get_failed_marker,
     publish_failure_and_release,
     release_inflight_marker,
     renew_inflight_marker,
@@ -412,7 +411,7 @@ def _track_background_task(coro: Coroutine[Any, Any, Any]) -> asyncio.Task:
 # all keyed by the OpenEvidence cache key (sidecar_cache_key — the same slot
 # OpenEvidenceClient.get_gene_analysis reads/writes). The task registry is
 # what guarantees one upstream (paid) call per key per worker; the Redis
-# in-flight marker (claim_inflight_marker) extends that across workers/pods.
+# in-flight lease (claim_lookup) extends that across workers/pods.
 # The two memos hold a finished lookup's outcome for polling clients: the
 # failure memo so polls answer "failed" instead of re-calling upstream for
 # openevidence_sidecar_failed_ttl_seconds, the result memo so a poll still
@@ -1801,11 +1800,15 @@ async def get_gene_openevidence(
     task = _live_openevidence_sidecar_task(key)
     if task is None:
         error = _openevidence_memo_get(_openevidence_sidecar_failures, key)
-        if error is None:
-            error = await get_failed_marker(key)
         if error is not None:
             return failed(error)
-        token = await claim_inflight_marker(key, settings.openevidence_sidecar_inflight_ttl_seconds)
+        # One atomic step (see claim_lookup): a failure on record — even one
+        # published a moment ago by another pod — is answered as "failed"
+        # rather than paid for again; otherwise claim the lease.
+        claim = await claim_lookup(key, settings.openevidence_sidecar_inflight_ttl_seconds)
+        if claim.failed is not None:
+            return failed(claim.failed)
+        token = claim.token
         if token is None:
             # Another worker/pod is already running this lookup — poll its
             # result out of the shared cache instead of paying for a second.

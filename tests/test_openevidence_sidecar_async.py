@@ -707,3 +707,43 @@ async def test_failure_publication_checks_ownership_on_real_redis():
     assert await client.get("openevidence_failed:" + key) == b"boom"
     assert 0 < await client.pttl("openevidence_failed:" + key) <= 300_000
     assert await client.get(_INFLIGHT_PREFIX + key) is None
+
+
+async def test_poller_cannot_slip_a_claim_in_after_a_just_published_failure(fake_redis, per_call_upstream):
+    upstream = per_call_upstream
+    result, _ = await _request("ALK")  # owner A starts the lookup
+    assert result.status == "pending"
+    pod_a = main._openevidence_sidecar_tasks[openevidence.sidecar_cache_key("ALK", None, None)]
+
+    async def owner_fails_now() -> None:
+        # Pod B has done its reads and is about to claim: A fails right
+        # here, publishing its failure and releasing the lease.
+        upstream.fail(0, RuntimeError("upstream reset"))
+        await asyncio.wait_for(pod_a, timeout=2.0)
+        assert len(fake_redis.keys_with_prefix("openevidence_failed:")) == 1
+
+    fake_redis.before_next_lease_write = owner_fails_now
+    with _as_other_pod():
+        result, _ = await _request("ALK")
+        assert main._openevidence_sidecar_tasks == {}
+
+    assert fake_redis.before_next_lease_write is None, "the interleaving hook must have run"
+    assert result.status == "failed"
+    assert "upstream reset" in result.error
+    assert len(upstream.calls) == 1, "no second paid call while the failure record is live"
+    assert fake_redis.keys_with_prefix("openevidence_inflight:") == []
+
+
+async def test_claim_script_answers_a_recorded_failure_on_real_redis():
+    client = cache_module._get_client()
+    try:
+        await client.ping()
+    except Exception as exc:
+        pytest.skip(f"Redis not reachable: {exc}")
+    key = "claim-test"
+    owner = await openevidence.claim_lookup(key, 600)
+    assert owner.token is not None and owner.failed is None
+    assert await openevidence.claim_lookup(key, 600) == openevidence.LeaseClaim()  # held
+    assert await openevidence.publish_failure_and_release(key, owner.token, "boom", 300) is True
+    assert await openevidence.claim_lookup(key, 600) == openevidence.LeaseClaim(failed="boom")
+    assert await client.get(_INFLIGHT_PREFIX + key) is None, "a recorded failure blocks the claim"

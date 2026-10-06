@@ -93,6 +93,15 @@ class FakeRedis:
     def __init__(self) -> None:
         self.now = 0.0
         self._store: Dict[str, Tuple[bytes, Optional[float]]] = {}
+        # One-shot async hook run just before the next command that writes
+        # an in-flight lease key — lets a test interleave another pod's
+        # work between a poller's reads and its claim.
+        self.before_next_lease_write = None
+
+    async def _lease_write_hook(self, key: str) -> None:
+        if self.before_next_lease_write is not None and key.startswith("openevidence_inflight:"):
+            hook, self.before_next_lease_write = self.before_next_lease_write, None
+            await hook()
 
     def advance(self, seconds: float) -> None:
         self.now += seconds
@@ -114,6 +123,7 @@ class FakeRedis:
         return self._live(key)
 
     async def set(self, key: str, value, ex: Optional[float] = None, px: Optional[int] = None, nx: bool = False):
+        await self._lease_write_hook(key)
         if nx and self._live(key) is not None:
             return None
         data = value.encode() if isinstance(value, str) else value
@@ -125,12 +135,21 @@ class FakeRedis:
         return sum(1 for key in keys if self._store.pop(key, None) is not None)
 
     async def eval(self, script: str, numkeys: int, *keys_and_args):
-        """The sidecar's lease scripts (src.pipeline.openevidence: renew,
-        release, publish-failure-and-release), with the same semantics."""
+        """The sidecar's lease scripts (src.pipeline.openevidence: claim,
+        renew, release, publish-failure-and-release), same semantics."""
         from src.pipeline import openevidence
 
         keys, args = keys_and_args[:numkeys], keys_and_args[numkeys:]
         lease_key, token = keys[0], args[0]
+        await self._lease_write_hook(lease_key)
+        if script == getattr(openevidence, "_CLAIM_LEASE_SCRIPT", None):
+            failed = self._live(keys[1])
+            if failed is not None:
+                return [b"failed", failed]
+            if self._live(lease_key) is not None:
+                return [b"held", b""]
+            self._store[lease_key] = (str(token).encode(), self.now + int(args[1]) / 1000)
+            return [b"claimed", str(token).encode()]
         current = self._live(lease_key)
         if current is None or current.decode() != str(token):
             return 0

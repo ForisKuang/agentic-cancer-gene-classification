@@ -25,7 +25,7 @@ import json
 import logging
 import re
 import uuid
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import httpx
 from tenacity import RetryError, retry, retry_if_exception, stop_after_attempt, wait_exponential
@@ -882,22 +882,66 @@ def _lease_ms(ttl_seconds: float) -> int:
     return max(1, int(float(ttl_seconds) * 1000))
 
 
-async def claim_inflight_marker(cache_key: str, ttl_seconds: float) -> Optional[str]:
-    """SET NX the short-TTL "lookup in flight" lease for `cache_key`.
+# Claiming is atomic with the failure check: a poller that read "no
+# failure" and then claimed separately could slip in between an owner
+# publishing its failure (which also releases the lease) and its own claim,
+# and pay for a second lookup while the failure record is still live.
+_CLAIM_LEASE_SCRIPT = """
+local failed = redis.call("GET", KEYS[2])
+if failed then
+  return {"failed", failed}
+end
+if redis.call("SET", KEYS[1], ARGV[1], "NX", "PX", ARGV[2]) then
+  return {"claimed", ARGV[1]}
+end
+return {"held", ""}
+"""
 
-    Returns this owner's lease token, or None when another worker/pod
-    already holds the lease. If Redis is unreachable a token is still
-    returned (only the in-process registry can dedupe then). The TTL bounds
-    how long a pod that died mid-call can wedge the key."""
+
+class LeaseClaim(NamedTuple):
+    """Outcome of claim_lookup: exactly one of `token` (this caller now owns
+    the lookup) or `failed` (a recent failure is on record — answer it, don't
+    look up again) is set; neither means another owner holds the lease."""
+
+    token: Optional[str] = None
+    failed: Optional[str] = None
+
+
+def _text(value) -> str:
+    return value.decode("utf-8", "replace") if isinstance(value, bytes) else str(value)
+
+
+async def claim_lookup(cache_key: str, ttl_seconds: float) -> LeaseClaim:
+    """Atomically: if a failed marker is on record for `cache_key`, return
+    it; otherwise SET NX the short-TTL "lookup in flight" lease with a
+    unique owner token. If Redis is unreachable a token is still returned
+    (only the in-process registry can dedupe then). The TTL bounds how long
+    a pod that died mid-call can wedge the key."""
     token = uuid.uuid4().hex
     try:
-        claimed = await _get_client().set(
-            _INFLIGHT_MARKER_PREFIX + cache_key, token, px=_lease_ms(ttl_seconds), nx=True
+        outcome, value = await _get_client().eval(
+            _CLAIM_LEASE_SCRIPT,
+            2,
+            _INFLIGHT_MARKER_PREFIX + cache_key,
+            _FAILED_MARKER_PREFIX + cache_key,
+            token,
+            _lease_ms(ttl_seconds),
         )
     except Exception as exc:
-        logger.warning("OpenEvidence in-flight marker claim failed for %r: %s", cache_key, exc)
-        return token
-    return token if claimed else None
+        logger.warning("OpenEvidence in-flight lease claim failed for %r: %s", cache_key, exc)
+        return LeaseClaim(token=token)
+    outcome = _text(outcome)
+    if outcome == "claimed":
+        return LeaseClaim(token=token)
+    if outcome == "failed":
+        return LeaseClaim(failed=_text(value))
+    return LeaseClaim()
+
+
+async def claim_inflight_marker(cache_key: str, ttl_seconds: float) -> Optional[str]:
+    """claim_lookup's token alone: this owner's lease token, or None when
+    another owner holds the lease or a failure is on record."""
+    return (await claim_lookup(cache_key, ttl_seconds)).token
 
 
 async def renew_inflight_marker(cache_key: str, token: str, ttl_seconds: float) -> bool:
@@ -955,14 +999,3 @@ async def publish_failure_and_release(cache_key: str, token: str, error: str, tt
         logger.warning("OpenEvidence failed-marker publish failed for %r: %s", cache_key, exc)
         return True
     return bool(published)
-
-
-async def get_failed_marker(cache_key: str) -> Optional[str]:
-    try:
-        value = await _get_client().get(_FAILED_MARKER_PREFIX + cache_key)
-    except Exception as exc:
-        logger.warning("OpenEvidence failed-marker read failed for %r: %s", cache_key, exc)
-        return None
-    if value is None:
-        return None
-    return value.decode("utf-8", "replace") if isinstance(value, bytes) else str(value)
