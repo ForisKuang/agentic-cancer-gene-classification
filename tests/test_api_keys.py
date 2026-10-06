@@ -8,6 +8,7 @@ covered by a MySQL test that skips when no server is reachable.
 
 from __future__ import annotations
 
+import logging
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
@@ -28,13 +29,12 @@ from src.api_keys import (
     compute_expires_at,
     generate_api_key,
     hash_api_key,
-    key_prefix_of,
     looks_like_api_key,
     parse_api_key,
     rate_limit_window,
     should_touch_last_used,
 )
-from src.auth import AuthenticatedUser, create_session_token
+from src.auth import AuthenticatedUser, UserProfile, create_session_token
 from src.config import settings
 from src.main import app
 
@@ -46,7 +46,6 @@ from src.main import app
 def _record(plaintext: str, **overrides) -> ApiKeyRecord:
     data = dict(
         id="key-1",
-        key_prefix=key_prefix_of(plaintext),
         key_hash=hash_api_key(plaintext),
         owner_email="curator@mskcc.org",
         name="test",
@@ -87,7 +86,6 @@ def test_hash_is_sha256_and_never_the_plaintext():
     assert len(digest) == 64
     assert key not in digest
     assert digest == hash_api_key(key)
-    assert key_prefix_of(key) == key[:13]
 
 
 def test_api_key_matches_constant_time_compare():
@@ -195,8 +193,8 @@ class FakeStore:
     async def create_api_key(self, record: ApiKeyRecord) -> None:
         self.keys[record.id] = record
 
-    async def get_api_keys_by_prefix(self, key_prefix: str) -> List[ApiKeyRecord]:
-        return [k for k in self.keys.values() if k.key_prefix == key_prefix]
+    async def get_api_key_by_hash(self, key_hash: str) -> Optional[ApiKeyRecord]:
+        return next((k for k in self.keys.values() if k.key_hash == key_hash), None)
 
     async def get_api_key(self, key_id: str) -> Optional[ApiKeyRecord]:
         return self.keys.get(key_id)
@@ -263,7 +261,9 @@ def test_create_returns_secret_once_and_list_hides_it(store):
     created = _create_key(client, expires_in_days=30)
     key = created["key"]
     assert parse_api_key(key) == key
-    assert created["key_prefix"] == key[:13]
+    # Nothing derived from the secret is exposed besides the one-time `key`.
+    assert "key_prefix" not in created
+    assert key[5:13] not in str({k: v for k, v in created.items() if k != "key"})
     assert created["owner_email"] == "curator@mskcc.org"
     assert created["active"] is True
     assert created["expires_at"] is not None
@@ -279,7 +279,8 @@ def test_create_returns_secret_once_and_list_hides_it(store):
     assert [k["id"] for k in body] == [created["id"]]
     assert "key" not in body[0]
     assert "key_hash" not in body[0]
-    assert key not in listed.text
+    assert "key_prefix" not in body[0]
+    assert key[5:13] not in listed.text
 
 
 def test_create_rejects_expiry_beyond_max(store, monkeypatch):
@@ -375,14 +376,32 @@ def test_api_key_caller_cannot_create_keys(store):
     assert len(store.keys) == 1
 
 
-def test_api_key_caller_can_list_and_revoke_own_key(store):
+def test_api_key_caller_cannot_list_or_revoke_keys(store):
     created = _create_key(_session_client())
     client = TestClient(app)
-    listed = client.get("/v1/api-keys", headers=_bearer(created["key"]))
-    assert listed.status_code == 200
-    assert [k["id"] for k in listed.json()] == [created["id"]]
-    assert client.delete(f"/v1/api-keys/{created['id']}", headers=_bearer(created["key"])).status_code == 200
-    assert client.get(PROTECTED, headers=_bearer(created["key"])).status_code == 401
+    assert client.get("/v1/api-keys", headers=_bearer(created["key"])).status_code == 403
+    assert client.delete(f"/v1/api-keys/{created['id']}", headers=_bearer(created["key"])).status_code == 403
+    assert store.keys[created["id"]].revoked_at is None
+    assert client.get(PROTECTED, headers=_bearer(created["key"])).status_code == 404
+
+
+def test_admin_api_key_cannot_manage_other_users_keys(store, monkeypatch):
+    alice_key = _create_key(_session_client("alice@mskcc.org"))
+    admin_key = _create_key(_session_client("admin@mskcc.org", role="admin"))
+    # The admin key's owner has the admin role in their JIT profile.
+    now = datetime.now(timezone.utc).isoformat()
+    monkeypatch.setitem(
+        auth_module._user_store,
+        "admin@mskcc.org",
+        UserProfile(
+            email="admin@mskcc.org", name="Admin", domain="mskcc.org", role="admin",
+            first_login_at=now, last_login_at=now,
+        ),
+    )
+    client = TestClient(app)
+    assert client.get("/v1/api-keys?all=true", headers=_bearer(admin_key["key"])).status_code == 403
+    assert client.delete(f"/v1/api-keys/{alice_key['id']}", headers=_bearer(admin_key["key"])).status_code == 403
+    assert store.keys[alice_key["id"]].revoked_at is None
 
 
 def test_users_cannot_see_or_revoke_others_keys_but_admins_can(store):
@@ -431,6 +450,43 @@ def test_store_unavailable_returns_503(store):
     assert resp.status_code == 503
 
 
+def test_store_error_during_lookup_fails_closed_with_503(store, monkeypatch):
+    key = _create_key(_session_client())["key"]
+
+    async def boom(key_hash):
+        raise ConnectionError("mysql down")
+
+    monkeypatch.setattr(store, "get_api_key_by_hash", boom)
+    resp = TestClient(app).get(PROTECTED, headers=_bearer(key))
+    assert resp.status_code == 503
+
+
+def test_emitted_logs_carry_auth_method_and_key_id_but_no_secret(store, caplog):
+    created = _create_key(_session_client())
+    key = created["key"]
+    caplog.set_level(logging.DEBUG, logger="src.auth")
+    caplog.set_level(logging.DEBUG, logger="src.api_keys_routes")
+    client = TestClient(app)
+    assert client.get(PROTECTED, headers=_bearer(key)).status_code == 404
+    assert client.get(PROTECTED, headers=_bearer(generate_api_key())).status_code == 401
+
+    authed = [r for r in caplog.records if "authenticated with API key" in r.getMessage()]
+    assert authed, "expected an API-key auth log record"
+    record = authed[-1]
+    assert getattr(record, "acgc.auth_method") == "api_key"
+    assert getattr(record, "acgc.api_key_id") == created["id"]
+    assert getattr(record, "usr.id") == "curator@mskcc.org"
+    assert created["id"] in record.getMessage()
+
+    # Also check creation logs: no part of the secret ever reaches a log line.
+    _create_key(_session_client())
+    secret = key[len("acgc_"):]
+    for r in caplog.records:
+        message = r.getMessage()
+        assert secret[:8] not in message
+        assert key not in message
+
+
 def test_auth_disabled_ignores_api_keys(store, monkeypatch):
     monkeypatch.setattr(settings, "auth_enabled", False)
     client = TestClient(app)
@@ -451,6 +507,19 @@ def test_cors_allows_authorization_header():
     )
     assert resp.status_code == 200
     assert "authorization" in resp.headers["access-control-allow-headers"].lower()
+
+
+def test_cors_preflight_allows_delete():
+    resp = TestClient(app).options(
+        "/v1/api-keys/some-id",
+        headers={
+            "Origin": "https://example.org",
+            "Access-Control-Request-Method": "DELETE",
+            "Access-Control-Request-Headers": "Authorization",
+        },
+    )
+    assert resp.status_code == 200
+    assert "DELETE" in resp.headers["access-control-allow-methods"]
 
 
 # ---------------------------------------------------------------------------
@@ -479,10 +548,11 @@ async def test_run_store_api_key_round_trip(run_store):
     record = _record(key, id=str(uuid.uuid4()), owner_email=owner, created_at=now, expires_at=now + timedelta(days=1))
     await run_store.create_api_key(record)
 
-    found = await run_store.get_api_keys_by_prefix(key_prefix_of(key))
-    assert [r.id for r in found] == [record.id]
-    assert api_key_matches(key, found[0])
-    assert found[0].expires_at == record.expires_at
+    found = await run_store.get_api_key_by_hash(hash_api_key(key))
+    assert found is not None and found.id == record.id
+    assert api_key_matches(key, found)
+    assert found.expires_at == record.expires_at
+    assert await run_store.get_api_key_by_hash(hash_api_key(generate_api_key())) is None
 
     assert [r.id for r in await run_store.list_api_keys(owner_email=owner)] == [record.id]
     assert record.id in {r.id for r in await run_store.list_api_keys()}

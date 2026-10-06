@@ -3,9 +3,9 @@
 A key looks like ``acgc_<43 urlsafe chars>`` and is sent as
 ``Authorization: Bearer acgc_...``. Only its SHA-256 hash is persisted (in the
 MySQL ``api_keys`` table, see ``RunStore``); the plaintext is returned exactly
-once at creation. The first few characters (``key_prefix``) are stored in the
-clear so keys can be shown in listings and looked up by an indexed column,
-after which the full hash is compared in constant time.
+once at creation. Keys are looked up by that full hash (unique index), so no
+part of the secret is stored, logged, or used to narrow the lookup; keys are
+identified in listings and logs by their random, non-secret ``id``.
 
 Everything in this module is pure logic (no DB/HTTP), so it is unit-testable
 without MySQL or Redis. Request-time resolution lives in ``src.auth``.
@@ -31,8 +31,6 @@ API_KEY_PREFIX = "acgc_"
 # secrets.token_urlsafe(32) -> 43 chars of [A-Za-z0-9_-]
 _SECRET_BYTES = 32
 _SECRET_LEN = 43
-# Characters (including "acgc_") kept in the clear for display and lookup.
-KEY_PREFIX_LEN = len(API_KEY_PREFIX) + 8
 _API_KEY_RE = re.compile(rf"^{API_KEY_PREFIX}[A-Za-z0-9_-]{{{_SECRET_LEN}}}$")
 
 
@@ -40,7 +38,6 @@ class ApiKeyRecord(BaseModel):
     """A stored API key row. Never carries the plaintext secret."""
 
     id: str
-    key_prefix: str
     key_hash: str
     owner_email: str
     name: str
@@ -62,10 +59,6 @@ def hash_api_key(plaintext: str) -> str:
     of CSPRNG output, not a guessable password.
     """
     return hashlib.sha256(plaintext.encode("utf-8")).hexdigest()
-
-
-def key_prefix_of(plaintext: str) -> str:
-    return plaintext[:KEY_PREFIX_LEN]
 
 
 def looks_like_api_key(token: Optional[str]) -> bool:

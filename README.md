@@ -133,18 +133,22 @@ ACGC API key instead of a browser session. (The section above is about
 - Keys look like `acgc_<43 random characters>` and are sent as
   `Authorization: Bearer acgc_...`. Every endpoint protected by sign-in accepts
   them and acts as the key's owner.
-- Only a signed-in **browser session** can create a key, and only for its own
-  account. A request authenticated with an API key cannot mint new keys.
+- Key management (create, list, revoke) is **browser-session only**: each user
+  manages their own keys, and a request authenticated with an API key gets
+  `403` on every `/v1/api-keys` endpoint, so a leaked key can't mint, list, or
+  revoke keys.
 - The plaintext key is shown **once**, in the create response. ACGC stores only
-  its SHA-256 hash plus a short display prefix (`acgc_xxxxxxxx`), so a lost key
-  cannot be recovered — revoke it and create a new one.
+  its SHA-256 hash (and looks keys up by that hash); keys are identified in
+  listings and logs by their non-secret `id` and `name`. A lost key cannot be
+  recovered — revoke it and create a new one.
 - A key stops working when it is revoked, when it expires (optional
   `expires_in_days`, max `API_KEY_MAX_EXPIRES_IN_DAYS`), or when its owner no
   longer passes `ALLOWED_EMAIL_DOMAINS` / `ALLOWED_EMAILS`.
 - Each key is limited to `API_KEY_RATE_LIMIT_PER_MINUTE` requests per minute
   (default 60, shared across workers via Redis; per-process in-memory fallback
   if Redis is unreachable). Over the limit you get `429` with `Retry-After`.
-- Admins can list everyone's keys with `GET /v1/api-keys?all=true` and revoke any key.
+- Admins (signed in via browser session) can list everyone's keys with
+  `GET /v1/api-keys?all=true` and revoke any key.
 
 Create a key while signed in — e.g. from the browser devtools console on the
 ACGC page (uses your session cookie):
@@ -154,7 +158,7 @@ await (await fetch("/v1/api-keys", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ name: "nightly triage script", expires_in_days: 90 }),
-})).json()   // -> { id, key_prefix, key: "acgc_...", ... }  copy `key` now
+})).json()   // -> { id, name, key: "acgc_...", ... }  copy `key` now
 ```
 
 or with curl, passing your session cookie (`agcg_session`, from devtools →
@@ -176,15 +180,20 @@ curl -s -X POST https://acgc.oncokb.org/v1/annotate \
   -H "Authorization: Bearer $ACGC_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"fusions": ["EML4::ALK"]}'
+```
 
-# List your keys (secrets are never returned) and revoke one
-curl -s https://acgc.oncokb.org/v1/api-keys -H "Authorization: Bearer $ACGC_API_KEY"
+List (secrets are never returned) and revoke keys with your session, not the
+key itself:
+
+```bash
+curl -s https://acgc.oncokb.org/v1/api-keys -H "Cookie: agcg_session=$ACGC_SESSION"
 curl -s -X DELETE https://acgc.oncokb.org/v1/api-keys/<key-id> \
-  -H "Authorization: Bearer $ACGC_API_KEY"
+  -H "Cookie: agcg_session=$ACGC_SESSION"
 ```
 
 API-key requests are attributed to the owner in Datadog (`usr.id` = owner
-email) and tagged `acgc.auth_method:api_key` / `acgc.api_key_id:<id>`.
+email); spans and application log lines also carry `acgc.auth_method`
+(`api_key` / `session`) and `acgc.api_key_id`.
 
 ## Run With Anthropic SDK
 

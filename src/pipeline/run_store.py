@@ -82,12 +82,11 @@ CREATE TABLE IF NOT EXISTS feedback (
 """
 
 
-# Only the SHA-256 of the key is stored; key_prefix ("acgc_" + 8 chars) is
-# kept in the clear for display and indexed lookup. See src/api_keys.py.
+# Only the SHA-256 of the key is stored, and keys are looked up by that hash;
+# nothing derived from the secret is kept in the clear. See src/api_keys.py.
 _CREATE_API_KEYS_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS api_keys (
     id VARCHAR(36) PRIMARY KEY,
-    key_prefix VARCHAR(16) NOT NULL,
     key_hash CHAR(64) NOT NULL,
     owner_email VARCHAR(255) NOT NULL,
     name VARCHAR(128) NOT NULL,
@@ -96,13 +95,12 @@ CREATE TABLE IF NOT EXISTS api_keys (
     revoked_at DATETIME NULL,
     expires_at DATETIME NULL,
     UNIQUE INDEX idx_api_keys_key_hash (key_hash),
-    INDEX idx_api_keys_key_prefix (key_prefix),
     INDEX idx_api_keys_owner_email (owner_email)
 )
 """
 
 _API_KEY_COLUMNS = (
-    "id, key_prefix, key_hash, owner_email, name, created_at, last_used_at, revoked_at, expires_at"
+    "id, key_hash, owner_email, name, created_at, last_used_at, revoked_at, expires_at"
 )
 
 
@@ -185,6 +183,10 @@ class RunStore:
                     await cursor.execute(_CREATE_PMID_EVIDENCE_TABLE_SQL)
                 await cursor.execute(_CREATE_FEEDBACK_TABLE_SQL)
                 await cursor.execute(_CREATE_API_KEYS_TABLE_SQL)
+                # Pre-release builds stored a secret-derived key_prefix column; drop it.
+                await cursor.execute("SHOW COLUMNS FROM api_keys LIKE 'key_prefix'")
+                if await cursor.fetchone() is not None:
+                    await cursor.execute("ALTER TABLE api_keys DROP COLUMN key_prefix")
 
     async def _ensure_gene_annotation_schema(self, cursor) -> None:
         """Migrate older gene-only annotation caches to gene + tumor-type keys."""
@@ -469,14 +471,13 @@ class RunStore:
     def _api_key_from_row(row) -> ApiKeyRecord:
         return ApiKeyRecord(
             id=row[0],
-            key_prefix=row[1],
-            key_hash=row[2],
-            owner_email=row[3],
-            name=row[4],
-            created_at=_from_mysql_datetime(row[5]),
-            last_used_at=_from_mysql_datetime(row[6]),
-            revoked_at=_from_mysql_datetime(row[7]),
-            expires_at=_from_mysql_datetime(row[8]),
+            key_hash=row[1],
+            owner_email=row[2],
+            name=row[3],
+            created_at=_from_mysql_datetime(row[4]),
+            last_used_at=_from_mysql_datetime(row[5]),
+            revoked_at=_from_mysql_datetime(row[6]),
+            expires_at=_from_mysql_datetime(row[7]),
         )
 
     async def create_api_key(self, record: ApiKeyRecord) -> None:
@@ -484,10 +485,9 @@ class RunStore:
             async with conn.cursor() as cursor:
                 await cursor.execute(
                     f"INSERT INTO api_keys ({_API_KEY_COLUMNS}) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                     (
                         record.id,
-                        record.key_prefix,
                         record.key_hash,
                         record.owner_email,
                         record.name,
@@ -498,15 +498,15 @@ class RunStore:
                     ),
                 )
 
-    async def get_api_keys_by_prefix(self, key_prefix: str) -> List[ApiKeyRecord]:
+    async def get_api_key_by_hash(self, key_hash: str) -> Optional[ApiKeyRecord]:
         async with self._pool.acquire() as conn:
             async with conn.cursor() as cursor:
                 await cursor.execute(
-                    f"SELECT {_API_KEY_COLUMNS} FROM api_keys WHERE key_prefix = %s",
-                    (key_prefix,),
+                    f"SELECT {_API_KEY_COLUMNS} FROM api_keys WHERE key_hash = %s",
+                    (key_hash,),
                 )
-                rows = await cursor.fetchall()
-        return [self._api_key_from_row(row) for row in rows]
+                row = await cursor.fetchone()
+        return self._api_key_from_row(row) if row else None
 
     async def get_api_key(self, key_id: str) -> Optional[ApiKeyRecord]:
         async with self._pool.acquire() as conn:

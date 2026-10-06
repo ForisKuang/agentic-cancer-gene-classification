@@ -1,8 +1,9 @@
 """HTTP endpoints for managing ACGC API keys (/v1/api-keys).
 
-Keys are minted only by browser-session users for themselves; an API-key
-caller can list/revoke but never create keys, so a leaked key can't be used
-to mint fresh ones. Admins may list (``?all=true``) and revoke any key.
+All key management is session-only: a request authenticated with an API key
+can't create, list, or revoke keys, so a leaked key can't mint fresh keys,
+enumerate its owner's keys, or (for an admin's key) manage everyone's. Users
+manage their own keys; admins may list (``?all=true``) and revoke any key.
 """
 
 from __future__ import annotations
@@ -21,7 +22,6 @@ from src.api_keys import (
     compute_expires_at,
     generate_api_key,
     hash_api_key,
-    key_prefix_of,
 )
 from src.auth import AuthenticatedUser, is_email_allowed, require_auth
 from src.config import settings
@@ -39,7 +39,6 @@ class ApiKeyCreateRequest(BaseModel):
 class ApiKeyInfo(BaseModel):
     id: str
     name: str
-    key_prefix: str
     owner_email: str
     created_at: datetime
     last_used_at: Optional[datetime] = None
@@ -52,7 +51,6 @@ class ApiKeyInfo(BaseModel):
         return cls(
             id=record.id,
             name=record.name,
-            key_prefix=record.key_prefix,
             owner_email=record.owner_email,
             created_at=record.created_at,
             last_used_at=record.last_used_at,
@@ -74,6 +72,17 @@ def _store(request: Request):
     return store
 
 
+async def require_session_auth(request: Request) -> AuthenticatedUser:
+    """require_auth, but rejecting API-key callers: key management needs a browser session."""
+    user = await require_auth(request)
+    if user.auth_method == "api_key":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="API keys can only be managed from a signed-in browser session, not with an API key.",
+        )
+    return user
+
+
 def _is_admin(user: AuthenticatedUser) -> bool:
     return user.role == "admin" or settings.agcg_dev_mode
 
@@ -82,17 +91,12 @@ def _is_admin(user: AuthenticatedUser) -> bool:
 async def create_api_key(
     payload: ApiKeyCreateRequest,
     request: Request,
-    current_user: AuthenticatedUser = Depends(require_auth),
+    current_user: AuthenticatedUser = Depends(require_session_auth),
 ) -> ApiKeyCreateResponse:
     if not settings.auth_enabled:
         raise HTTPException(
             status_code=400,
             detail="API keys require AUTH_ENABLED=true; with auth disabled no key is needed.",
-        )
-    if current_user.auth_method == "api_key":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="API keys can only be created from a signed-in browser session, not with another API key.",
         )
     allowed, reason = is_email_allowed(current_user.email)
     if not allowed:
@@ -107,7 +111,6 @@ async def create_api_key(
     now = datetime.now(timezone.utc)
     record = ApiKeyRecord(
         id=str(uuid.uuid4()),
-        key_prefix=key_prefix_of(plaintext),
         key_hash=hash_api_key(plaintext),
         owner_email=current_user.email.strip().lower(),
         name=payload.name.strip(),
@@ -115,7 +118,7 @@ async def create_api_key(
         expires_at=compute_expires_at(payload.expires_in_days, now),
     )
     await _store(request).create_api_key(record)
-    logger.info("API key %s (%s) created for %s", record.id, record.key_prefix, record.owner_email)
+    logger.info("API key %s created for %s", record.id, record.owner_email)
     return ApiKeyCreateResponse(**ApiKeyInfo.from_record(record).model_dump(), key=plaintext)
 
 
@@ -123,7 +126,7 @@ async def create_api_key(
 async def list_api_keys(
     request: Request,
     all_keys: bool = Query(default=False, alias="all", description="Admins only: list every user's keys."),
-    current_user: AuthenticatedUser = Depends(require_auth),
+    current_user: AuthenticatedUser = Depends(require_session_auth),
 ) -> List[ApiKeyInfo]:
     if all_keys and not _is_admin(current_user):
         raise HTTPException(
@@ -139,7 +142,7 @@ async def list_api_keys(
 async def revoke_api_key(
     key_id: str,
     request: Request,
-    current_user: AuthenticatedUser = Depends(require_auth),
+    current_user: AuthenticatedUser = Depends(require_session_auth),
 ) -> ApiKeyInfo:
     store = _store(request)
     record = await store.get_api_key(key_id)

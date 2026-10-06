@@ -31,7 +31,7 @@ from src.api_keys import (
     api_key_matches,
     bearer_token,
     check_api_key_rate_limit,
-    key_prefix_of,
+    hash_api_key,
     looks_like_api_key,
     parse_api_key,
     should_touch_last_used,
@@ -739,14 +739,15 @@ async def _verify_api_key(request: Request, plaintext: str) -> Tuple[Optional[Au
     if store is None:
         return None, "unavailable"
     try:
-        candidates = await store.get_api_keys_by_prefix(key_prefix_of(plaintext))
+        # Every well-formed key takes the same path: one indexed lookup by its
+        # full SHA-256, so the lookup reveals nothing about partial matches.
+        record = await store.get_api_key_by_hash(hash_api_key(plaintext))
     except Exception:
         logger.exception("API key lookup failed")
         return None, "unavailable"
 
-    record = next((c for c in candidates if api_key_matches(plaintext, c)), None)
-    if record is None:
-        logger.warning("API key rejected: unknown key (prefix %s)", key_prefix_of(plaintext))
+    if record is None or not api_key_matches(plaintext, record):
+        logger.warning("API key rejected: unknown key")
         return None, "invalid"
 
     inactive = api_key_inactive_reason(record)
@@ -871,6 +872,7 @@ async def require_auth(request: Request) -> AuthenticatedUser:
 
     if uses_api_key:
         await _enforce_api_key_rate_limit(request, user)
+        logger.debug("Request authenticated with API key %s for %s", user.api_key_id, user.email)
 
     return user
 

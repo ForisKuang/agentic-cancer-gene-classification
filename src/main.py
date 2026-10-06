@@ -114,6 +114,8 @@ def _datadog_log_record_factory(*args, **kwargs):
     usr_id = user_ctx.get("user_id") or "-"
     usr_email = user_ctx.get("email") or "-"
     usr_name = user_ctx.get("name") or "-"
+    auth_method = user_ctx.get("auth_method") or "-"
+    api_key_id = user_ctx.get("api_key_id") or "-"
     defaults = {
         "dd.service": os.getenv("DD_SERVICE", "agentic-cancer-gene-classification"),
         "dd.env": os.getenv("DD_ENV", ""),
@@ -123,6 +125,8 @@ def _datadog_log_record_factory(*args, **kwargs):
         "usr.id": usr_id,
         "usr.email": usr_email,
         "usr.name": usr_name,
+        "acgc.auth_method": auth_method,
+        "acgc.api_key_id": api_key_id,
     }
     for key, value in defaults.items():
         if key not in record.__dict__:
@@ -136,7 +140,8 @@ logging.basicConfig(
     format=(
         "%(asctime)s %(levelname)s %(name)s "
         "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s "
-        "dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s usr.id=%(usr.id)s] — %(message)s"
+        "dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s usr.id=%(usr.id)s "
+        "acgc.auth_method=%(acgc.auth_method)s acgc.api_key_id=%(acgc.api_key_id)s] — %(message)s"
     ),
     stream=sys.stdout,
 )
