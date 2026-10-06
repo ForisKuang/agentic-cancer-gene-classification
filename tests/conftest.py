@@ -85,9 +85,10 @@ async def _reset_openevidence_sidecar(monkeypatch):
 
 
 class FakeRedis:
-    """Just enough of redis.asyncio.Redis (get/set with ex+nx/delete) for the
-    sidecar's cache and marker keys, with a manually advanced clock so TTL
-    expiry is deterministic."""
+    """Just enough of redis.asyncio.Redis (get/set with ex|px+nx/delete, and
+    eval of the sidecar's two lease scripts) for the sidecar's cache and
+    marker keys, with a manually advanced clock so TTL expiry is
+    deterministic."""
 
     def __init__(self) -> None:
         self.now = 0.0
@@ -112,15 +113,33 @@ class FakeRedis:
     async def get(self, key: str) -> Optional[bytes]:
         return self._live(key)
 
-    async def set(self, key: str, value, ex: Optional[int] = None, nx: bool = False):
+    async def set(self, key: str, value, ex: Optional[float] = None, px: Optional[int] = None, nx: bool = False):
         if nx and self._live(key) is not None:
             return None
         data = value.encode() if isinstance(value, str) else value
-        self._store[key] = (data, self.now + ex if ex else None)
+        ttl = px / 1000 if px else ex
+        self._store[key] = (data, self.now + ttl if ttl else None)
         return True
 
     async def delete(self, *keys: str) -> int:
         return sum(1 for key in keys if self._store.pop(key, None) is not None)
+
+    async def eval(self, script: str, numkeys: int, *keys_and_args):
+        """The sidecar's compare-and-renew / compare-and-delete lease
+        scripts (src.pipeline.openevidence), with the same semantics."""
+        from src.pipeline import openevidence
+
+        key, token, *rest = keys_and_args
+        current = self._live(key)
+        if current is None or current.decode() != str(token):
+            return 0
+        if script == openevidence._RENEW_LEASE_SCRIPT:
+            self._store[key] = (current, self.now + int(rest[0]) / 1000)
+            return 1
+        if script == openevidence._RELEASE_LEASE_SCRIPT:
+            del self._store[key]
+            return 1
+        raise NotImplementedError("FakeRedis.eval only knows the sidecar lease scripts")
 
     async def flushdb(self) -> None:
         self._store.clear()

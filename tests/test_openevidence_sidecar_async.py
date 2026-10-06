@@ -14,8 +14,9 @@ paid OpenEvidence request.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import time
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import httpx
 import pytest
@@ -431,3 +432,160 @@ async def test_authenticated_client_can_poll_until_ready(monkeypatch, fake_redis
     assert ready.status_code == 200
     assert ready.json()["status"] == "ready"
     assert len(upstream.calls) == 1
+
+
+# ---------------------------------------------------------------------------
+# In-flight lease ownership across pods
+# ---------------------------------------------------------------------------
+
+_POD_STATE = (
+    "_openevidence_sidecar_tasks",
+    "_openevidence_sidecar_failures",
+    "_openevidence_sidecar_results",
+    "_openevidence_sidecar_semaphores",
+)
+
+
+@contextlib.contextmanager
+def _as_other_pod():
+    """Run requests as a second pod: same (fake) Redis, but its own task
+    registry, memos and concurrency semaphores."""
+    saved = {name: getattr(main, name) for name in _POD_STATE}
+    for name in _POD_STATE:
+        setattr(main, name, {})
+    try:
+        yield
+    finally:
+        for name, value in saved.items():
+            setattr(main, name, value)
+
+
+def _genes(questions: List[str]) -> List[str]:
+    return [next(gene for gene in ("ALK", "BRAF", "EGFR") if gene in question) for question in questions]
+
+
+def _inflight_key(gene: str) -> str:
+    return "openevidence_inflight:" + openevidence.sidecar_cache_key(gene, None, None)
+
+
+class PerGeneUpstream:
+    """Like FakeUpstream, but each gene's calls are released independently,
+    so one pod's call can still be in flight when another pod starts one."""
+
+    def __init__(self) -> None:
+        self.calls: List[str] = []
+        self._gates: Dict[str, asyncio.Event] = {}
+
+    def _gate(self, gene: str) -> asyncio.Event:
+        return self._gates.setdefault(gene, asyncio.Event())
+
+    def release(self, gene: str) -> None:
+        self._gate(gene).set()
+
+    async def __call__(self, question: str, api_key: str, client: httpx.AsyncClient) -> str:
+        self.calls.append(question)
+        await self._gate(_genes([question])[0]).wait()
+        return _SSE_STREAM
+
+
+@pytest.fixture
+def per_gene_upstream(monkeypatch):
+    fake = PerGeneUpstream()
+    monkeypatch.setattr(openevidence, "_post_streaming_analysis", fake)
+    return fake
+
+
+async def _queue_braf_behind_alk(monkeypatch, upstream) -> asyncio.Task:
+    monkeypatch.setattr(main.settings, "openevidence_sidecar_concurrency", 1)
+    main._openevidence_sidecar_semaphores.clear()
+    for gene in ("ALK", "BRAF"):
+        result, _ = await _request(gene)
+        assert result.status == "pending"
+    assert _genes(upstream.calls) == ["ALK"]  # BRAF is queued behind the cap
+    return main._openevidence_sidecar_tasks[openevidence.sidecar_cache_key("BRAF", None, None)]
+
+
+async def test_queued_lookup_that_lost_its_lease_does_not_duplicate_another_pods_call(
+    monkeypatch, fake_redis, per_gene_upstream
+):
+    upstream = per_gene_upstream
+    pod1_braf = await _queue_braf_behind_alk(monkeypatch, upstream)
+    fake_redis.advance(601)  # pod 1's leases lapse while BRAF sits in the queue
+    with _as_other_pod():
+        result, _ = await _request("BRAF")  # pod 2 claims BRAF and calls upstream
+        assert result.status == "pending"
+        pod2_braf = main._openevidence_sidecar_tasks[openevidence.sidecar_cache_key("BRAF", None, None)]
+    assert _genes(upstream.calls) == ["ALK", "BRAF"]
+
+    upstream.release("ALK")  # frees pod 1's slot while pod 2's BRAF call is still in flight
+    await asyncio.wait({pod1_braf}, timeout=1.0)
+    assert _genes(upstream.calls) == ["ALK", "BRAF"], "pod 1 must not pay for BRAF a second time"
+    assert pod1_braf.done() and pod1_braf.result() is None  # abandoned, not failed
+    assert main._openevidence_memo_get(main._openevidence_sidecar_failures, openevidence.sidecar_cache_key("BRAF", None, None)) is None
+
+    upstream.release("BRAF")
+    await asyncio.wait_for(pod2_braf, timeout=2.0)
+    await _wait_for_background_lookups()
+    result, _ = await _request("BRAF")
+    assert result.status == "ready"  # pod 2's answer, via the shared cache
+    assert _genes(upstream.calls) == ["ALK", "BRAF"]
+    assert fake_redis.keys_with_prefix("openevidence_inflight:") == []
+
+
+async def test_old_owner_cleanup_never_releases_the_new_owners_lease(monkeypatch, fake_redis, per_gene_upstream):
+    upstream = per_gene_upstream
+    pod1_braf = await _queue_braf_behind_alk(monkeypatch, upstream)
+    fake_redis.advance(601)
+    with _as_other_pod():
+        await _request("BRAF")  # pod 2 claims BRAF's lease and calls upstream
+        pod2_braf = main._openevidence_sidecar_tasks[openevidence.sidecar_cache_key("BRAF", None, None)]
+    pod2_token = await fake_redis.get(_inflight_key("BRAF"))
+    assert pod2_token is not None
+
+    pod1_braf.cancel()  # e.g. pod 1 shutting down
+    with pytest.raises(asyncio.CancelledError):
+        await pod1_braf
+
+    assert await fake_redis.get(_inflight_key("BRAF")) == pod2_token
+    assert await openevidence.claim_inflight_marker(openevidence.sidecar_cache_key("BRAF", None, None), 600) is None
+
+    upstream.release("ALK")
+    upstream.release("BRAF")
+    await asyncio.wait_for(pod2_braf, timeout=2.0)
+    await _wait_for_background_lookups()
+    assert _genes(upstream.calls) == ["ALK", "BRAF"]
+    assert fake_redis.keys_with_prefix("openevidence_inflight:") == []  # pod 2 released its own lease
+
+
+async def test_queued_lookup_keeps_its_lease_alive(monkeypatch, fake_redis, upstream):
+    monkeypatch.setattr(main.settings, "openevidence_sidecar_inflight_ttl_seconds", 0.3)
+    await _queue_braf_behind_alk(monkeypatch, upstream)
+    for _ in range(12):  # 1.2 fake seconds queued — four lease TTLs
+        fake_redis.advance(0.1)
+        await asyncio.sleep(0.25)  # the heartbeat renews every ttl/3 (0.1s)
+    assert await fake_redis.get(_inflight_key("BRAF")) is not None
+    upstream.release()
+    await _wait_for_background_lookups()
+    assert _genes(upstream.calls) == ["ALK", "BRAF"]
+
+
+async def test_lease_scripts_check_ownership_on_real_redis():
+    client = cache_module._get_client()
+    try:
+        await client.ping()
+    except Exception as exc:
+        pytest.skip(f"Redis not reachable: {exc}")
+    key = "lease-test"
+    owner = await openevidence.claim_inflight_marker(key, 600)
+    assert owner is not None
+    assert await openevidence.claim_inflight_marker(key, 600) is None
+    assert await openevidence.renew_inflight_marker(key, "someone-else", 600) is False
+    await openevidence.release_inflight_marker(key, "someone-else")
+    assert await client.get(_INFLIGHT_PREFIX + key) == owner.encode()
+    assert await openevidence.renew_inflight_marker(key, owner, 600) is True
+    assert 0 < await client.pttl(_INFLIGHT_PREFIX + key) <= 600_000
+    await openevidence.release_inflight_marker(key, owner)
+    assert await client.get(_INFLIGHT_PREFIX + key) is None
+
+
+_INFLIGHT_PREFIX = "openevidence_inflight:"

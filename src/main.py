@@ -98,13 +98,13 @@ from src.pipeline.normalization import is_fusion_input
 from src.pipeline.openevidence import (
     OpenEvidenceClient,
     claim_inflight_marker,
-    clear_inflight_marker,
     distill_additive_openevidence,
     distilled_openevidence_has_additive_content,
     get_cached_gene_analysis,
     get_failed_marker,
     record_failed_marker,
-    refresh_inflight_marker,
+    release_inflight_marker,
+    renew_inflight_marker,
     sidecar_cache_key,
 )
 from src.pipeline.orchestrator import run_pipeline
@@ -474,18 +474,38 @@ def _live_openevidence_sidecar_task(key: str) -> "Optional[asyncio.Task[Optional
     return task
 
 
+async def _keep_openevidence_lease_alive(key: str, token: str) -> None:
+    """Renew this owner's in-flight lease every third of its TTL for as
+    long as the lookup lives (queued or calling upstream), so queue time
+    behind the concurrency cap can't let it lapse. Stops once the lease is
+    lost; the lookup re-checks ownership itself before the paid call."""
+    ttl = float(settings.openevidence_sidecar_inflight_ttl_seconds)
+    while True:
+        await asyncio.sleep(max(0.01, ttl / 3))
+        if not await renew_inflight_marker(key, token, ttl):
+            return
+
+
 async def _run_openevidence_sidecar_lookup(
-    key: str, gene: str, tumor_type: Optional[str], fusion: Optional[str]
+    key: str, token: str, gene: str, tumor_type: Optional[str], fusion: Optional[str]
 ) -> Optional[str]:
-    """Background body of one sidecar lookup. Returns None on success (the
-    analysis is then in the normal cache and the result memo) or the error
-    string on failure (recorded as a short-lived failed marker — the failed
-    answer itself is never cached). Never raises for a lookup failure."""
+    """Background body of one sidecar lookup, run by the owner of the
+    in-flight lease `token`. Returns None on success (the analysis is then
+    in the normal cache and the result memo) or the error string on failure
+    (recorded as a short-lived failed marker — the failed answer itself is
+    never cached). Also returns None, with nothing memoized, if the lease
+    was lost before the paid call (another pod owns the lookup now; polls
+    answer "pending" until its result lands in the shared cache). Never
+    raises for a lookup failure."""
+    heartbeat = asyncio.create_task(_keep_openevidence_lease_alive(key, token))
     try:
         async with _openevidence_sidecar_semaphore():
-            # Queue time behind the concurrency cap must not eat into the
-            # in-flight marker's TTL, or another pod could start a duplicate.
-            await refresh_inflight_marker(key, settings.openevidence_sidecar_inflight_ttl_seconds)
+            # Last ownership check right before the paid call: if the lease
+            # lapsed while queued and another pod claimed it, abandon rather
+            # than make a duplicate upstream call.
+            if not await renew_inflight_marker(key, token, settings.openevidence_sidecar_inflight_ttl_seconds):
+                logger.info("OpenEvidence sidecar lookup for %s abandoned: lease now held elsewhere", gene)
+                return None
             # httpx's timeout is per read, so a slowly trickling stream could
             # otherwise run forever; cap the whole call (not the queue time).
             lookup_timeout = settings.openevidence_sidecar_lookup_timeout_seconds
@@ -509,18 +529,19 @@ async def _run_openevidence_sidecar_lookup(
         )
         return None
     finally:
-        await clear_inflight_marker(key)
+        heartbeat.cancel()
+        await release_inflight_marker(key, token)
 
 
 def _start_openevidence_sidecar_lookup(
-    key: str, gene: str, tumor_type: Optional[str], fusion: Optional[str]
+    key: str, token: str, gene: str, tumor_type: Optional[str], fusion: Optional[str]
 ) -> "asyncio.Task[Optional[str]]":
     _openevidence_memo_prune(_openevidence_sidecar_failures)
     _openevidence_memo_prune(_openevidence_sidecar_results)
     # Not tied to the request: it keeps running (and caches its answer) if
     # the client disconnects or the request returns "pending". Tracked like
     # the annotation jobs' tasks; the per-key registry below adds dedupe.
-    task = _track_background_task(_run_openevidence_sidecar_lookup(key, gene, tumor_type, fusion))
+    task = _track_background_task(_run_openevidence_sidecar_lookup(key, token, gene, tumor_type, fusion))
     _openevidence_sidecar_tasks[key] = task
 
     def _forget(done: "asyncio.Task[Optional[str]]") -> None:
@@ -1771,16 +1792,21 @@ async def get_gene_openevidence(
             error = await get_failed_marker(key)
         if error is not None:
             return failed(error)
-        if not await claim_inflight_marker(key, settings.openevidence_sidecar_inflight_ttl_seconds):
+        token = await claim_inflight_marker(key, settings.openevidence_sidecar_inflight_ttl_seconds)
+        if token is None:
             # Another worker/pod is already running this lookup — poll its
             # result out of the shared cache instead of paying for a second.
             return pending()
         # Re-check after the awaits above: a concurrent request in this
         # worker may have started the task meanwhile (no await between this
         # check and registering a new task, so exactly one gets started).
-        task = _live_openevidence_sidecar_task(key) or _start_openevidence_sidecar_lookup(
-            key, gene, tumor_type, fusion
-        )
+        # That can only happen when Redis is unreachable (the claim is NX
+        # otherwise), so releasing the spare token is just tidiness.
+        task = _live_openevidence_sidecar_task(key)
+        if task is None:
+            task = _start_openevidence_sidecar_lookup(key, token, gene, tumor_type, fusion)
+        else:
+            await release_inflight_marker(key, token)
 
     # asyncio.wait never cancels the task — if this request times out here,
     # or the client disconnects, the lookup keeps running in the background.

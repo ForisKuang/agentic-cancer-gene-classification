@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import uuid
 from typing import Dict, List, Optional, Tuple
 
 import httpx
@@ -858,37 +859,68 @@ async def get_cached_gene_analysis(
         return None
 
 
-async def claim_inflight_marker(cache_key: str, ttl_seconds: int) -> bool:
-    """SET NX the short-TTL "lookup in flight" marker for `cache_key`.
+# The in-flight marker is a lease: its value is the owner's unique token, so
+# only the owner can renew or release it. Renew/release are compare-and-act
+# Lua scripts (atomic on the Redis server): a pod whose lease expired (e.g.
+# while its lookup sat queued behind openevidence_sidecar_concurrency) can
+# never extend or delete the lease a newer owner has since claimed.
+_RENEW_LEASE_SCRIPT = """
+if redis.call("GET", KEYS[1]) == ARGV[1] then
+  return redis.call("PEXPIRE", KEYS[1], ARGV[2])
+end
+return 0
+"""
+_RELEASE_LEASE_SCRIPT = """
+if redis.call("GET", KEYS[1]) == ARGV[1] then
+  return redis.call("DEL", KEYS[1])
+end
+return 0
+"""
 
-    True means this caller owns the lookup (or Redis is unreachable, so only
-    the in-process registry can dedupe); False means another worker/pod
-    already claimed it. The TTL bounds how long a pod that died mid-call can
-    wedge the key."""
+
+def _lease_ms(ttl_seconds: float) -> int:
+    return max(1, int(float(ttl_seconds) * 1000))
+
+
+async def claim_inflight_marker(cache_key: str, ttl_seconds: float) -> Optional[str]:
+    """SET NX the short-TTL "lookup in flight" lease for `cache_key`.
+
+    Returns this owner's lease token, or None when another worker/pod
+    already holds the lease. If Redis is unreachable a token is still
+    returned (only the in-process registry can dedupe then). The TTL bounds
+    how long a pod that died mid-call can wedge the key."""
+    token = uuid.uuid4().hex
     try:
         claimed = await _get_client().set(
-            _INFLIGHT_MARKER_PREFIX + cache_key, "1", ex=max(1, int(ttl_seconds)), nx=True
+            _INFLIGHT_MARKER_PREFIX + cache_key, token, px=_lease_ms(ttl_seconds), nx=True
         )
     except Exception as exc:
         logger.warning("OpenEvidence in-flight marker claim failed for %r: %s", cache_key, exc)
+        return token
+    return token if claimed else None
+
+
+async def renew_inflight_marker(cache_key: str, token: str, ttl_seconds: float) -> bool:
+    """Restart the lease's TTL iff `token` still owns it. False means the
+    lease expired or another owner holds it — the caller must not start the
+    paid call. Fails open (True) when Redis is unreachable."""
+    try:
+        renewed = await _get_client().eval(
+            _RENEW_LEASE_SCRIPT, 1, _INFLIGHT_MARKER_PREFIX + cache_key, token, _lease_ms(ttl_seconds)
+        )
+    except Exception as exc:
+        logger.warning("OpenEvidence in-flight marker renew failed for %r: %s", cache_key, exc)
         return True
-    return bool(claimed)
+    return bool(renewed)
 
 
-async def refresh_inflight_marker(cache_key: str, ttl_seconds: int) -> None:
-    """Restart the in-flight marker's TTL (e.g. once a queued lookup actually
-    gets a concurrency slot), so queue time doesn't eat into it."""
+async def release_inflight_marker(cache_key: str, token: str) -> None:
+    """Delete the lease iff `token` still owns it, so an old owner's cleanup
+    never removes a newer owner's lease."""
     try:
-        await _get_client().set(_INFLIGHT_MARKER_PREFIX + cache_key, "1", ex=max(1, int(ttl_seconds)))
+        await _get_client().eval(_RELEASE_LEASE_SCRIPT, 1, _INFLIGHT_MARKER_PREFIX + cache_key, token)
     except Exception as exc:
-        logger.warning("OpenEvidence in-flight marker refresh failed for %r: %s", cache_key, exc)
-
-
-async def clear_inflight_marker(cache_key: str) -> None:
-    try:
-        await _get_client().delete(_INFLIGHT_MARKER_PREFIX + cache_key)
-    except Exception as exc:
-        logger.warning("OpenEvidence in-flight marker clear failed for %r: %s", cache_key, exc)
+        logger.warning("OpenEvidence in-flight marker release failed for %r: %s", cache_key, exc)
 
 
 async def record_failed_marker(cache_key: str, error: str, ttl_seconds: int) -> None:
