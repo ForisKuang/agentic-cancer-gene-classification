@@ -211,6 +211,7 @@ function buildSandbox({ fetchImpl }) {
     navigator: { clipboard: { writeText: async () => {} } },
     fetch: fetchImpl,
     URLSearchParams,
+    AbortController, // browsers have it; app.js aborts stalled/cancelled sidecar fetches
     console,
     setTimeout,
     clearTimeout,

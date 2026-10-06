@@ -367,6 +367,9 @@ function switchView(view) {
   elements.clearResults.disabled = isBenchmark || !state.currentResult;
   elements.shareRun.disabled = isBenchmark || !state.currentResult?.run_id;
   updateExportState();
+  // The results panel is only hidden, so its cards stay connected — stop
+  // their OpenEvidence polling explicitly. Coming back re-renders them.
+  if (isBenchmark) cancelOpenEvidenceCardLoads();
 
   if (isBenchmark) {
     renderBenchmarkResult(state.currentBenchmark);
@@ -1340,6 +1343,7 @@ function observeGeneCards() {
 // ---------------------------------------------------------------------------
 
 function renderEmptyState(title, body) {
+  cancelOpenEvidenceCardLoads({ abort: false });
   const empty = document.createElement("div");
   empty.className = "empty-state";
   empty.innerHTML = `
@@ -1512,6 +1516,7 @@ function renderAnnotationResult(result) {
 }
 
 function applyResultsViewMode(visibleAnnotations, hiddenAnnotations, fusionEvidence) {
+  cancelOpenEvidenceCardLoads({ abort: false }); // the results list is about to be replaced
   if (state.resultsViewMode === "noresult") {
     renderNoResultView(hiddenAnnotations);
     return;
@@ -2169,7 +2174,7 @@ function enqueueOpenEvidenceFetch(job) {
 // ingress timeout — see GET /v1/genes/{gene}/openevidence in main.py. The
 // card keeps its loading state and re-polls the same URL with backoff: the
 // first delay is the server's retry_after hint, then x1.5 per poll, capped
-// at maxDelayMs, and the card is dropped after totalCapMs. Each poll is its
+// at maxDelayMs, and the card gives up after totalCapMs. Each poll is its
 // own short trip through the fetch queue above, so a pending card never
 // holds a concurrency slot while it waits.
 const OPENEVIDENCE_POLL = {
@@ -2202,48 +2207,126 @@ function renderOpenEvidenceCardNotice(body, message, kind) {
   body.replaceChildren(note);
 }
 
+// Every card load still running (queued, fetching, or waiting to re-poll).
+// Leaving the results view or replacing the results list stops them all —
+// see cancelOpenEvidenceCardLoads' callers. `abort: false` (a re-render of
+// the results list, which happens on every annotation/fusion-evidence job
+// poll) leaves an in-flight request running in its slot: it stays memoized
+// in state.openEvidenceByGene, so the re-rendered card reuses it instead of
+// re-requesting. Leaving the results view aborts in-flight requests too.
+const openEvidenceCardLoads = new Set();
+
+function cancelOpenEvidenceCardLoads({ abort = true } = {}) {
+  [...openEvidenceCardLoads].forEach((load) => load.stop({ abort }));
+}
+
 // Loads (and, while "pending", keeps re-polling) one sidecar card. While
 // pending the card shows a "still checking" spinner; a server-reported
-// "failed" or running past totalCapMs leaves an explicit failed/timed-out
-// note in the card. Polling stops — and the card is dropped — once the card
-// is no longer on the page (removed, or replaced by a new annotation
-// run/re-render, which rebuilds the whole results list) or the flag turns
-// off. A transport error still just drops the card (as before), and the
-// next render retries.
+// "failed" leaves an explicit failed note. An overall deadline
+// (totalCapMs from the first request, covering queue wait and stalled
+// requests too) aborts whatever is in flight, frees its fetch-queue slot
+// and leaves a timed-out note; late responses are ignored. The load is
+// stopped (timers cleared, in-flight fetch aborted, queued request
+// skipped) and the card dropped once the card leaves the page or the flag
+// turns off, and stopped when the results view is left or replaced. A
+// transport error still just drops the card (as before), and the next
+// render retries.
 function loadOpenEvidenceCard(card, body, request) {
-  const startedAt = Date.now();
   let delayMs = null;
-  const poll = () => enqueueOpenEvidenceFetch(() => request().then(handle).catch(() => card.remove()));
+  let pollTimer = null;
+  let deadlineTimer = null;
+  let controller = null;
+  let releaseSlot = null; // settles the fetch-queue job holding a slot
+  const load = {
+    finished: false,
+    wasConnected: false,
+    stop({ abort = true } = {}) {
+      if (load.finished) return;
+      load.finished = true;
+      openEvidenceCardLoads.delete(load);
+      clearTimeout(pollTimer);
+      clearTimeout(deadlineTimer);
+      if (!abort) return; // an in-flight request keeps its slot until it settles
+      if (controller) controller.abort();
+      if (releaseSlot) releaseSlot();
+    },
+  };
+  openEvidenceCardLoads.add(load);
+  // The caller mounts the card right after rendering it; from then on, a
+  // card that is no longer connected has been removed or replaced.
+  const removed = () => {
+    if (card.isConnected) load.wasConnected = true;
+    return load.wasConnected && card.isConnected === false;
+  };
+  Promise.resolve().then(removed);
+  const drop = () => {
+    load.stop();
+    card.remove();
+  };
+  const finish = (render) => {
+    if (load.finished) return;
+    load.stop();
+    render();
+  };
   const handle = (response) => {
+    if (load.finished) return; // stopped or timed out: ignore late answers
+    if (removed()) {
+      drop();
+      return;
+    }
     if (response?.status === "failed") {
-      renderOpenEvidenceCardNotice(body, OPENEVIDENCE_MESSAGES.failed, "failed");
+      finish(() => renderOpenEvidenceCardNotice(body, OPENEVIDENCE_MESSAGES.failed, "failed"));
       return;
     }
     if (response?.status !== "pending") {
-      renderOpenEvidenceCardBody(card, body, response);
+      finish(() => renderOpenEvidenceCardBody(card, body, response));
       return;
     }
     if (delayMs === null) body.replaceChildren(renderLoadingState(OPENEVIDENCE_MESSAGES.pending));
     delayMs = nextOpenEvidencePollDelayMs(response, delayMs);
     if (Date.now() - startedAt + delayMs > OPENEVIDENCE_POLL.totalCapMs) {
-      renderOpenEvidenceCardNotice(body, OPENEVIDENCE_MESSAGES.timeout, "timeout");
+      timeOut();
       return;
     }
-    setTimeout(() => {
+    pollTimer = setTimeout(() => {
+      if (load.finished) return;
       if (!state.openevidenceEnabled || card.isConnected === false) {
-        card.remove();
+        drop();
         return;
       }
       poll();
     }, delayMs);
   };
+  const job = () => {
+    // Checked when the queued job actually runs, not when it was queued.
+    if (load.finished) return Promise.resolve();
+    if (removed()) {
+      drop();
+      return Promise.resolve();
+    }
+    controller = typeof AbortController === "function" ? new AbortController() : null;
+    const slotReleased = new Promise((resolve) => {
+      releaseSlot = resolve;
+    });
+    const settled = request(controller ? controller.signal : undefined).then(handle, () => {
+      if (!load.finished) drop();
+    });
+    return Promise.race([settled, slotReleased]).finally(() => {
+      releaseSlot = null;
+      controller = null;
+    });
+  };
+  const poll = () => enqueueOpenEvidenceFetch(job);
+  const timeOut = () => finish(() => renderOpenEvidenceCardNotice(body, OPENEVIDENCE_MESSAGES.timeout, "timeout"));
+  const startedAt = Date.now();
+  deadlineTimer = setTimeout(timeOut, OPENEVIDENCE_POLL.totalCapMs);
   poll();
 }
 
 function fetchGeneOpenEvidence(
   gene,
   tumorType,
-  { cancerAssociated, insufficientEvidence, corePmids, coreTitles, fusion } = {}
+  { cancerAssociated, insufficientEvidence, corePmids, coreTitles, fusion, signal } = {}
 ) {
   // Defense in depth: renderOpenEvidenceCard is the only caller today and
   // already gates on state.openevidenceEnabled before ever reaching this
@@ -2280,22 +2363,26 @@ function fetchGeneOpenEvidence(
   const forget = () => {
     if (state.openEvidenceByGene[key] === promise) delete state.openEvidenceByGene[key];
   };
-  const promise = fetch(`/v1/genes/${encodeURIComponent(gene)}/openevidence${query ? `?${query}` : ""}`)
+  const url = `/v1/genes/${encodeURIComponent(gene)}/openevidence${query ? `?${query}` : ""}`;
+  const promise = (signal ? fetch(url, { signal }) : fetch(url))
     .then(async (response) => {
       // A "pending" answer arrives as HTTP 503 with a JSON body (so older
       // clients treat it as a transient error) — any other non-2xx, or a
       // 503 that isn't our pending body (e.g. from the ingress), is an error.
       if (!response.ok && response.status !== 503) throw new Error(response.statusText || "Request failed");
       const payload = await response.json();
-      if (payload?.status === "pending") {
-        forget(); // never memoize "pending" — the next poll must really re-fetch
+      if (payload?.status === "pending" || payload?.status === "failed") {
+        // Never memoize "pending" (the next poll must really re-fetch) or
+        // "failed" (the server only remembers a failure for a few minutes,
+        // so a later re-render must be able to ask again and recover).
+        forget();
       } else if (!response.ok) {
         throw new Error(response.statusText || "Request failed");
       }
       return payload;
     })
     .catch((error) => {
-      forget(); // allow retry on next render
+      forget(); // allow retry on next render (also covers an aborted request)
       throw error;
     });
   state.openEvidenceByGene[key] = promise;
@@ -2430,8 +2517,9 @@ function renderOpenEvidenceCard(annotation) {
   const body = card.querySelector(".openevidence-card-body");
   body.appendChild(renderLoadingState("Checking OpenEvidence…"));
 
-  loadOpenEvidenceCard(card, body, () =>
+  loadOpenEvidenceCard(card, body, (signal) =>
     fetchGeneOpenEvidence(annotation.gene, tumorTypeForAnnotation(annotation), {
+      signal,
       cancerAssociated: annotation.cancer_associated,
       insufficientEvidence: annotation.insufficient_evidence,
       corePmids: annotation.citations,

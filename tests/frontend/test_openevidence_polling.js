@@ -62,15 +62,19 @@ function geneOf(url) {
 // server answers with on that gene's Nth request (0-based).
 async function setup(answers, { poll } = {}) {
   const calls = [];
-  const fetchImpl = async (url) => {
+  const aborted = [];
+  const fetchImpl = async (url, options) => {
     url = String(url);
     if (url === "/v1/dev/status") {
       return { ok: true, status: 200, json: async () => ({ enabled: false, openevidence_enabled: true }) };
     }
     calls.push(url);
+    options?.signal?.addEventListener("abort", () => aborted.push(url));
     const gene = geneOf(url);
     const index = calls.filter((u) => geneOf(u) === gene).length - 1;
-    return httpResponse(answers[gene](index));
+    // An answer may be a promise (e.g. one that never settles, to model a
+    // stalled request — which, like a real server, ignores the abort).
+    return httpResponse(await answers[gene](index));
   };
   const sandbox = loadApp({ fetchImpl });
   Object.assign(sandbox.OPENEVIDENCE_POLL, {
@@ -103,7 +107,7 @@ async function setup(answers, { poll } = {}) {
     return originalRenderLoading(message);
   };
   const callsFor = (gene) => calls.filter((url) => geneOf(url) === gene);
-  return { sandbox, calls, callsFor, rendered, notices, loadingMessages };
+  return { sandbox, calls, callsFor, rendered, notices, loadingMessages, aborted };
 }
 
 // Attaches a card to the (document-owned) results window, the way
@@ -293,6 +297,100 @@ async function test_non_pending_503_is_an_error_and_not_memoized() {
   assert.deepStrictEqual(Object.keys(sandbox.state.openEvidenceByGene), []);
 }
 
+async function test_failed_answer_is_not_memoized_so_a_rerun_recovers() {
+  const { sandbox, callsFor, rendered, notices } = await setup({ ALK: (i) => (i === 0 ? FAILED : READY) });
+  mountCard(sandbox, "ALK");
+  await waitFor(() => notices.length === 1, "the failed state to render");
+  assert.deepStrictEqual(Object.keys(sandbox.state.openEvidenceByGene), [], "failed must not be memoized");
+
+  // Re-running (re-rendering) after the server's failure record expired.
+  mountCard(sandbox, "ALK");
+  await waitFor(() => rendered.length === 1, "the rerun's ready answer to render");
+  assert.strictEqual(callsFor("ALK").length, 2, "the rerun must make a fresh request");
+  assert.strictEqual(rendered[0].response.status, "ready");
+}
+
+async function test_leaving_the_results_view_stops_polling_and_aborts_in_flight_requests() {
+  const gates = [];
+  const { sandbox, callsFor, aborted } = await setup({
+    ALK: () => PENDING,
+    BRAF: () => new Promise((resolve) => gates.push(() => resolve(PENDING))),
+  });
+  mountCard(sandbox, "ALK");
+  mountCard(sandbox, "BRAF");
+  await waitFor(() => callsFor("ALK").length >= 2 && callsFor("BRAF").length === 1, "polling to start");
+
+  sandbox.switchView("benchmark");
+  assert.deepStrictEqual(aborted, [callsFor("BRAF")[0]], "the in-flight request is aborted on navigation");
+  const callsAtSwitch = callsFor("ALK").length + callsFor("BRAF").length;
+  gates.forEach((open) => open()); // BRAF's answer arrives after navigation
+  await sleep(sandbox.OPENEVIDENCE_POLL.maxDelayMs * 6 + 30);
+  assert.strictEqual(callsFor("ALK").length + callsFor("BRAF").length, callsAtSwitch, "no polls after leaving the results view");
+}
+
+async function test_rerendering_results_reuses_an_in_flight_request() {
+  const gates = [];
+  const { sandbox, callsFor, rendered, aborted } = await setup({
+    ALK: () => new Promise((resolve) => gates.push(() => resolve(READY))),
+  });
+  const run = result("ALK");
+  sandbox.state.currentResult = run;
+  sandbox.renderAnnotationResult(run);
+  await waitFor(() => callsFor("ALK").length === 1, "the ALK request to start");
+
+  // A job-progress poll re-renders the same results while ALK is in flight.
+  sandbox.renderAnnotationResult(run);
+  sandbox.renderAnnotationResult(run);
+  await sleep(10);
+  assert.deepStrictEqual(aborted, [], "a re-render must not abort the in-flight request");
+  assert.strictEqual(callsFor("ALK").length, 1, "the re-rendered card reuses the in-flight request");
+
+  gates.forEach((open) => open());
+  await waitFor(() => rendered.length >= 1, "the re-rendered card to render the answer");
+  assert.ok(findById(sandbox.elements.resultsWindow, "openevidence-ALK"), "the current card is on the page");
+}
+
+async function test_queued_card_removed_before_its_turn_makes_no_request() {
+  const gates = [];
+  const stalled = () => new Promise((resolve) => gates.push(() => resolve(READY)));
+  const { sandbox, callsFor } = await setup({ ALK: stalled, BRAF: stalled, EGFR: stalled, KRAS: () => READY });
+  ["ALK", "BRAF", "EGFR"].forEach((gene) => mountCard(sandbox, gene)); // fill every fetch slot
+  const queued = mountCard(sandbox, "KRAS");
+  await sleep(5);
+  assert.strictEqual(callsFor("KRAS").length, 0, "KRAS waits for a free slot");
+
+  queued.remove();
+  gates.forEach((open) => open()); // free the slots
+  await sleep(30);
+  assert.strictEqual(callsFor("KRAS").length, 0, "a removed card's queued request must never be sent");
+}
+
+async function test_stalled_request_times_out_frees_its_slot_and_ignores_late_answers() {
+  const gates = [];
+  const stalled = () => new Promise((resolve) => gates.push(() => resolve(READY)));
+  const { sandbox, callsFor, rendered, notices, aborted } = await setup(
+    { ALK: stalled, BRAF: stalled, EGFR: stalled, KRAS: () => READY },
+    { poll: { totalCapMs: 40 } }
+  );
+  const cards = ["ALK", "BRAF", "EGFR"].map((gene) => mountCard(sandbox, gene)); // fill every fetch slot
+
+  await waitFor(() => notices.length === 3, "every stalled card to show the timeout state");
+  assert.ok(notices.every((notice) => notice.kind === "timeout"));
+  assert.ok(cards.every((card) => card._removed === undefined), "timed-out cards stay with their note");
+  assert.strictEqual(aborted.length, 3, "each stalled request is aborted at the deadline");
+
+  // Their slots were freed even though the requests never settled.
+  sandbox.OPENEVIDENCE_POLL.totalCapMs = 60 * 1000;
+  mountCard(sandbox, "KRAS");
+  await waitFor(() => rendered.length === 1, "a new card to get a slot and render");
+  assert.strictEqual(callsFor("KRAS").length, 1);
+
+  gates.forEach((open) => open()); // the stalled answers finally arrive
+  await sleep(20);
+  assert.strictEqual(rendered.length, 1, "late answers after the deadline are ignored");
+  assert.strictEqual(notices.length, 3);
+}
+
 const TESTS = [
   test_pending_polls_until_ready_then_renders,
   test_pending_shows_still_checking_state_once,
@@ -305,6 +403,11 @@ const TESTS = [
   test_flag_off_pending_capable_client_makes_zero_requests,
   test_pending_cards_do_not_occupy_the_fetch_queue,
   test_non_pending_503_is_an_error_and_not_memoized,
+  test_failed_answer_is_not_memoized_so_a_rerun_recovers,
+  test_leaving_the_results_view_stops_polling_and_aborts_in_flight_requests,
+  test_rerendering_results_reuses_an_in_flight_request,
+  test_queued_card_removed_before_its_turn_makes_no_request,
+  test_stalled_request_times_out_frees_its_slot_and_ignores_late_answers,
 ];
 
 async function main() {
