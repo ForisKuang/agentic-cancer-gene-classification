@@ -77,7 +77,9 @@
     <script>
       (async function() {
         const urlParams = new URLSearchParams(window.location.search);
-        const redirectTo = urlParams.get('redirect_to') || '/';
+        const target = urlParams.get('redirect_to') || '/';
+        const redirectTo = target.startsWith('/') && !target.startsWith('//') &&
+          !target.includes('\\') && !/[\x00-\x1f\x7f]/.test(target) ? target : '/';
         const encodedRedirect = encodeURIComponent(redirectTo);
 
         const googleBtn = document.getElementById('google-btn');

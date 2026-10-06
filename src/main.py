@@ -19,7 +19,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Coroutine, Dict, List, Literal, Optional
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote
 
 import httpx
 import uvicorn
@@ -58,6 +58,7 @@ from src.auth import (
     require_admin,
     require_auth,
     set_session_cookie,
+    validate_redirect_to,
     verify_oauth_state,
 )
 from src.config import settings
@@ -572,7 +573,13 @@ async def root(request: Request) -> Response:
     if settings.auth_enabled:
         user = get_current_user(request)
         if not user:
-            return RedirectResponse(url="/login", status_code=303)
+            target = request.url.path
+            if request.url.query:
+                target += f"?{request.url.query}"
+            login_url = "/login"
+            if target != "/":
+                login_url += f"?redirect_to={quote(validate_redirect_to(target), safe='')}"
+            return RedirectResponse(url=login_url, status_code=303)
     return FileResponse(_STATIC_DIR / "index.html")
 
 
@@ -582,7 +589,7 @@ async def login_page(request: Request, redirect_to: Optional[str] = "/") -> Resp
         return RedirectResponse(url="/", status_code=303)
     user = get_current_user(request)
     if user:
-        return RedirectResponse(url=redirect_to or "/", status_code=303)
+        return RedirectResponse(url=validate_redirect_to(redirect_to), status_code=303)
     login_html = _STATIC_DIR / "login.html"
     if login_html.exists():
         return FileResponse(login_html)
@@ -630,18 +637,18 @@ async def auth_login(
             redirect_uri = settings.google_redirect_uri.strip()
         else:
             redirect_uri = f"{_public_app_base_url(request)}/auth/callback/google"
-        state = create_oauth_state(redirect_to=redirect_to or "/")
+        state = create_oauth_state(redirect_to=validate_redirect_to(redirect_to))
         google_url = get_google_auth_url(redirect_uri=redirect_uri, state=state)
         return RedirectResponse(url=google_url)
 
     if settings.keycloak_enabled:
-        return RedirectResponse(url=f"/auth/keycloak/login?redirect_to={redirect_to or '/'}")
+        return RedirectResponse(url=f"/auth/keycloak/login?redirect_to={quote(validate_redirect_to(redirect_to), safe='')}")
 
     if settings.saml_enabled and settings.saml_idp_sso_url.strip():
-        return RedirectResponse(url=f"/auth/saml/login?redirect_to={redirect_to or '/'}")
+        return RedirectResponse(url=f"/auth/saml/login?redirect_to={quote(validate_redirect_to(redirect_to), safe='')}")
 
     if settings.dev_login_enabled or settings.agcg_dev_mode:
-        return RedirectResponse(url=f"/auth/dev/login?redirect_to={redirect_to or '/'}")
+        return RedirectResponse(url=f"/auth/dev/login?redirect_to={quote(validate_redirect_to(redirect_to), safe='')}")
 
     raise HTTPException(
         status_code=500,
@@ -728,7 +735,7 @@ async def auth_callback_google(
         groups=profile.groups,
     )
     session_token = create_session_token(user)
-    target_url = state_data.get("redirect_to") or "/"
+    target_url = validate_redirect_to(state_data.get("redirect_to"))
     response = RedirectResponse(url=target_url, status_code=303)
     set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
     record_user_action(
@@ -752,7 +759,7 @@ async def auth_saml_login(
             detail="SAML IdP SSO URL is not configured. Please set SAML_IDP_SSO_URL in your environment.",
         )
     acs_url = f"{_public_app_base_url(request)}/auth/saml/acs"
-    _, redirect_url = build_saml_authn_request(acs_url=acs_url, relay_state=redirect_to or "/")
+    _, redirect_url = build_saml_authn_request(acs_url=acs_url, relay_state=validate_redirect_to(redirect_to))
     return RedirectResponse(url=redirect_url)
 
 
@@ -848,7 +855,7 @@ async def auth_saml_acs(request: Request) -> Response:
         groups=profile.groups,
     )
     session_token = create_session_token(user)
-    target_url = relay_state or "/"
+    target_url = validate_redirect_to(relay_state)
     response = RedirectResponse(url=target_url, status_code=303)
     set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
     record_user_action(
@@ -885,7 +892,7 @@ async def auth_keycloak_login(
     else:
         redirect_uri = f"{_public_app_base_url(request)}/auth/callback/keycloak"
 
-    state = create_oauth_state(redirect_to=redirect_to or "/")
+    state = create_oauth_state(redirect_to=validate_redirect_to(redirect_to))
     keycloak_url = get_keycloak_auth_url(redirect_uri=redirect_uri, state=state, idp_hint=idp_hint)
     return RedirectResponse(url=keycloak_url, status_code=status.HTTP_303_SEE_OTHER)
 
@@ -918,7 +925,7 @@ async def auth_callback_keycloak(
             detail="Invalid or expired OAuth state parameter.",
         )
 
-    redirect_to = state_data.get("redirect_to") or "/"
+    redirect_to = validate_redirect_to(state_data.get("redirect_to"))
 
     if settings.keycloak_redirect_uri.strip():
         redirect_uri = settings.keycloak_redirect_uri.strip()
@@ -1034,7 +1041,7 @@ async def auth_dev_login(
   </div>
 </body>
 </html>
-"""
+""".replace('?email=', f'?redirect_to={quote(validate_redirect_to(redirect_to), safe="")}&amp;email=')
         )
 
     allowed, reason = is_email_allowed(email)
@@ -1059,7 +1066,7 @@ async def auth_dev_login(
         groups=profile.groups,
     )
     session_token = create_session_token(user)
-    response = RedirectResponse(url=redirect_to or "/", status_code=303)
+    response = RedirectResponse(url=validate_redirect_to(redirect_to), status_code=303)
     set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
     record_user_action(
         user.email,
