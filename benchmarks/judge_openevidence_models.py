@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import fcntl
 import hashlib
 import json
 from pathlib import Path
@@ -40,6 +41,27 @@ claim that you independently verified sources. A 5 is not clinical validation.
 """
 
 
+def reserve_judge_attempt(directory: Path, source: dict, stem: str, model: str) -> None:
+    """Persist before sending; rejected, failed and interrupted attempts count too."""
+    # Lock the ledger itself so concurrent invocations cannot reserve the same slot.
+    with (directory / "judge_attempts.json").open("a+") as ledger_file:
+        fcntl.flock(ledger_file, fcntl.LOCK_EX)
+        ledger_file.seek(0)
+        content = ledger_file.read()
+        ledger = json.loads(content) if content else {"attempts": []}
+        attempts = ledger["attempts"]
+        if source["paid_call_attempts"] + len(attempts) >= 45:
+            raise SystemExit("Insufficient remaining paid-call budget for judge")
+        attempts.append({"status": "attempted", "result_stem": stem,
+                         "judge_model": model, "sdk_retries": 0})
+        ledger["total_judge_attempts"] = len(attempts)
+        ledger["total_benchmark_api_attempts"] = source["paid_call_attempts"] + len(attempts)
+        ledger_file.seek(0)
+        ledger_file.truncate()
+        ledger_file.write(json.dumps(ledger, indent=2) + "\n")
+        ledger_file.flush()
+
+
 async def judge(directory: Path, genes=None, suffix=""):
     source = json.loads((directory / "models.json").read_text())
     if source["status"] != "complete":
@@ -49,8 +71,6 @@ async def judge(directory: Path, genes=None, suffix=""):
     target = directory / f"{stem}.json"
     if target.exists():
         raise SystemExit("Refusing to overwrite judge result")
-    if source["paid_call_attempts"] > 42:
-        raise SystemExit("Insufficient remaining paid-call budget for judge")
     pairs, mapping = [], {}
     for gene in requested:
         order = ["osler", "darwin"]
@@ -89,6 +109,7 @@ async def judge(directory: Path, genes=None, suffix=""):
     model = resolve_sdk_model(settings.selection_model, "selection")
     # Explicitly disable SDK retries: one judge attempt counts toward total budget.
     async with make_async_sdk_client().with_options(max_retries=0, timeout=600) as client:
+        reserve_judge_attempt(directory, source, stem, model)
         response = await client.messages.create(
             model=model, max_tokens=12000, system=RUBRIC,
             messages=[{"role": "user", "content": json.dumps(request)}], tools=[tool],

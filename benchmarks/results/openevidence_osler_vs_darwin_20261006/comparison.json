@@ -159,7 +159,6 @@
               "LAURA",
               "MARIPOSA2",
               "PAPILLON",
-              "PROFILE",
               "WUKONG1B",
               "WUKONG28",
               "WUKONG6"
@@ -194,7 +193,6 @@
           "LAURA",
           "MARIPOSA2",
           "PAPILLON",
-          "PROFILE",
           "WUKONG1B",
           "WUKONG28",
           "WUKONG6"
@@ -223,10 +221,9 @@
           "WUKONG28",
           "WUKONG6"
         ],
-        "darwin_reference_recall": 0.8,
+        "darwin_reference_recall": 0.8888888888888888,
         "darwin_only": [
-          "CHRYSALIS2",
-          "PROFILE"
+          "CHRYSALIS2"
         ],
         "osler_only": [
           "COMPEL",
@@ -318,8 +315,7 @@
               "NCT03855371",
               "NCT04169737",
               "NCT04585750",
-              "PANDA",
-              "PRIMA1"
+              "PANDA"
             ]
           }
         },
@@ -375,8 +371,7 @@
           "NCT03855371",
           "NCT04169737",
           "NCT04585750",
-          "PANDA",
-          "PRIMA1"
+          "PANDA"
         ],
         "overlap": [
           "FOCUS4C",
@@ -394,8 +389,7 @@
           "NCT03745716",
           "NCT03855371",
           "NCT04169737",
-          "PANDA",
-          "PRIMA1"
+          "PANDA"
         ]
       }
     },
@@ -1139,8 +1133,6 @@
               "OLYMPIAD",
               "POLO",
               "PROFOUND",
-              "SOLO1",
-              "SOLO2",
               "TALAPRO2",
               "TRITON2",
               "TRITON3"
@@ -1309,8 +1301,6 @@
               "PAOLA1",
               "POLO",
               "PROFOUND",
-              "SOLO1",
-              "SOLO2",
               "TALAPRO2",
               "TALAPRO3",
               "TRITON2",
@@ -1362,8 +1352,6 @@
           "PAOLA1",
           "POLO",
           "PROFOUND",
-          "SOLO1",
-          "SOLO2",
           "TALAPRO2",
           "TALAPRO3",
           "TRITON2",
@@ -1375,8 +1363,6 @@
           "OLYMPIAD",
           "POLO",
           "PROFOUND",
-          "SOLO1",
-          "SOLO2",
           "TALAPRO2",
           "TRITON2",
           "TRITON3"
@@ -1385,13 +1371,11 @@
           "OLYMPIA",
           "POLO",
           "PROFOUND",
-          "SOLO1",
-          "SOLO2",
           "TALAPRO2",
           "TRITON2",
           "TRITON3"
         ],
-        "darwin_reference_recall": 0.8,
+        "darwin_reference_recall": 0.75,
         "darwin_only": [
           "PAOLA1",
           "TALAPRO3"
@@ -1633,8 +1617,7 @@
               "ANBL1531",
               "CROWN",
               "EXALT3",
-              "JALEX",
-              "PROFILE"
+              "JALEX"
             ]
           }
         }
@@ -1677,8 +1660,7 @@
           "ANBL1531",
           "CROWN",
           "EXALT3",
-          "JALEX",
-          "PROFILE"
+          "JALEX"
         ],
         "candidate": [
           "ALEX",
@@ -1700,12 +1682,11 @@
           "CROWN",
           "JALEX"
         ],
-        "darwin_reference_recall": 0.5555555555555556,
+        "darwin_reference_recall": 0.625,
         "darwin_only": [
           "ALINA",
           "ALKAZAR",
-          "EXALT3",
-          "PROFILE"
+          "EXALT3"
         ],
         "osler_only": [
           "NCT03093116",
@@ -1925,9 +1906,7 @@
           "additive_citations": 12,
           "agreement_labels": {
             "guidelines": [],
-            "trials": [
-              "PROFILE"
-            ]
+            "trials": []
           }
         },
         "darwin": {
@@ -2021,15 +2000,11 @@
       },
       "trials_agreement": {
         "reference": [],
-        "candidate": [
-          "PROFILE"
-        ],
+        "candidate": [],
         "overlap": [],
         "darwin_reference_recall": null,
         "darwin_only": [],
-        "osler_only": [
-          "PROFILE"
-        ]
+        "osler_only": []
       }
     },
     {
@@ -2191,9 +2166,7 @@
               "nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf",
               "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
             ],
-            "trials": [
-              "PROFILE"
-            ]
+            "trials": []
           }
         }
       },
@@ -2222,15 +2195,11 @@
         "osler_only": []
       },
       "trials_agreement": {
-        "reference": [
-          "PROFILE"
-        ],
+        "reference": [],
         "candidate": [],
         "overlap": [],
-        "darwin_reference_recall": 0.0,
-        "darwin_only": [
-          "PROFILE"
-        ],
+        "darwin_reference_recall": null,
+        "darwin_only": [],
         "osler_only": []
       }
     },
@@ -3013,8 +2982,7 @@
             "trials": [
               "ALEX",
               "CROWN",
-              "CROWN7",
-              "PROFILE"
+              "CROWN7"
             ]
           }
         },
@@ -3106,8 +3074,7 @@
         "candidate": [
           "ALEX",
           "CROWN",
-          "CROWN7",
-          "PROFILE"
+          "CROWN7"
         ],
         "overlap": [
           "CROWN"
@@ -3119,11 +3086,159 @@
         ],
         "osler_only": [
           "ALEX",
-          "CROWN7",
-          "PROFILE"
+          "CROWN7"
         ]
       }
     }
   ],
+  "agreement": {
+    "guidelines": {
+      "reference_labels": 67,
+      "overlap_labels": 17,
+      "micro_recall": 0.2537313432835821,
+      "macro_recall": 0.18998015873015872
+    },
+    "trials": {
+      "reference_labels": 43,
+      "overlap_labels": 27,
+      "micro_recall": 0.627906976744186,
+      "macro_recall": 0.5538194444444444
+    }
+  },
+  "groups": {
+    "established": {
+      "genes": [
+        "EGFR",
+        "TP53",
+        "KRAS",
+        "BRAF",
+        "BRCA1",
+        "ALK",
+        "EML4::ALK"
+      ],
+      "summary": {
+        "osler": {
+          "successes": 7,
+          "requested": 7,
+          "success_rate": 1.0,
+          "median_seconds": 55.20621904099971,
+          "p90_seconds": 62.94930306620081,
+          "median_ttft_seconds": 2.6818406250022235,
+          "p90_ttft_seconds": 3.0972046165974465,
+          "under_300s": 7,
+          "mean_answer_chars": 6204.714285714285,
+          "mean_citations": 23.428571428571427,
+          "mean_guidelines": 2.5714285714285716,
+          "mean_guideline_citations": 3.142857142857143,
+          "mean_page_anchored_guidelines": 2.4285714285714284,
+          "mean_trial_mentions": 9.142857142857142,
+          "mean_additive_citations": 23.285714285714285
+        },
+        "darwin": {
+          "successes": 7,
+          "requested": 7,
+          "success_rate": 1.0,
+          "median_seconds": 289.4687294999967,
+          "p90_seconds": 301.2392663583989,
+          "median_ttft_seconds": 2.706997583001794,
+          "p90_ttft_seconds": 3.0874631166021573,
+          "under_300s": 5,
+          "mean_answer_chars": 9387.57142857143,
+          "mean_citations": 28.857142857142858,
+          "mean_guidelines": 4.142857142857143,
+          "mean_guideline_citations": 5.285714285714286,
+          "mean_page_anchored_guidelines": 4.142857142857143,
+          "mean_trial_mentions": 10.428571428571429,
+          "mean_additive_citations": 28.714285714285715
+        }
+      },
+      "agreement": {
+        "guidelines": {
+          "reference_labels": 37,
+          "overlap_labels": 17,
+          "micro_recall": 0.4594594594594595,
+          "macro_recall": 0.5066137566137566
+        },
+        "trials": {
+          "reference_labels": 40,
+          "overlap_labels": 27,
+          "micro_recall": 0.675,
+          "macro_recall": 0.6329365079365079
+        }
+      },
+      "card_guideline_totals": {
+        "osler": 18,
+        "darwin": 29
+      }
+    },
+    "negative_controls": {
+      "genes": [
+        "ACACB",
+        "AIRE",
+        "ANKRD13A",
+        "CRACD",
+        "DENND2C",
+        "FAM117A",
+        "RFX7",
+        "RP1",
+        "TRARG1",
+        "CLCN3P1"
+      ],
+      "summary": {
+        "osler": {
+          "successes": 10,
+          "requested": 10,
+          "success_rate": 1.0,
+          "median_seconds": 30.70662618699498,
+          "p90_seconds": 38.828626079099195,
+          "median_ttft_seconds": 2.668153333495866,
+          "p90_ttft_seconds": 3.6692554243985795,
+          "under_300s": 10,
+          "mean_answer_chars": 4089.7,
+          "mean_citations": 8.2,
+          "mean_guidelines": 0.1,
+          "mean_guideline_citations": 0.1,
+          "mean_page_anchored_guidelines": 0.1,
+          "mean_trial_mentions": 0.1,
+          "mean_additive_citations": 7.5
+        },
+        "darwin": {
+          "successes": 10,
+          "requested": 10,
+          "success_rate": 1.0,
+          "median_seconds": 122.32861239549675,
+          "p90_seconds": 151.43210337889542,
+          "median_ttft_seconds": 2.5091447084960237,
+          "p90_ttft_seconds": 2.8960478415981923,
+          "under_300s": 10,
+          "mean_answer_chars": 5294.2,
+          "mean_citations": 19,
+          "mean_guidelines": 3,
+          "mean_guideline_citations": 3,
+          "mean_page_anchored_guidelines": 3,
+          "mean_trial_mentions": 0.3,
+          "mean_additive_citations": 18.2
+        }
+      },
+      "agreement": {
+        "guidelines": {
+          "reference_labels": 30,
+          "overlap_labels": 0,
+          "micro_recall": 0.0,
+          "macro_recall": 0.0
+        },
+        "trials": {
+          "reference_labels": 3,
+          "overlap_labels": 0,
+          "micro_recall": 0.0,
+          "macro_recall": 0.0
+        }
+      },
+      "card_guideline_totals": {
+        "osler": 1,
+        "darwin": 30
+      }
+    }
+  },
   "paid_call_attempts": 34
 }

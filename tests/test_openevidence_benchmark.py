@@ -100,6 +100,14 @@ async def test_model_benchmark_uses_live_path_and_saved_core_evidence(tmp_path, 
     monkeypatch.setattr(models.httpx, "AsyncHTTPTransport", lambda: httpx.MockTransport(respond))
     monkeypatch.setattr(models.settings, "openevidence_api_key", "test-only-key")
     original_model = models.settings.openevidence_model
+    original_timeout = models.settings.openevidence_timeout_seconds
+    cached_hits = []
+
+    async def seeded_cache_hit(*args, **kwargs):
+        cached_hits.append(True)
+        return {"text": "Cached answer must not be reused"}
+
+    monkeypatch.setattr(models.oe, "cached_call", seeded_cache_hit)
     await models.run_models(tmp_path, genes=["EGFR", "EML4::ALK"])
     data = json.loads((tmp_path / "models.json").read_text())
     assert data["status"] == "complete"
@@ -111,6 +119,9 @@ async def test_model_benchmark_uses_live_path_and_saved_core_evidence(tmp_path, 
     assert row["core_evidence"]["pmids"]
     assert row["distilled"]["trial_mentions"][0]["trial"] == "FLAURA"
     assert models.settings.openevidence_model == original_model
+    assert models.settings.openevidence_timeout_seconds == original_timeout
+    assert models.oe.cached_call is seeded_cache_hit
+    assert cached_hits == []
     assert "test-only-key" not in (tmp_path / "models.json").read_text()
 
 
@@ -233,3 +244,70 @@ async def test_blinded_judge_withholds_model_names_and_disables_retries(tmp_path
     result = json.loads((tmp_path / "blinded_judge.json").read_text())
     assert result["paid_judge_calls"] == 1
     assert set(result["mapping"]["EGFR"].values()) == {"osler", "darwin"}
+    ledger = tmp_path / "judge_attempts.json"
+    recorded = json.loads(ledger.read_text())
+    assert recorded["total_benchmark_api_attempts"] == 3
+    assert recorded["attempts"][0]["result_stem"] == "blinded_judge"
+    ledger.write_text(json.dumps({"attempts": [{"status": "rejected"}] * 43}))
+    with pytest.raises(SystemExit, match="Insufficient remaining paid-call budget"):
+        await judge_module.judge(tmp_path, suffix="over_budget")
+    assert not (tmp_path / "blinded_judge_over_budget.json").exists()
+
+
+@pytest.mark.parametrize("wrap,timeout", [(False, True), (True, True), (True, False)])
+async def test_model_error_classification_unwraps_retry_errors(tmp_path, monkeypatch, wrap, timeout):
+    import httpx
+    from concurrent.futures import Future
+    from tenacity import RetryError
+    from benchmarks import openevidence_model_benchmark as models
+
+    error = httpx.ReadTimeout("fixture timeout") if timeout else httpx.ConnectError("fixture error")
+    if wrap:
+        future = Future()
+        future.set_exception(error)
+        error = RetryError(future)
+
+    async def fail(*args, **kwargs):
+        raise error
+
+    monkeypatch.setattr(models.settings, "openevidence_api_key", "test-only-key")
+    monkeypatch.setattr(models.oe, "_post_streaming_analysis", fail)
+    await models.run_models(tmp_path, genes=["EGFR"], models=("darwin",))
+    row = json.loads((tmp_path / "models.json").read_text())["per_gene"]["EGFR"]["darwin"]
+    assert row["status"] == ("timeout" if timeout else "error")
+    assert row["error_type"] == ("ReadTimeout" if timeout else "ConnectError")
+
+
+def test_judge_guard_counts_all_recorded_attempts_and_reserves_last_slot(tmp_path):
+    from benchmarks.judge_openevidence_models import reserve_judge_attempt
+
+    source = {"paid_call_attempts": 34}
+    ledger = tmp_path / "judge_attempts.json"
+    ledger.write_text(json.dumps({"attempts": [{"status": "rejected"}] * 10}))
+    reserve_judge_attempt(tmp_path, source, "last_slot", "fixture-model")
+    saved = json.loads(ledger.read_text())
+    assert saved["total_judge_attempts"] == 11
+    assert saved["total_benchmark_api_attempts"] == 45
+    assert saved["attempts"][-1]["status"] == "attempted"
+    with pytest.raises(SystemExit, match="Insufficient remaining paid-call budget"):
+        reserve_judge_attempt(tmp_path, source, "must_not_call", "fixture-model")
+    assert json.loads(ledger.read_text()) == saved
+
+
+def test_trial_labels_exclude_ordinary_words_and_ambiguous_drug_names():
+    from benchmarks.compare_openevidence import compare_models
+
+    raw = {"status": "success", "wall_seconds": 12, "ttft_seconds": 2,
+           "answer_chars": 30, "analysis": {"text":
+               "toxicity profile; PROFILE; solo; SOLO; PRIMA-1; ARROW; crown; CROWN; NCT04988295"},
+           "distilled": {"guidelines": [], "trial_mentions": [], "citation_count": 0},
+           "additive": {"citation_count": 0}}
+    data = {"status": "complete", "models": ["osler", "darwin"],
+            "genes": ["EGFR", "AIRE"], "paid_call_attempts": 4,
+            "per_gene": {gene: {"osler": raw, "darwin": raw} for gene in ("EGFR", "AIRE")}}
+    result = compare_models(data)
+    assert result["per_gene"][0]["trials_agreement"]["reference"] == ["CROWN", "NCT04988295"]
+    assert result["groups"]["established"]["genes"] == ["EGFR"]
+    assert result["groups"]["negative_controls"]["genes"] == ["AIRE"]
+    assert result["groups"]["established"]["agreement"]["trials"]["micro_recall"] == 1
+    assert result["groups"]["negative_controls"]["card_guideline_totals"]["darwin"] == 0

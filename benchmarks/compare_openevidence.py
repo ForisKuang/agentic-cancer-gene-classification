@@ -130,46 +130,53 @@ def compare_models(data: dict) -> dict:
 
     if data["status"] != "complete":
         raise ValueError("Model benchmark must be complete")
-    summaries = {}
+
+    def summarize(pairs):
+        summaries = {}
+        for model in data["models"]:
+            all_rows = [pair[model] for pair in pairs.values()]
+            successful = [row for row in all_rows if row["status"] == "success"]
+            latencies = [row["wall_seconds"] for row in successful]
+            ttfts = [row["ttft_seconds"] for row in successful if row["ttft_seconds"] is not None]
+            summaries[model] = {
+                "successes": len(successful), "requested": len(all_rows),
+                "success_rate": len(successful) / len(all_rows),
+                "median_seconds": median(latencies) if latencies else None,
+                "p90_seconds": percentile(latencies, .9) if latencies else None,
+                "median_ttft_seconds": median(ttfts) if ttfts else None,
+                "p90_ttft_seconds": percentile(ttfts, .9) if ttfts else None,
+                "under_300s": sum(row["wall_seconds"] < 300 for row in successful),
+                **{f"mean_{key}": mean(values) if values else None for key, values in {
+                    "answer_chars": [row["answer_chars"] for row in successful],
+                    "citations": [row["distilled"]["citation_count"] for row in successful],
+                    "guidelines": [len(row["distilled"]["guidelines"]) for row in successful],
+                    "guideline_citations": [len(guideline_citations(row)) for row in successful],
+                    "page_anchored_guidelines": [sum(bool(g["page_anchor"]) for g in
+                        row["distilled"]["guidelines"]) for row in successful],
+                    "trial_mentions": [len(row["distilled"]["trial_mentions"])
+                                       for row in successful],
+                    "additive_citations": [row["additive"]["citation_count"] for row in successful],
+                }.items()},
+            }
+        return summaries
+
+    summaries = summarize(data["per_gene"])
     rows = []
-    for model in data["models"]:
-        all_rows = [pair[model] for pair in data["per_gene"].values()]
-        successful = [row for row in all_rows if row["status"] == "success"]
-        latencies = [row["wall_seconds"] for row in successful]
-        ttfts = [row["ttft_seconds"] for row in successful if row["ttft_seconds"] is not None]
-        summaries[model] = {
-            "successes": len(successful), "requested": len(all_rows),
-            "success_rate": len(successful) / len(all_rows),
-            "median_seconds": median(latencies) if latencies else None,
-            "p90_seconds": percentile(latencies, .9) if latencies else None,
-            "median_ttft_seconds": median(ttfts) if ttfts else None,
-            "p90_ttft_seconds": percentile(ttfts, .9) if ttfts else None,
-            "under_300s": sum(row["wall_seconds"] < 300 for row in successful),
-            **{f"mean_{key}": mean(values) if values else None for key, values in {
-                "answer_chars": [row["answer_chars"] for row in successful],
-                "citations": [row["distilled"]["citation_count"] for row in successful],
-                "guidelines": [len(row["distilled"]["guidelines"]) for row in successful],
-                "guideline_citations": [len(guideline_citations(row)) for row in successful],
-                "page_anchored_guidelines": [sum(bool(g["page_anchor"]) for g in
-                    row["distilled"]["guidelines"]) for row in successful],
-                "trial_mentions": [len(row["distilled"]["trial_mentions"])
-                                   for row in successful],
-                "additive_citations": [row["additive"]["citation_count"] for row in successful],
-            }.items()},
-        }
 
     def labels(row):
         guidelines = {urlsplit(g["url"]).netloc.lower().removeprefix("www.") +
                       urlsplit(g["url"]).path.lower() for g in guideline_citations(row)}
         # Named trials outside the production extractor are captured separately;
-        # count neither all uppercase words nor outcome-stat sentences as trials.
+        # Case-sensitive seeds avoid ordinary words (e.g. toxicity profile).
+        # Ambiguous PROFILE/SOLO/PRIMA/ARROW are excluded, including PRIMA-1 drug.
+        # Count neither all uppercase words nor outcome-stat sentences as trials.
         trials = set(re.findall(
             r"\b(?:NCT\d{8}|(?:FLAURA|ADAURA|LAURA|MARIPOSA|PAPILLON|ALEX|CROWN|ALTA|"
-            r"J-ALEX|ALTA-1L|LIBRETTO|ARROW|CodeBreaK|KRYSTAL|BEACON|BREAKWATER|"
+            r"J-ALEX|ALTA-1L|LIBRETTO|CodeBreaK|KRYSTAL|BEACON|BREAKWATER|"
             r"COMBI|CheckMate|KEYNOTE|OlympiA|OlympiAD|EMBRACA|POLO|TALAPRO|PROfound|"
-            r"SOLO|PAOLA|PRIMA|ATHENA|TRITON|PROFILE|ASCEND|ALINA|eXalt3|TRIDENT|"
+            r"PAOLA|ATHENA|TRITON|ASCEND|ALINA|eXalt3|TRIDENT|"
             r"WU-KONG|FOCUS4|MIRROS|PYNNACLE|PANDA|ALKAZAR|ANBL|COMPEL|CHRYSALIS)"
-            r"(?:[- ]?\d+[A-Za-z]*|-[A-Za-z]+)?)\b", row["analysis"]["text"], re.IGNORECASE))
+            r"(?:[- ]?\d+[A-Za-z]*|-[A-Za-z]+)?)\b", row["analysis"]["text"]))
         return {"guidelines": sorted(guidelines),
                 "trials": sorted({re.sub(r"[- ]", "", t.upper()) for t in trials})}
 
@@ -201,7 +208,39 @@ def compare_models(data: dict) -> dict:
                     "osler_only": sorted(candidate - reference),
                 }
         rows.append(row)
+
+    def agreement(selected):
+        result = {}
+        for kind in ("guidelines", "trials"):
+            pairs = [row[f"{kind}_agreement"] for row in selected
+                     if f"{kind}_agreement" in row]
+            reference = sum(len(pair["reference"]) for pair in pairs)
+            overlap = sum(len(pair["overlap"]) for pair in pairs)
+            recalls = [pair["darwin_reference_recall"] for pair in pairs
+                       if pair["darwin_reference_recall"] is not None]
+            result[kind] = {"reference_labels": reference, "overlap_labels": overlap,
+                            "micro_recall": overlap / reference if reference else None,
+                            "macro_recall": mean(recalls) if recalls else None}
+        return result
+
+    established = {"EGFR", "TP53", "KRAS", "BRAF", "BRCA1", "ALK", "EML4::ALK"}
+    groups = {}
+    for name, genes in {
+        "established": [g for g in data["genes"] if g in established],
+        "negative_controls": [g for g in data["genes"] if g not in established],
+    }.items():
+        if not genes:
+            continue
+        pairs = {gene: data["per_gene"][gene] for gene in genes}
+        groups[name] = {"genes": genes, "summary": summarize(pairs),
+                        "agreement": agreement([row for row in rows if row["gene"] in genes]),
+                        "card_guideline_totals": {
+                            model: sum(len(pair[model]["distilled"]["guidelines"])
+                                       for pair in pairs.values()
+                                       if pair[model]["status"] == "success")
+                            for model in data["models"]}}
     return {"summary": summaries, "per_gene": rows,
+            "agreement": agreement(rows), "groups": groups,
             "paid_call_attempts": data["paid_call_attempts"]}
 
 
