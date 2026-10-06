@@ -337,10 +337,16 @@ Duplicate symbols (case-insensitive) are collapsed. A symbol may contain only
 letters, digits, `-` and `.`, and must start and end with a letter or digit
 (e.g. `ALK`, `HLA-A`, `C1orf112`, `ENSG00000141510.17`); anything else, including
 fusions and dangling separators like `ALK::`, returns 422 (use `/v1/annotate`
-for fusions). Lists longer than the cap also return 422. Each result's
-`tumor_type` is the one supplied for that gene (aliases are traced back to
-their input), or `null` if none was given. A symbol HGNC can't resolve comes
-back with `error: "Gene symbol could not be resolved."`.
+for fusions). Lists longer than the cap also return 422.
+
+Each result's `tumor_type` is the tumor type the classification actually ran
+with, or `null` if none. When several inputs resolve to the same gene (an alias
+and its symbol, or an Ensembl ID and its symbol) with different tumor types,
+the pipeline picks one and the response reports that one.
+
+A symbol HGNC does not recognize comes back in the batch `POST` with
+`error: "Gene symbol could not be resolved."`; `GET /v1/genes/{symbol}` returns
+404 (`"Gene symbol not found."`) instead. The run is saved in both cases.
 
 A response is only returned once its run is saved, so `view_url` always
 resolves; if the run can't be saved, the request returns 500 (or the job

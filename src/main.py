@@ -253,7 +253,6 @@ class AnnotationJobStatusResponse(BaseModel):
     # Internal bookkeeping for callers that reuse this job store (e.g. the gene
     # query API): which endpoint family created the job and its request.
     kind: str = Field(default="annotate", exclude=True)
-    context: Dict[str, Any] = Field(default_factory=dict, exclude=True)
 
 
 class FusionContextResponse(BaseModel):
@@ -1160,7 +1159,6 @@ async def _launch_annotation_job(
     current_user: Optional[AuthenticatedUser],
     *,
     kind: str = "annotate",
-    context: Optional[Dict[str, Any]] = None,
     require_persistence: bool = False,
     complete_action: str = "job_complete",
     error_action: str = "job_error",
@@ -1179,7 +1177,6 @@ async def _launch_annotation_job(
         status="queued",
         fusions_processed=len(request.fusions),
         kind=kind,
-        context=dict(context or {}),
     )
     await _store_annotation_job(job)
 

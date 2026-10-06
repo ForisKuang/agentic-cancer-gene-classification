@@ -1,8 +1,11 @@
 """Tests for the slim gene query API (src/api/gene_query.py).
 
-run_pipeline and HGNC normalization are stubbed and the MySQL-backed run store
-is replaced with an in-memory fake (via main.RunStore, which the app lifespan
-calls), so these run without MySQL, Redis, network, or LLM credentials.
+Most tests stub run_pipeline outright. The tumor-context tests instead run the
+real run_pipeline and real normalize_fusions, stubbing only the HGNC/Ensembl
+HTTP resolvers and the per-gene LLM step, so input ordering and alias merging
+match production. The MySQL-backed run store is replaced with an in-memory fake
+(via main.RunStore, which the app lifespan calls), so nothing here needs MySQL,
+network, or LLM credentials.
 """
 
 from __future__ import annotations
@@ -14,7 +17,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src import main
-from src.api import gene_query
 from src.api.gene_query import GeneQueryItem, GeneRationale, to_gene_rationale
 from src.config import settings
 from src.models.schema import (
@@ -26,12 +28,14 @@ from src.models.schema import (
     ResolvedGene,
     SupportingQuote,
 )
+from src.pipeline import normalization, orchestrator
 
 _RUN_ID = "33333333-3333-3333-3333-333333333333"
 _ABSTRACT = "SECRET-ABSTRACT-TEXT about ALK rearrangements"
 _QUOTE = "SECRET-QUOTE-TEXT from the paper"
-# Alias -> canonical symbol, shared by the pipeline and normalization stubs.
+# Alias -> canonical symbol for the HGNC resolver stub.
 _ALIASES = {"MOZ": "KAT6A"}
+_TP53_ENSEMBL = "ENSG00000141510.17"
 
 
 def _canonical(symbol: str) -> str:
@@ -51,13 +55,16 @@ class FakeRunStore:
     async def close(self):
         pass
 
+    async def save_gene_annotation(self, annotation, now, tumor_type=None):
+        pass
+
     async def save_run(self, run_id, timestamp, request_payload, result_payload):
         if self.fail_saves:
             raise RuntimeError("mysql: SECRET-DB-ERROR")
         self.saved_runs.append((run_id, timestamp, request_payload, result_payload))
 
 
-def _rich_annotation(gene: str = "ALK", **overrides) -> GeneAnnotation:
+def _rich_annotation(gene: str = "ALK", analysis_tumor_type=None, **overrides) -> GeneAnnotation:
     fields = dict(
         gene=gene,
         in_oncokb=True,
@@ -81,7 +88,9 @@ def _rich_annotation(gene: str = "ALK", **overrides) -> GeneAnnotation:
         cached_at="2026-10-01T00:00:00+00:00",
     )
     fields.update(overrides)
-    return GeneAnnotation(**fields)
+    annotation = GeneAnnotation(**fields)
+    annotation.analysis_tumor_type = analysis_tumor_type
+    return annotation
 
 
 @pytest.fixture
@@ -90,7 +99,10 @@ def pipeline_calls(monkeypatch):
 
     async def fake_run_pipeline(fusions, local_backend=None, run_store=None, force_refresh=False, **kwargs):
         calls.append({"fusions": fusions, "local_backend": local_backend, "force_refresh": force_refresh, **kwargs})
-        annotations = [_rich_annotation(gene) for gene in dict.fromkeys(_canonical(item.fusion) for item in fusions)]
+        # No aliases or collisions here; tumor-context tests use the real pipeline.
+        annotations = [
+            _rich_annotation(item.fusion.upper(), analysis_tumor_type=item.tumor_type) for item in fusions
+        ]
         on_annotation = kwargs.get("on_annotation")
         if on_annotation:
             for annotation in annotations:
@@ -107,19 +119,6 @@ def pipeline_calls(monkeypatch):
     return calls
 
 
-@pytest.fixture(autouse=True)
-def fake_normalization(monkeypatch):
-    async def fake_normalize_fusions(symbols):
-        gene_map = {}
-        for symbol in symbols:
-            canonical = _canonical(symbol)
-            resolved = ResolvedGene(input_symbol=symbol, canonical_symbol=canonical, resolved=True)
-            gene_map.setdefault(canonical, (resolved, []))[1].append(symbol)
-        return gene_map
-
-    monkeypatch.setattr(gene_query, "normalize_fusions", fake_normalize_fusions)
-
-
 @pytest.fixture
 def client(monkeypatch, pipeline_calls):
     monkeypatch.setattr(FakeRunStore, "fail_saves", False)
@@ -133,7 +132,7 @@ def client(monkeypatch, pipeline_calls):
 
 
 def test_slim_mapping_is_an_allowlist():
-    slim = to_gene_rationale(_rich_annotation(), tumor_type="LUAD")
+    slim = to_gene_rationale(_rich_annotation(analysis_tumor_type="LUAD"))
 
     assert set(GeneRationale.model_fields) == {
         "gene",
@@ -243,35 +242,6 @@ def test_symbol_validation_accepts_hgnc_style_symbols(good):
     assert GeneQueryItem(gene=f"  {good} ").gene == good
 
 
-def test_query_maps_tumor_types_per_gene_and_through_aliases(client):
-    response = client.post(
-        "/v1/genes/query",
-        json={"genes": [{"gene": "MOZ", "tumor_type": "AML"}, "ALK", {"gene": "TP53", "tumor_type": "LUAD"}]},
-    )
-
-    results = {item["gene"]: item["tumor_type"] for item in response.json()["results"]}
-    assert results == {"KAT6A": "AML", "ALK": None, "TP53": "LUAD"}
-
-
-def test_query_alias_without_tumor_type_is_not_assigned_another_genes(client):
-    response = client.post("/v1/genes/query", json={"genes": ["MOZ", {"gene": "TP53", "tumor_type": "LUAD"}]})
-
-    results = {item["gene"]: item["tumor_type"] for item in response.json()["results"]}
-    assert results == {"KAT6A": None, "TP53": "LUAD"}
-
-
-def test_query_tumor_types_fall_back_to_exact_symbols_if_normalization_fails(client, monkeypatch):
-    async def broken(symbols):
-        raise RuntimeError("HGNC down")
-
-    monkeypatch.setattr(gene_query, "normalize_fusions", broken)
-
-    response = client.post("/v1/genes/query", json={"genes": ["ALK", {"gene": "tp53", "tumor_type": "LUAD"}]})
-
-    results = {item["gene"]: item["tumor_type"] for item in response.json()["results"]}
-    assert results == {"ALK": None, "TP53": "LUAD"}
-
-
 @pytest.mark.parametrize("path", ["post", "get"])
 def test_query_fails_when_run_cannot_be_saved(client, monkeypatch, path):
     monkeypatch.setattr(FakeRunStore, "fail_saves", True)
@@ -330,6 +300,155 @@ def test_get_single_gene_convenience_route(client, pipeline_calls):
 
 def test_get_single_gene_rejects_fusion(client):
     assert client.get("/v1/genes/EML4::ALK").status_code == 422
+
+
+def _unresolvable_pipeline(calls):
+    async def fake(fusions, **kwargs):
+        calls.append(fusions)
+        annotation = GeneAnnotation(
+            gene=fusions[0].fusion,
+            cache_status="bypassed",
+            error="Unresolvable gene symbol — bare Ensembl ID or unannotated locus",
+        )
+        return AnnotationResult(
+            run_id=_RUN_ID, timestamp="t", fusions_processed=1, genes_annotated=1, annotations=[annotation]
+        )
+
+    return fake
+
+
+def test_get_unresolvable_symbol_returns_404(client, monkeypatch):
+    calls = []
+    monkeypatch.setattr(main, "run_pipeline", _unresolvable_pipeline(calls))
+
+    response = client.get("/v1/genes/NOTAGENE1")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Gene symbol not found."}
+    assert len(calls) == 1
+
+
+def test_batch_reports_unresolvable_symbol_per_gene(client, monkeypatch):
+    monkeypatch.setattr(main, "run_pipeline", _unresolvable_pipeline([]))
+
+    response = client.post("/v1/genes/query", json={"genes": ["NOTAGENE1"]})
+
+    assert response.status_code == 200
+    assert response.json()["results"][0]["error"] == "Gene symbol could not be resolved."
+
+
+# --- tumor context (real run_pipeline + normalize_fusions) ----------------------
+
+
+@pytest.fixture
+def real_pipeline(client, monkeypatch):
+    """Run the real pipeline; record the tumor type each gene was classified with."""
+    used = {}
+    lookups = {"count": 0, "fail_after": None}
+
+    def _lookup():
+        lookups["count"] += 1
+        if lookups["fail_after"] is not None and lookups["count"] > lookups["fail_after"]:
+            raise RuntimeError("HGNC unavailable")
+
+    async def fake_resolve_ensembl(symbols, client):
+        _lookup()
+        return {
+            symbol: ResolvedGene(input_symbol=symbol, canonical_symbol="TP53", resolved=True)
+            for symbol in dict.fromkeys(symbols)
+        }
+
+    async def fake_resolve_hgnc(symbols, client):
+        _lookup()
+        # Like production: asyncio.gather over the (sorted) symbols, input order preserved.
+        return {
+            symbol: ResolvedGene(input_symbol=symbol, canonical_symbol=_canonical(symbol), resolved=True)
+            for symbol in symbols
+        }
+
+    async def no_cache(**kwargs):
+        return None
+
+    async def fake_annotate_gene(**kwargs):
+        used[kwargs["gene"]] = kwargs["tumor_type"]
+        return _rich_annotation(kwargs["gene"], cache_status="refreshed")
+
+    monkeypatch.setattr(main, "run_pipeline", orchestrator.run_pipeline)
+    monkeypatch.setattr(normalization, "_resolve_ensembl_ids", fake_resolve_ensembl)
+    monkeypatch.setattr(normalization, "_resolve_hgnc_symbols_concurrently", fake_resolve_hgnc)
+    monkeypatch.setattr(orchestrator, "_maybe_reuse_cached_annotation", no_cache)
+    monkeypatch.setattr(orchestrator, "_annotate_gene", fake_annotate_gene)
+    monkeypatch.setattr(settings, "gene_cache_enabled", False)
+    return {"used": used, "lookups": lookups}
+
+
+def _reported(response_json):
+    return {item["gene"]: item["tumor_type"] for item in response_json["results"]}
+
+
+_COLLISIONS = [
+    # Ensembl ID and symbol for the same gene: production resolves Ensembl IDs first.
+    ({"gene": "TP53", "tumor_type": "LUAD"}, {"gene": _TP53_ENSEMBL, "tumor_type": "AML"}, "TP53", "AML"),
+    # Alias and symbol: production resolves HGNC symbols in sorted order (KAT6A < MOZ).
+    ({"gene": "MOZ", "tumor_type": "AML"}, {"gene": "KAT6A", "tumor_type": "LUAD"}, "KAT6A", "LUAD"),
+]
+
+
+@pytest.mark.parametrize("first,second,gene,expected", _COLLISIONS)
+@pytest.mark.parametrize("reverse", [False, True])
+def test_collision_reports_tumor_type_the_pipeline_used(client, real_pipeline, first, second, gene, expected, reverse):
+    genes = [second, first] if reverse else [first, second]
+
+    response = client.post("/v1/genes/query", json={"genes": genes})
+
+    assert response.status_code == 200
+    assert _reported(response.json()) == {gene: real_pipeline["used"][gene]}
+    assert real_pipeline["used"][gene] == expected
+
+
+@pytest.mark.parametrize("first,second,gene,expected", _COLLISIONS)
+def test_collision_in_job_reports_tumor_type_the_pipeline_used(client, real_pipeline, first, second, gene, expected):
+    created = client.post("/v1/genes/query/jobs", json={"genes": [second, first]})
+    body = _poll(client, created.json()["status_url"])
+
+    assert body["status"] == "complete"
+    assert _reported(body) == {gene: real_pipeline["used"][gene]} == {gene: expected}
+
+
+def test_mixed_and_alias_tumor_types_with_real_pipeline(client, real_pipeline):
+    response = client.post(
+        "/v1/genes/query",
+        json={"genes": [{"gene": "MOZ", "tumor_type": "AML"}, "ALK", {"gene": "TP53", "tumor_type": "LUAD"}]},
+    )
+
+    assert _reported(response.json()) == real_pipeline["used"] == {"KAT6A": "AML", "ALK": None, "TP53": "LUAD"}
+
+
+# normalize_fusions calls each resolver family exactly once per pipeline run, so
+# allowing 2 lookups lets the pipeline normalize and makes any later lookup fail.
+_PIPELINE_LOOKUPS = 2
+
+
+def test_sync_tumor_types_need_no_lookup_after_pipeline_normalization(client, real_pipeline):
+    real_pipeline["lookups"]["fail_after"] = _PIPELINE_LOOKUPS
+
+    response = client.post("/v1/genes/query", json={"genes": [{"gene": "MOZ", "tumor_type": "AML"}, "ALK"]})
+
+    assert response.status_code == 200
+    assert _reported(response.json()) == {"KAT6A": "AML", "ALK": None}
+    assert real_pipeline["lookups"]["count"] == _PIPELINE_LOOKUPS
+
+
+def test_job_tumor_types_need_no_lookup_after_pipeline_normalization(client, real_pipeline):
+    real_pipeline["lookups"]["fail_after"] = _PIPELINE_LOOKUPS
+
+    created = client.post("/v1/genes/query/jobs", json={"genes": [{"gene": "MOZ", "tumor_type": "AML"}]})
+    body = _poll(client, created.json()["status_url"])
+    again = client.get(created.json()["status_url"]).json()
+
+    assert body["status"] == "complete"
+    assert _reported(body) == _reported(again) == {"KAT6A": "AML"}
+    assert real_pipeline["lookups"]["count"] == _PIPELINE_LOOKUPS
 
 
 # --- jobs -----------------------------------------------------------------------
@@ -422,6 +541,11 @@ def test_annotate_gene_includes_run_id_and_view_url(client):
     # Backward compatible: full GeneAnnotation payload is still there.
     assert body["gene"] == "ALK"
     assert body["evidence_cards"]
+    # The in-process tumor context never leaks into /v1/annotate* payloads or stored runs.
+    assert "analysis_tumor_type" not in body
+    assert "analysis_tumor_type" not in main.app.state.run_store.saved_runs[0][3]["annotations"][0]
+    schemas = main.app.openapi()["components"]["schemas"]
+    assert "analysis_tumor_type" not in schemas["GeneAnnotation"]["properties"]
 
 
 # --- auth -----------------------------------------------------------------------

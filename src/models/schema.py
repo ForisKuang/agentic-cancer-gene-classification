@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, PrivateAttr, model_validator
 
 LocalBackend = Literal["claude-code", "codex", "antigravity"]
 AnnotationMode = Literal["full", "core"]
@@ -378,6 +378,18 @@ class GeneAnnotation(BaseModel):
     last_pubmed_checked_at: Optional[str] = None
     error: Optional[str] = None
     timings_ms: Dict[str, float] = Field(default_factory=dict)
+    # In-process only (not in any schema, never serialized or persisted): the
+    # tumor type the pipeline actually annotated this gene with.
+    _analysis_tumor_type: Optional[str] = PrivateAttr(default=None)
+
+    @property
+    def analysis_tumor_type(self) -> Optional[str]:
+        """Tumor type run_pipeline annotated this gene with (None if none)."""
+        return self._analysis_tumor_type
+
+    @analysis_tumor_type.setter
+    def analysis_tumor_type(self, value: Optional[str]) -> None:
+        self._analysis_tumor_type = value
 
 
 class GeneAnnotationWithRun(GeneAnnotation):

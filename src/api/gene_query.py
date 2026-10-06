@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Literal, Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -24,7 +24,7 @@ from src.auth import AuthenticatedUser, record_user_annotation_activity, require
 from src.config import settings
 from src.models.schema import AnnotateRequest, AnnotationResult, CacheStatus, FusionInput, GeneAnnotation
 from src.observability import record_user_action, record_user_seen, tag_current_span
-from src.pipeline.normalization import FUSION_SEPARATORS, normalize_fusions
+from src.pipeline.normalization import FUSION_SEPARATORS
 
 if TYPE_CHECKING:
     from types import ModuleType
@@ -41,6 +41,7 @@ _MAX_SYMBOL_LENGTH = 64
 _SYMBOL_PATTERN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9.\-]*[A-Za-z0-9])?$")
 _UNRESOLVABLE_PREFIX = "Unresolvable gene symbol"
 _UNRESOLVABLE_ERROR = "Gene symbol could not be resolved."
+_GENE_NOT_FOUND = "Gene symbol not found."
 _GENERIC_GENE_ERROR = "Annotation failed for this gene; open view_url for details."
 _GENERIC_FAILURE = "Gene query failed. Please retry; contact the ACGC team if this persists."
 
@@ -134,7 +135,13 @@ class GeneRationale(BaseModel):
     deliberately omitted — open `view_url` for the full report."""
 
     gene: str = Field(..., description="Canonical gene symbol the pipeline annotated.")
-    tumor_type: Optional[str] = Field(default=None, description="Tumor type supplied with the query, if any.")
+    tumor_type: Optional[str] = Field(
+        default=None,
+        description=(
+            "Tumor type the classification actually used for this gene, or null if none. When several inputs "
+            "resolve to the same gene (e.g. an alias and its symbol), the pipeline uses one of their tumor types."
+        ),
+    )
     cancer_associated: Optional[bool] = Field(
         default=None, description="Whether the gene is classified as cancer-associated."
     )
@@ -214,22 +221,29 @@ def _validate_symbol(value: str) -> str:
     return symbol
 
 
-def _slim_error(error: Optional[str]) -> Optional[str]:
-    if not error:
+def _is_unresolvable(annotation: GeneAnnotation) -> bool:
+    return bool(annotation.error and annotation.error.startswith(_UNRESOLVABLE_PREFIX))
+
+
+def _slim_error(annotation: GeneAnnotation) -> Optional[str]:
+    if not annotation.error:
         return None
     # Fixed messages only: per-gene errors can embed raw exception text, which
     # stays in the UI behind view_url.
-    if error.startswith(_UNRESOLVABLE_PREFIX):
+    if _is_unresolvable(annotation):
         return _UNRESOLVABLE_ERROR
     return _GENERIC_GENE_ERROR
 
 
-def to_gene_rationale(annotation: GeneAnnotation, tumor_type: Optional[str] = None) -> GeneRationale:
+def to_gene_rationale(annotation: GeneAnnotation) -> GeneRationale:
     """Explicit allowlist mapping. Never dump-and-delete: new GeneAnnotation
-    fields must stay out of this response unless deliberately added here."""
+    fields must stay out of this response unless deliberately added here.
+
+    tumor_type comes from the pipeline itself (analysis_tumor_type), so it is
+    always the context the classification ran with, including for aliases."""
     return GeneRationale(
         gene=annotation.gene,
-        tumor_type=tumor_type,
+        tumor_type=annotation.analysis_tumor_type,
         cancer_associated=annotation.cancer_associated,
         gene_class=annotation.gene_class,
         in_oncokb=annotation.in_oncokb,
@@ -240,41 +254,8 @@ def to_gene_rationale(annotation: GeneAnnotation, tumor_type: Optional[str] = No
         quality_flags=[flag.code for flag in annotation.quality_flags],
         cache_status=annotation.cache_status,
         cached_at=annotation.cached_at,
-        error=_slim_error(annotation.error),
+        error=_slim_error(annotation),
     )
-
-
-async def tumor_types_by_gene(items: List[GeneQueryItem]) -> Dict[str, Optional[str]]:
-    """Map each annotated gene symbol (upper-cased) to the tumor type the
-    pipeline used for it: the first non-null tumor type among the inputs that
-    resolved to that gene, or None when none of them had one.
-
-    Inputs given as aliases resolve to a different canonical symbol, so this
-    reruns HGNC normalization (cached by the pipeline run that precedes it)
-    to trace each canonical gene back to its originating inputs.
-    """
-    by_gene: Dict[str, Optional[str]] = {}
-    for item in items:
-        key = item.gene.upper()
-        by_gene[key] = by_gene.get(key) or item.tumor_type
-    try:
-        gene_map = await normalize_fusions([item.gene for item in items])
-    except Exception:
-        logger.warning("Gene query normalization failed; tumor types use exact symbols only", exc_info=True)
-        return by_gene
-    for canonical, (_, inputs) in gene_map.items():
-        originating = set(inputs)
-        tumor_type = next(
-            (item.tumor_type for item in items if item.gene in originating and item.tumor_type), None
-        )
-        by_gene[canonical.upper()] = tumor_type
-    return by_gene
-
-
-def to_gene_rationales(
-    annotations: List[GeneAnnotation], tumor_types: Dict[str, Optional[str]]
-) -> List[GeneRationale]:
-    return [to_gene_rationale(annotation, tumor_types.get(annotation.gene.upper())) for annotation in annotations]
 
 
 def _to_annotate_request(items: List[GeneQueryItem], force_refresh: bool) -> AnnotateRequest:
@@ -337,7 +318,8 @@ async def _run_gene_query(
     current_user: Optional[AuthenticatedUser],
     *,
     route: str,
-) -> GeneQueryResponse:
+) -> AnnotationResult:
+    """Run the pipeline and save the run, raising a generic 500 on failure."""
     app = _app()
     _record_gene_query_request(http_request, current_user, items, route=route, force_refresh=force_refresh)
     annotate_request = _to_annotate_request(items, force_refresh)
@@ -373,10 +355,14 @@ async def _run_gene_query(
             "duration_ms": round(result.timings_ms.get("total", 0.0), 1),
         },
     )
+    return result
+
+
+def _response(http_request: Request, result: AnnotationResult) -> GeneQueryResponse:
     return GeneQueryResponse(
         run_id=result.run_id,
-        view_url=app._run_view_url(http_request, result.run_id),
-        results=to_gene_rationales(result.annotations, await tumor_types_by_gene(items)),
+        view_url=_app()._run_view_url(http_request, result.run_id),
+        results=[to_gene_rationale(annotation) for annotation in result.annotations],
     )
 
 
@@ -393,9 +379,10 @@ async def query_genes(
     which triggers new LLM runs). All genes are saved as ONE run; `view_url`
     opens it in the ACGC UI. For long batches, use POST /v1/genes/query/jobs.
     """
-    return await _run_gene_query(
+    result = await _run_gene_query(
         request.unique_items(), request.force_refresh, http_request, current_user, route="query"
     )
+    return _response(http_request, result)
 
 
 @router.post("/query/jobs", response_model=GeneQueryJobCreateResponse)
@@ -415,7 +402,6 @@ async def create_gene_query_job(
         http_request,
         current_user,
         kind="gene_query",
-        context={"items": items},
         require_persistence=True,
         complete_action="gene_query_complete",
         error_action="gene_query_error",
@@ -439,14 +425,6 @@ async def get_gene_query_job(
     if job is None or job.kind != "gene_query":
         raise HTTPException(status_code=404, detail="Gene query job not found")
 
-    results: List[GeneRationale] = []
-    if job.annotations:
-        tumor_types = job.context.get("tumor_types")
-        if tumor_types is None:
-            tumor_types = await tumor_types_by_gene(job.context["items"])
-            if job.status == "complete":
-                job.context["tumor_types"] = tumor_types  # final; reuse on later polls
-        results = to_gene_rationales(job.annotations, tumor_types)
 
     run_id = job.result.run_id if job.status == "complete" and job.result else None
     return GeneQueryJobStatusResponse(
@@ -456,7 +434,7 @@ async def get_gene_query_job(
         genes_total=job.genes_total,
         run_id=run_id,
         view_url=app._run_view_url(http_request, run_id) if run_id else None,
-        results=results,
+        results=[to_gene_rationale(annotation) for annotation in job.annotations],
         error=_GENERIC_FAILURE if job.status == "failed" else None,
     )
 
@@ -469,7 +447,11 @@ async def query_gene(
     force_refresh: bool = Query(default=False, description="Bypass cached annotations and recompute."),
     current_user: AuthenticatedUser = Depends(require_auth),
 ) -> GeneQueryResponse:
-    """Convenience form of POST /v1/genes/query for a single gene."""
+    """Convenience form of POST /v1/genes/query for a single gene.
+
+    Returns 404 when HGNC does not recognize the symbol (the batch POST instead
+    reports this per gene in `error`). The run is still saved either way.
+    """
     try:
         item = GeneQueryItem(gene=symbol, tumor_type=tumor_type)
     except ValueError as exc:
@@ -477,4 +459,7 @@ async def query_gene(
         errors = getattr(exc, "errors", None)
         detail = [{"loc": ["path", "symbol"], "msg": err["msg"]} for err in errors()] if errors else str(exc)
         raise HTTPException(status_code=422, detail=detail) from exc
-    return await _run_gene_query([item], force_refresh, http_request, current_user, route="gene")
+    result = await _run_gene_query([item], force_refresh, http_request, current_user, route="gene")
+    if result.annotations and all(_is_unresolvable(annotation) for annotation in result.annotations):
+        raise HTTPException(status_code=404, detail=_GENE_NOT_FOUND)
+    return _response(http_request, result)

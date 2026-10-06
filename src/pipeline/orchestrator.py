@@ -694,6 +694,7 @@ async def run_pipeline(
         )
         if queue_wait_ms is not None:
             distribution("gene.queue_wait_ms", queue_wait_ms, tags=gene_tags)
+        annotation.analysis_tumor_type = tumor_type
         return annotation
 
     tasks = [
