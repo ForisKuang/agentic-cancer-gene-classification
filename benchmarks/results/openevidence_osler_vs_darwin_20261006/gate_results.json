@@ -1,0 +1,35 @@
+{
+  "full_pytest": {
+    "command": "uv run --extra dev pytest tests/ -q",
+    "file_set": "tests/",
+    "collected_cases": 422,
+    "passed": 394,
+    "skipped": 27,
+    "failed": 1,
+    "known_environment_failure": "tests/test_local_backends_e2e.py::test_claude_code_backend_real_round_trip: Not logged in \u00b7 Please run /login"
+  },
+  "without_known_failure": {
+    "command": ".venv/bin/pytest tests/ -q --deselect tests/test_local_backends_e2e.py::test_claude_code_backend_real_round_trip",
+    "file_set": "tests/",
+    "passed": 394,
+    "skipped": 27,
+    "deselected": 1
+  },
+  "harness_tests": {
+    "command": "uv run --extra dev pytest tests/test_openevidence_benchmark.py -q",
+    "file_set": "tests/test_openevidence_benchmark.py",
+    "collected_cases": 10,
+    "passed": 10
+  },
+  "ruff": {
+    "command": ".venv/bin/ruff check .",
+    "file_set": "full repository",
+    "exit_code": 0
+  },
+  "diff_check": {
+    "command": "git diff --check",
+    "exit_code": 0
+  },
+  "secret_scan": "passed: nonempty configured API credential not present in saved artifacts",
+  "typecheck": "No separate static typecheck configured"
+}

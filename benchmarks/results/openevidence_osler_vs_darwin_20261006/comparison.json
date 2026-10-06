@@ -1,0 +1,3129 @@
+{
+  "summary": {
+    "osler": {
+      "successes": 17,
+      "requested": 17,
+      "success_rate": 1.0,
+      "median_seconds": 38.478362624999136,
+      "p90_seconds": 58.17272115860106,
+      "median_ttft_seconds": 2.6818406250022235,
+      "p90_ttft_seconds": 3.4777006916003304,
+      "under_300s": 17,
+      "mean_answer_chars": 4960.588235294118,
+      "mean_citations": 14.470588235294118,
+      "mean_guidelines": 1.1176470588235294,
+      "mean_guideline_citations": 1.3529411764705883,
+      "mean_page_anchored_guidelines": 1.0588235294117647,
+      "mean_trial_mentions": 3.823529411764706,
+      "mean_additive_citations": 14
+    },
+    "darwin": {
+      "successes": 17,
+      "requested": 17,
+      "success_rate": 1.0,
+      "median_seconds": 151.30603658299515,
+      "p90_seconds": 296.6486418419998,
+      "median_ttft_seconds": 2.6638657079965924,
+      "p90_ttft_seconds": 2.900191491399892,
+      "under_300s": 15,
+      "mean_answer_chars": 6979.705882352941,
+      "mean_citations": 23.058823529411764,
+      "mean_guidelines": 3.4705882352941178,
+      "mean_guideline_citations": 3.9411764705882355,
+      "mean_page_anchored_guidelines": 3.4705882352941178,
+      "mean_trial_mentions": 4.470588235294118,
+      "mean_additive_citations": 22.529411764705884
+    }
+  },
+  "per_gene": [
+    {
+      "gene": "EGFR",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 45.110999374999665,
+          "ttft_seconds": 2.895459832994675,
+          "answer_chars": 5664,
+          "citations": 18,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110",
+              "page_anchor": "page=110"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "1",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 20,
+          "additive_citations": 18,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+            ],
+            "trials": [
+              "ADAURA",
+              "CHRYSALIS",
+              "COMPEL",
+              "FLAURA",
+              "FLAURA2",
+              "LAURA",
+              "MARIPOSA",
+              "MARIPOSA2",
+              "PAPILLON",
+              "WUKONG1B",
+              "WUKONG28",
+              "WUKONG6"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 241.84091158399679,
+          "ttft_seconds": 2.2129001659995993,
+          "answer_chars": 8531,
+          "citations": 21,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=48",
+              "page_anchor": "page=48"
+            },
+            {
+              "title": "Colon Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=46",
+              "page_anchor": "page=46"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "2",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=48",
+              "source_texts": []
+            },
+            {
+              "citation_key": "4",
+              "reference_text": "Morris VK, Kennedy EB, Baxter NN, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco.22.01690\">Treatment of Metastatic Colorectal Cancer: ASCO Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2023;41(3):678-700. doi:10.1200/JCO.22.01690.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2023;41(3):678-700. doi:10.1200/JCO.22.01690.",
+              "title": "Treatment of Metastatic Colorectal Cancer: ASCO Guideline",
+              "authors": "Morris VK, Kennedy EB, Baxter NN, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2023-01-20",
+              "doi": "10.1200/JCO.22.01690",
+              "url": "https://doi.org/10.1200/jco.22.01690",
+              "source_texts": []
+            },
+            {
+              "citation_key": "5",
+              "reference_text": "National Comprehensive Cancer Network. Colon Cancer.",
+              "publication_info_string": "Updated 2026-04-07",
+              "title": "Colon Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-07",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=46",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 13,
+          "additive_citations": 21,
+          "agreement_labels": {
+            "guidelines": [
+              "doi.org/10.1200/jco.22.01690",
+              "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+            ],
+            "trials": [
+              "ADAURA",
+              "CHRYSALIS",
+              "CHRYSALIS2",
+              "LAURA",
+              "MARIPOSA2",
+              "PAPILLON",
+              "PROFILE",
+              "WUKONG1B",
+              "WUKONG28",
+              "WUKONG6"
+            ]
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "doi.org/10.1200/jco.22.01690",
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "candidate": [
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "overlap": [
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "darwin_reference_recall": 0.3333333333333333,
+        "darwin_only": [
+          "doi.org/10.1200/jco.22.01690",
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [
+          "ADAURA",
+          "CHRYSALIS",
+          "CHRYSALIS2",
+          "LAURA",
+          "MARIPOSA2",
+          "PAPILLON",
+          "PROFILE",
+          "WUKONG1B",
+          "WUKONG28",
+          "WUKONG6"
+        ],
+        "candidate": [
+          "ADAURA",
+          "CHRYSALIS",
+          "COMPEL",
+          "FLAURA",
+          "FLAURA2",
+          "LAURA",
+          "MARIPOSA",
+          "MARIPOSA2",
+          "PAPILLON",
+          "WUKONG1B",
+          "WUKONG28",
+          "WUKONG6"
+        ],
+        "overlap": [
+          "ADAURA",
+          "CHRYSALIS",
+          "LAURA",
+          "MARIPOSA2",
+          "PAPILLON",
+          "WUKONG1B",
+          "WUKONG28",
+          "WUKONG6"
+        ],
+        "darwin_reference_recall": 0.8,
+        "darwin_only": [
+          "CHRYSALIS2",
+          "PROFILE"
+        ],
+        "osler_only": [
+          "COMPEL",
+          "FLAURA",
+          "FLAURA2",
+          "MARIPOSA"
+        ]
+      }
+    },
+    {
+      "gene": "TP53",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 61.487460832999204,
+          "ttft_seconds": 2.34570554200036,
+          "answer_chars": 7141,
+          "citations": 23,
+          "guidelines": [
+            {
+              "title": "Acute Myeloid Leukemia",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/aml.pdf#page=33",
+              "page_anchor": "page=33"
+            },
+            {
+              "title": "Myelodysplastic Syndromes",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/mds.pdf#page=15",
+              "page_anchor": "page=15"
+            },
+            {
+              "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=74",
+              "page_anchor": "page=74"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "2",
+              "reference_text": "National Comprehensive Cancer Network. Acute Myeloid Leukemia.",
+              "publication_info_string": "Updated 2026-07-15",
+              "title": "Acute Myeloid Leukemia",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-07-15",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/aml.pdf#page=33",
+              "source_texts": []
+            },
+            {
+              "citation_key": "3",
+              "reference_text": "National Comprehensive Cancer Network. Myelodysplastic Syndromes.",
+              "publication_info_string": "Updated 2026-01-12",
+              "title": "Myelodysplastic Syndromes",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-01-12",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/mds.pdf#page=15",
+              "source_texts": []
+            },
+            {
+              "citation_key": "6",
+              "reference_text": "National Comprehensive Cancer Network. Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate.",
+              "publication_info_string": "Updated 2026-08-31",
+              "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-08-31",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=74",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 3,
+          "additive_citations": 23,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/aml.pdf",
+              "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+              "nccn.org/professionals/physician_gls/pdf/mds.pdf"
+            ],
+            "trials": [
+              "FOCUS4C",
+              "MIRROS",
+              "NCT01339871",
+              "NCT01772771",
+              "NCT03089554",
+              "NCT03745716",
+              "NCT03855371",
+              "NCT04169737",
+              "NCT04585750",
+              "PANDA",
+              "PRIMA1"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 301.76702533299976,
+          "ttft_seconds": 2.7428016670019133,
+          "answer_chars": 5386,
+          "citations": 14,
+          "guidelines": [],
+          "guideline_citations": [],
+          "trial_mentions": 7,
+          "additive_citations": 14,
+          "agreement_labels": {
+            "guidelines": [],
+            "trials": [
+              "FOCUS4C",
+              "NCT04585750",
+              "PYNNACLE"
+            ]
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [],
+        "candidate": [
+          "nccn.org/professionals/physician_gls/pdf/aml.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+          "nccn.org/professionals/physician_gls/pdf/mds.pdf"
+        ],
+        "overlap": [],
+        "darwin_reference_recall": null,
+        "darwin_only": [],
+        "osler_only": [
+          "nccn.org/professionals/physician_gls/pdf/aml.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+          "nccn.org/professionals/physician_gls/pdf/mds.pdf"
+        ]
+      },
+      "trials_agreement": {
+        "reference": [
+          "FOCUS4C",
+          "NCT04585750",
+          "PYNNACLE"
+        ],
+        "candidate": [
+          "FOCUS4C",
+          "MIRROS",
+          "NCT01339871",
+          "NCT01772771",
+          "NCT03089554",
+          "NCT03745716",
+          "NCT03855371",
+          "NCT04169737",
+          "NCT04585750",
+          "PANDA",
+          "PRIMA1"
+        ],
+        "overlap": [
+          "FOCUS4C",
+          "NCT04585750"
+        ],
+        "darwin_reference_recall": 0.6666666666666666,
+        "darwin_only": [
+          "PYNNACLE"
+        ],
+        "osler_only": [
+          "MIRROS",
+          "NCT01339871",
+          "NCT01772771",
+          "NCT03089554",
+          "NCT03745716",
+          "NCT03855371",
+          "NCT04169737",
+          "PANDA",
+          "PRIMA1"
+        ]
+      }
+    },
+    {
+      "gene": "KRAS",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 55.962894709002285,
+          "ttft_seconds": 2.7792004170041764,
+          "answer_chars": 5555,
+          "citations": 37,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=53",
+              "page_anchor": "page=53"
+            },
+            {
+              "title": "Colon Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=47",
+              "page_anchor": "page=47"
+            },
+            {
+              "title": "Rectal Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/rectal.pdf#page=64",
+              "page_anchor": "page=64"
+            },
+            {
+              "title": "Pancreatic Adenocarcinoma",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/pancreatic.pdf#page=21",
+              "page_anchor": "page=21"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "1",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=53",
+              "source_texts": []
+            },
+            {
+              "citation_key": "17",
+              "reference_text": "National Comprehensive Cancer Network. Colon Cancer.",
+              "publication_info_string": "Updated 2026-04-07",
+              "title": "Colon Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-07",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=47",
+              "source_texts": []
+            },
+            {
+              "citation_key": "18",
+              "reference_text": "National Comprehensive Cancer Network. Rectal Cancer.",
+              "publication_info_string": "Updated 2026-04-07",
+              "title": "Rectal Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-07",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/rectal.pdf#page=64",
+              "source_texts": []
+            },
+            {
+              "citation_key": "27",
+              "reference_text": "National Comprehensive Cancer Network. Pancreatic Adenocarcinoma.",
+              "publication_info_string": "Updated 2026-09-11",
+              "title": "Pancreatic Adenocarcinoma",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-11",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/pancreatic.pdf#page=21",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 12,
+          "additive_citations": 37,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+              "nccn.org/professionals/physician_gls/pdf/pancreatic.pdf",
+              "nccn.org/professionals/physician_gls/pdf/rectal.pdf"
+            ],
+            "trials": [
+              "CODEBREAK100",
+              "CODEBREAK200",
+              "CODEBREAK300",
+              "KRYSTAL1",
+              "KRYSTAL12"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 293.82278504200076,
+          "ttft_seconds": 3.467412042002252,
+          "answer_chars": 9440,
+          "citations": 29,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=53",
+              "page_anchor": "page=53"
+            },
+            {
+              "title": "Colon Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=47",
+              "page_anchor": "page=47"
+            },
+            {
+              "title": "Pancreatic Adenocarcinoma",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/pancreatic.pdf#page=60",
+              "page_anchor": "page=60"
+            },
+            {
+              "title": "Rectal Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/rectal.pdf#page=64",
+              "page_anchor": "page=64"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "2",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=53",
+              "source_texts": []
+            },
+            {
+              "citation_key": "3",
+              "reference_text": "National Comprehensive Cancer Network. Colon Cancer.",
+              "publication_info_string": "Updated 2026-04-07",
+              "title": "Colon Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-07",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=47",
+              "source_texts": []
+            },
+            {
+              "citation_key": "4",
+              "reference_text": "National Comprehensive Cancer Network. Pancreatic Adenocarcinoma.",
+              "publication_info_string": "Updated 2026-09-11",
+              "title": "Pancreatic Adenocarcinoma",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-11",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/pancreatic.pdf#page=60",
+              "source_texts": []
+            },
+            {
+              "citation_key": "15",
+              "reference_text": "National Comprehensive Cancer Network. Rectal Cancer.",
+              "publication_info_string": "Updated 2026-04-07",
+              "title": "Rectal Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-07",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/rectal.pdf#page=64",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 5,
+          "additive_citations": 29,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+              "nccn.org/professionals/physician_gls/pdf/pancreatic.pdf",
+              "nccn.org/professionals/physician_gls/pdf/rectal.pdf"
+            ],
+            "trials": [
+              "CODEBREAK200",
+              "CODEBREAK202",
+              "KRYSTAL1",
+              "KRYSTAL10",
+              "KRYSTAL12",
+              "KRYSTAL7"
+            ]
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+          "nccn.org/professionals/physician_gls/pdf/pancreatic.pdf",
+          "nccn.org/professionals/physician_gls/pdf/rectal.pdf"
+        ],
+        "candidate": [
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+          "nccn.org/professionals/physician_gls/pdf/pancreatic.pdf",
+          "nccn.org/professionals/physician_gls/pdf/rectal.pdf"
+        ],
+        "overlap": [
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+          "nccn.org/professionals/physician_gls/pdf/pancreatic.pdf",
+          "nccn.org/professionals/physician_gls/pdf/rectal.pdf"
+        ],
+        "darwin_reference_recall": 1.0,
+        "darwin_only": [],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [
+          "CODEBREAK200",
+          "CODEBREAK202",
+          "KRYSTAL1",
+          "KRYSTAL10",
+          "KRYSTAL12",
+          "KRYSTAL7"
+        ],
+        "candidate": [
+          "CODEBREAK100",
+          "CODEBREAK200",
+          "CODEBREAK300",
+          "KRYSTAL1",
+          "KRYSTAL12"
+        ],
+        "overlap": [
+          "CODEBREAK200",
+          "KRYSTAL1",
+          "KRYSTAL12"
+        ],
+        "darwin_reference_recall": 0.5,
+        "darwin_only": [
+          "CODEBREAK202",
+          "KRYSTAL10",
+          "KRYSTAL7"
+        ],
+        "osler_only": [
+          "CODEBREAK100",
+          "CODEBREAK300"
+        ]
+      }
+    },
+    {
+      "gene": "BRAF",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 55.20621904099971,
+          "ttft_seconds": 2.346874167000351,
+          "answer_chars": 7642,
+          "citations": 26,
+          "guidelines": [
+            {
+              "title": "Melanoma: Cutaneous",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf#page=58",
+              "page_anchor": "page=58"
+            },
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110",
+              "page_anchor": "page=110"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "3",
+              "reference_text": "National Comprehensive Cancer Network. Melanoma: Cutaneous.",
+              "publication_info_string": "Updated 2026-09-02",
+              "title": "Melanoma: Cutaneous",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-02",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf#page=58",
+              "source_texts": []
+            },
+            {
+              "citation_key": "6",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110",
+              "source_texts": []
+            },
+            {
+              "citation_key": "10",
+              "reference_text": "Morris VK, Kennedy EB, Baxter NN, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco.22.01690\">Treatment of Metastatic Colorectal Cancer: ASCO Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2023;41(3):678-700. doi:10.1200/JCO.22.01690.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2023;41(3):678-700. doi:10.1200/JCO.22.01690.",
+              "title": "Treatment of Metastatic Colorectal Cancer: ASCO Guideline",
+              "authors": "Morris VK, Kennedy EB, Baxter NN, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2023-01-20",
+              "doi": "10.1200/JCO.22.01690",
+              "url": "https://doi.org/10.1200/jco.22.01690",
+              "source_texts": []
+            },
+            {
+              "citation_key": "16",
+              "reference_text": "Saba NF, Ismaila N, Adkins D, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00235\">Systemic Treatment of Thyroid Cancer: ASCO Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(14):1349-1372. doi:10.1200/JCO-26-00235.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(14):1349-1372. doi:10.1200/JCO-26-00235.",
+              "title": "Systemic Treatment of Thyroid Cancer: ASCO Guideline",
+              "authors": "Saba NF, Ismaila N, Adkins D, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2026-05-10",
+              "doi": "10.1200/JCO-26-00235",
+              "url": "https://doi.org/10.1200/jco-26-00235",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 10,
+          "additive_citations": 26,
+          "agreement_labels": {
+            "guidelines": [
+              "doi.org/10.1200/jco-26-00235",
+              "doi.org/10.1200/jco.22.01690",
+              "nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+            ],
+            "trials": [
+              "BEACON",
+              "BREAKWATER",
+              "COMBID",
+              "COMBIV"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 262.548866875004,
+          "ttft_seconds": 2.706997583001794,
+          "answer_chars": 10712,
+          "citations": 46,
+          "guidelines": [
+            {
+              "title": "Melanoma: Cutaneous",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf#page=58",
+              "page_anchor": "page=58"
+            },
+            {
+              "title": "Colon Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=48",
+              "page_anchor": "page=48"
+            },
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=59",
+              "page_anchor": "page=59"
+            },
+            {
+              "title": "Thyroid Carcinoma",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/thyroid.pdf#page=64",
+              "page_anchor": "page=64"
+            },
+            {
+              "title": "Biliary Tract Cancers",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/btc.pdf#page=38",
+              "page_anchor": "page=38"
+            },
+            {
+              "title": "Central Nervous System Cancers",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/cns.pdf#page=28",
+              "page_anchor": "page=28"
+            },
+            {
+              "title": "Hairy Cell Leukemia",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/hairy_cell.pdf#page=7",
+              "page_anchor": "page=7"
+            },
+            {
+              "title": "Histiocytic Neoplasms",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf#page=45",
+              "page_anchor": "page=45"
+            },
+            {
+              "title": "Rectal Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/rectal.pdf#page=65",
+              "page_anchor": "page=65"
+            },
+            {
+              "title": "Ampullary Adenocarcinoma",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/ampullary.pdf#page=36",
+              "page_anchor": "page=36"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "6",
+              "reference_text": "National Comprehensive Cancer Network. Melanoma: Cutaneous.",
+              "publication_info_string": "Updated 2026-09-02",
+              "title": "Melanoma: Cutaneous",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-02",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf#page=58",
+              "source_texts": []
+            },
+            {
+              "citation_key": "9",
+              "reference_text": "National Comprehensive Cancer Network. Colon Cancer.",
+              "publication_info_string": "Updated 2026-04-07",
+              "title": "Colon Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-07",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=48",
+              "source_texts": []
+            },
+            {
+              "citation_key": "10",
+              "reference_text": "Morris VK, Kennedy EB, Baxter NN, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco.22.01690\">Treatment of Metastatic Colorectal Cancer: ASCO Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2023;41(3):678-700. doi:10.1200/JCO.22.01690.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2023;41(3):678-700. doi:10.1200/JCO.22.01690.",
+              "title": "Treatment of Metastatic Colorectal Cancer: ASCO Guideline",
+              "authors": "Morris VK, Kennedy EB, Baxter NN, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2023-01-20",
+              "doi": "10.1200/JCO.22.01690",
+              "url": "https://doi.org/10.1200/jco.22.01690",
+              "source_texts": []
+            },
+            {
+              "citation_key": "12",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=59",
+              "source_texts": []
+            },
+            {
+              "citation_key": "15",
+              "reference_text": "National Comprehensive Cancer Network. Thyroid Carcinoma.",
+              "publication_info_string": "Updated 2026-06-02",
+              "title": "Thyroid Carcinoma",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-06-02",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/thyroid.pdf#page=64",
+              "source_texts": []
+            },
+            {
+              "citation_key": "16",
+              "reference_text": "Saba NF, Ismaila N, Adkins D, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00235\">Systemic Treatment of Thyroid Cancer: ASCO Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(14):1349-1372. doi:10.1200/JCO-26-00235.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(14):1349-1372. doi:10.1200/JCO-26-00235.",
+              "title": "Systemic Treatment of Thyroid Cancer: ASCO Guideline",
+              "authors": "Saba NF, Ismaila N, Adkins D, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2026-05-10",
+              "doi": "10.1200/JCO-26-00235",
+              "url": "https://doi.org/10.1200/jco-26-00235",
+              "source_texts": []
+            },
+            {
+              "citation_key": "18",
+              "reference_text": "National Comprehensive Cancer Network. Biliary Tract Cancers.",
+              "publication_info_string": "Updated 2026-03-10",
+              "title": "Biliary Tract Cancers",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-03-10",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/btc.pdf#page=38",
+              "source_texts": []
+            },
+            {
+              "citation_key": "21",
+              "reference_text": "National Comprehensive Cancer Network. Central Nervous System Cancers.",
+              "publication_info_string": "Updated 2026-08-17",
+              "title": "Central Nervous System Cancers",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-08-17",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/cns.pdf#page=28",
+              "source_texts": []
+            },
+            {
+              "citation_key": "24",
+              "reference_text": "National Comprehensive Cancer Network. Hairy Cell Leukemia.",
+              "publication_info_string": "Updated 2026-09-14",
+              "title": "Hairy Cell Leukemia",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-14",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/hairy_cell.pdf#page=7",
+              "source_texts": []
+            },
+            {
+              "citation_key": "27",
+              "reference_text": "National Comprehensive Cancer Network. Histiocytic Neoplasms.",
+              "publication_info_string": "Updated 2026-09-16",
+              "title": "Histiocytic Neoplasms",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-16",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf#page=45",
+              "source_texts": []
+            },
+            {
+              "citation_key": "29",
+              "reference_text": "National Comprehensive Cancer Network. Rectal Cancer.",
+              "publication_info_string": "Updated 2026-04-07",
+              "title": "Rectal Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-07",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/rectal.pdf#page=65",
+              "source_texts": []
+            },
+            {
+              "citation_key": "40",
+              "reference_text": "National Comprehensive Cancer Network. Ampullary Adenocarcinoma.",
+              "publication_info_string": "Updated 2026-02-10",
+              "title": "Ampullary Adenocarcinoma",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-02-10",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/ampullary.pdf#page=36",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 9,
+          "additive_citations": 46,
+          "agreement_labels": {
+            "guidelines": [
+              "doi.org/10.1200/jco-26-00235",
+              "doi.org/10.1200/jco.22.01690",
+              "nccn.org/professionals/physician_gls/pdf/ampullary.pdf",
+              "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+              "nccn.org/professionals/physician_gls/pdf/cns.pdf",
+              "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+              "nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf",
+              "nccn.org/professionals/physician_gls/pdf/hairy_cell.pdf",
+              "nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+              "nccn.org/professionals/physician_gls/pdf/rectal.pdf",
+              "nccn.org/professionals/physician_gls/pdf/thyroid.pdf"
+            ],
+            "trials": [
+              "BEACON",
+              "BREAKWATER",
+              "COMBIAD"
+            ]
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "doi.org/10.1200/jco-26-00235",
+          "doi.org/10.1200/jco.22.01690",
+          "nccn.org/professionals/physician_gls/pdf/ampullary.pdf",
+          "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+          "nccn.org/professionals/physician_gls/pdf/cns.pdf",
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+          "nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf",
+          "nccn.org/professionals/physician_gls/pdf/hairy_cell.pdf",
+          "nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+          "nccn.org/professionals/physician_gls/pdf/rectal.pdf",
+          "nccn.org/professionals/physician_gls/pdf/thyroid.pdf"
+        ],
+        "candidate": [
+          "doi.org/10.1200/jco-26-00235",
+          "doi.org/10.1200/jco.22.01690",
+          "nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "overlap": [
+          "doi.org/10.1200/jco-26-00235",
+          "doi.org/10.1200/jco.22.01690",
+          "nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "darwin_reference_recall": 0.3333333333333333,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/ampullary.pdf",
+          "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+          "nccn.org/professionals/physician_gls/pdf/cns.pdf",
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+          "nccn.org/professionals/physician_gls/pdf/hairy_cell.pdf",
+          "nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf",
+          "nccn.org/professionals/physician_gls/pdf/rectal.pdf",
+          "nccn.org/professionals/physician_gls/pdf/thyroid.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [
+          "BEACON",
+          "BREAKWATER",
+          "COMBIAD"
+        ],
+        "candidate": [
+          "BEACON",
+          "BREAKWATER",
+          "COMBID",
+          "COMBIV"
+        ],
+        "overlap": [
+          "BEACON",
+          "BREAKWATER"
+        ],
+        "darwin_reference_recall": 0.6666666666666666,
+        "darwin_only": [
+          "COMBIAD"
+        ],
+        "osler_only": [
+          "COMBID",
+          "COMBIV"
+        ]
+      }
+    },
+    {
+      "gene": "BRCA1",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 51.821124333000625,
+          "ttft_seconds": 3.399821792001603,
+          "answer_chars": 5062,
+          "citations": 25,
+          "guidelines": [
+            {
+              "title": "Breast Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=29",
+              "page_anchor": "page=29"
+            },
+            {
+              "title": "Ovarian Cancer Including Fallopian Tube Cancer and Primary Peritoneal Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/ovarian.pdf#page=11",
+              "page_anchor": "page=11"
+            },
+            {
+              "title": "Prostate Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/prostate.pdf#page=97",
+              "page_anchor": "page=97"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "6",
+              "reference_text": "National Comprehensive Cancer Network. Breast Cancer.",
+              "publication_info_string": "Updated 2026-09-25",
+              "title": "Breast Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-25",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=29",
+              "source_texts": []
+            },
+            {
+              "citation_key": "10",
+              "reference_text": "National Comprehensive Cancer Network. Ovarian Cancer Including Fallopian Tube Cancer and Primary Peritoneal Cancer.",
+              "publication_info_string": "Updated 2026-04-10",
+              "title": "Ovarian Cancer Including Fallopian Tube Cancer and Primary Peritoneal Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-10",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/ovarian.pdf#page=11",
+              "source_texts": []
+            },
+            {
+              "citation_key": "15",
+              "reference_text": "National Comprehensive Cancer Network. Prostate Cancer.",
+              "publication_info_string": "Updated 2026-08-27",
+              "title": "Prostate Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-08-27",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/prostate.pdf#page=97",
+              "source_texts": []
+            },
+            {
+              "citation_key": "16",
+              "reference_text": "Yu EY, Rumble RB, Agarwal N, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-24-02608\">Germline and Somatic Genomic Testing for Metastatic Prostate Cancer: ASCO Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2025;43(6):748-758. doi:10.1200/JCO-24-02608.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2025;43(6):748-758. doi:10.1200/JCO-24-02608.",
+              "title": "Germline and Somatic Genomic Testing for Metastatic Prostate Cancer: ASCO Guideline",
+              "authors": "Yu EY, Rumble RB, Agarwal N, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2025-02-20",
+              "doi": "10.1200/JCO-24-02608",
+              "url": "https://doi.org/10.1200/jco-24-02608",
+              "source_texts": []
+            },
+            {
+              "citation_key": "19",
+              "reference_text": "Konstantinopoulos PA, Norquist B, Lacchetti C, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco.19.02960\">Germline and Somatic Tumor Testing in Epithelial Ovarian Cancer: ASCO Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2020;38(11):1222-1245. doi:10.1200/JCO.19.02960.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2020;38(11):1222-1245. doi:10.1200/JCO.19.02960.",
+              "title": "Germline and Somatic Tumor Testing in Epithelial Ovarian Cancer: ASCO Guideline",
+              "authors": "Konstantinopoulos PA, Norquist B, Lacchetti C, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2020-04-10",
+              "doi": "10.1200/JCO.19.02960",
+              "url": "https://doi.org/10.1200/jco.19.02960",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 8,
+          "additive_citations": 25,
+          "agreement_labels": {
+            "guidelines": [
+              "doi.org/10.1200/jco-24-02608",
+              "doi.org/10.1200/jco.19.02960",
+              "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+              "nccn.org/professionals/physician_gls/pdf/ovarian.pdf",
+              "nccn.org/professionals/physician_gls/pdf/prostate.pdf"
+            ],
+            "trials": [
+              "EMBRACA",
+              "OLYMPIA",
+              "OLYMPIAD",
+              "POLO",
+              "PROFOUND",
+              "SOLO1",
+              "SOLO2",
+              "TALAPRO2",
+              "TRITON2",
+              "TRITON3"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 289.4687294999967,
+          "ttft_seconds": 2.2781240839976817,
+          "answer_chars": 11282,
+          "citations": 40,
+          "guidelines": [
+            {
+              "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=28",
+              "page_anchor": "page=28"
+            },
+            {
+              "title": "Breast Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=92",
+              "page_anchor": "page=92"
+            },
+            {
+              "title": "Pancreatic Adenocarcinoma",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/pancreatic.pdf#page=59",
+              "page_anchor": "page=59"
+            },
+            {
+              "title": "Ovarian Cancer Including Fallopian Tube Cancer and Primary Peritoneal Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/ovarian.pdf#page=11",
+              "page_anchor": "page=11"
+            },
+            {
+              "title": "Prostate Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/prostate.pdf#page=97",
+              "page_anchor": "page=97"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "2",
+              "reference_text": "National Comprehensive Cancer Network. Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate.",
+              "publication_info_string": "Updated 2026-08-31",
+              "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-08-31",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=28",
+              "source_texts": []
+            },
+            {
+              "citation_key": "4",
+              "reference_text": "National Comprehensive Cancer Network. Breast Cancer.",
+              "publication_info_string": "Updated 2026-09-25",
+              "title": "Breast Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-25",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=92",
+              "source_texts": []
+            },
+            {
+              "citation_key": "5",
+              "reference_text": "National Comprehensive Cancer Network. Pancreatic Adenocarcinoma.",
+              "publication_info_string": "Updated 2026-09-11",
+              "title": "Pancreatic Adenocarcinoma",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-11",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/pancreatic.pdf#page=59",
+              "source_texts": []
+            },
+            {
+              "citation_key": "11",
+              "reference_text": "Bedrosian I, Somerfield MR, Achatz MI, et al. <a target=\"_blank\" href=\"https://ascopubs.org/doi/10.1200/JCO.23.02225?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed\">Germline Testing in Patients With Breast Cancer: ASCO-Society of Surgical Oncology Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2024;42(5):584-604. doi:10.1200/JCO.23.02225.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2024;42(5):584-604. doi:10.1200/JCO.23.02225.",
+              "title": "Germline Testing in Patients With Breast Cancer: ASCO-Society of Surgical Oncology Guideline",
+              "authors": "Bedrosian I, Somerfield MR, Achatz MI, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2024-02-10",
+              "doi": "10.1200/JCO.23.02225",
+              "url": "https://ascopubs.org/doi/10.1200/JCO.23.02225?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed",
+              "source_texts": []
+            },
+            {
+              "citation_key": "13",
+              "reference_text": "National Comprehensive Cancer Network. Ovarian Cancer Including Fallopian Tube Cancer and Primary Peritoneal Cancer.",
+              "publication_info_string": "Updated 2026-04-10",
+              "title": "Ovarian Cancer Including Fallopian Tube Cancer and Primary Peritoneal Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-10",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/ovarian.pdf#page=11",
+              "source_texts": []
+            },
+            {
+              "citation_key": "14",
+              "reference_text": "Tew WP, Lacchetti C, Ellis A, et al. <a target=\"_blank\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8942301/\">PARP Inhibitors in the Management of Ovarian Cancer: ASCO Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2020;38(30):3468-3493. doi:10.1200/JCO.20.01924.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2020;38(30):3468-3493. doi:10.1200/JCO.20.01924.",
+              "title": "PARP Inhibitors in the Management of Ovarian Cancer: ASCO Guideline",
+              "authors": "Tew WP, Lacchetti C, Ellis A, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2020-10-20",
+              "doi": "10.1200/JCO.20.01924",
+              "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8942301/",
+              "source_texts": []
+            },
+            {
+              "citation_key": "26",
+              "reference_text": "National Comprehensive Cancer Network. Prostate Cancer.",
+              "publication_info_string": "Updated 2026-08-27",
+              "title": "Prostate Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-08-27",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/prostate.pdf#page=97",
+              "source_texts": []
+            },
+            {
+              "citation_key": "34",
+              "reference_text": "Tung N, Ricker C, Messersmith H, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco.24.00662\">Selection of Germline Genetic Testing Panels in Patients With Cancer: ASCO Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2024;42(21):2599-2615. doi:10.1200/JCO.24.00662.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2024;42(21):2599-2615. doi:10.1200/JCO.24.00662.",
+              "title": "Selection of Germline Genetic Testing Panels in Patients With Cancer: ASCO Guideline",
+              "authors": "Tung N, Ricker C, Messersmith H, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2024-07-20",
+              "doi": "10.1200/JCO.24.00662",
+              "url": "https://doi.org/10.1200/jco.24.00662",
+              "source_texts": []
+            },
+            {
+              "citation_key": "37",
+              "reference_text": "Konstantinopoulos PA, Norquist B, Lacchetti C, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco.19.02960\">Germline and Somatic Tumor Testing in Epithelial Ovarian Cancer: ASCO Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2020;38(11):1222-1245. doi:10.1200/JCO.19.02960.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2020;38(11):1222-1245. doi:10.1200/JCO.19.02960.",
+              "title": "Germline and Somatic Tumor Testing in Epithelial Ovarian Cancer: ASCO Guideline",
+              "authors": "Konstantinopoulos PA, Norquist B, Lacchetti C, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2020-04-10",
+              "doi": "10.1200/JCO.19.02960",
+              "url": "https://doi.org/10.1200/jco.19.02960",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 13,
+          "additive_citations": 40,
+          "agreement_labels": {
+            "guidelines": [
+              "ascopubs.org/doi/10.1200/jco.23.02225",
+              "doi.org/10.1200/jco.19.02960",
+              "doi.org/10.1200/jco.24.00662",
+              "ncbi.nlm.nih.gov/pmc/articles/pmc8942301/",
+              "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+              "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+              "nccn.org/professionals/physician_gls/pdf/ovarian.pdf",
+              "nccn.org/professionals/physician_gls/pdf/pancreatic.pdf",
+              "nccn.org/professionals/physician_gls/pdf/prostate.pdf"
+            ],
+            "trials": [
+              "OLYMPIA",
+              "PAOLA1",
+              "POLO",
+              "PROFOUND",
+              "SOLO1",
+              "SOLO2",
+              "TALAPRO2",
+              "TALAPRO3",
+              "TRITON2",
+              "TRITON3"
+            ]
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "ascopubs.org/doi/10.1200/jco.23.02225",
+          "doi.org/10.1200/jco.19.02960",
+          "doi.org/10.1200/jco.24.00662",
+          "ncbi.nlm.nih.gov/pmc/articles/pmc8942301/",
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+          "nccn.org/professionals/physician_gls/pdf/ovarian.pdf",
+          "nccn.org/professionals/physician_gls/pdf/pancreatic.pdf",
+          "nccn.org/professionals/physician_gls/pdf/prostate.pdf"
+        ],
+        "candidate": [
+          "doi.org/10.1200/jco-24-02608",
+          "doi.org/10.1200/jco.19.02960",
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/ovarian.pdf",
+          "nccn.org/professionals/physician_gls/pdf/prostate.pdf"
+        ],
+        "overlap": [
+          "doi.org/10.1200/jco.19.02960",
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/ovarian.pdf",
+          "nccn.org/professionals/physician_gls/pdf/prostate.pdf"
+        ],
+        "darwin_reference_recall": 0.4444444444444444,
+        "darwin_only": [
+          "ascopubs.org/doi/10.1200/jco.23.02225",
+          "doi.org/10.1200/jco.24.00662",
+          "ncbi.nlm.nih.gov/pmc/articles/pmc8942301/",
+          "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+          "nccn.org/professionals/physician_gls/pdf/pancreatic.pdf"
+        ],
+        "osler_only": [
+          "doi.org/10.1200/jco-24-02608"
+        ]
+      },
+      "trials_agreement": {
+        "reference": [
+          "OLYMPIA",
+          "PAOLA1",
+          "POLO",
+          "PROFOUND",
+          "SOLO1",
+          "SOLO2",
+          "TALAPRO2",
+          "TALAPRO3",
+          "TRITON2",
+          "TRITON3"
+        ],
+        "candidate": [
+          "EMBRACA",
+          "OLYMPIA",
+          "OLYMPIAD",
+          "POLO",
+          "PROFOUND",
+          "SOLO1",
+          "SOLO2",
+          "TALAPRO2",
+          "TRITON2",
+          "TRITON3"
+        ],
+        "overlap": [
+          "OLYMPIA",
+          "POLO",
+          "PROFOUND",
+          "SOLO1",
+          "SOLO2",
+          "TALAPRO2",
+          "TRITON2",
+          "TRITON3"
+        ],
+        "darwin_reference_recall": 0.8,
+        "darwin_only": [
+          "PAOLA1",
+          "TALAPRO3"
+        ],
+        "osler_only": [
+          "EMBRACA",
+          "OLYMPIAD"
+        ]
+      }
+    },
+    {
+      "gene": "ALK",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 65.14206641600322,
+          "ttft_seconds": 2.6818406250022235,
+          "answer_chars": 7527,
+          "citations": 21,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110",
+              "page_anchor": "page=110"
+            },
+            {
+              "title": "Soft Tissue Sarcoma",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/sarcoma.pdf#page=63",
+              "page_anchor": "page=63"
+            },
+            {
+              "title": "Neuroblastoma",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf#page=21",
+              "page_anchor": "page=21"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "2",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110",
+              "source_texts": []
+            },
+            {
+              "citation_key": "11",
+              "reference_text": "National Comprehensive Cancer Network. Soft Tissue Sarcoma.",
+              "publication_info_string": "Updated 2026-07-23",
+              "title": "Soft Tissue Sarcoma",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-07-23",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/sarcoma.pdf#page=63",
+              "source_texts": []
+            },
+            {
+              "citation_key": "16",
+              "reference_text": "National Comprehensive Cancer Network. Neuroblastoma.",
+              "publication_info_string": "Updated 2026-04-28",
+              "title": "Neuroblastoma",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-28",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf#page=21",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 6,
+          "additive_citations": 20,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+              "nccn.org/professionals/physician_gls/pdf/sarcoma.pdf"
+            ],
+            "trials": [
+              "ALEX",
+              "ALTA1L",
+              "ANBL1531",
+              "CROWN",
+              "JALEX",
+              "NCT03093116",
+              "NCT03126916",
+              "NCT04094610",
+              "NCT06765109",
+              "NCT07001384",
+              "NCT07013565"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 300.8874270419983,
+          "ttft_seconds": 2.834163833002094,
+          "answer_chars": 11246,
+          "citations": 31,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=54",
+              "page_anchor": "page=54"
+            },
+            {
+              "title": "Soft Tissue Sarcoma",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/sarcoma.pdf#page=63",
+              "page_anchor": "page=63"
+            },
+            {
+              "title": "T-Cell Lymphomas",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/t-cell.pdf#page=21",
+              "page_anchor": "page=21"
+            },
+            {
+              "title": "Histiocytic Neoplasms",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf#page=48",
+              "page_anchor": "page=48"
+            },
+            {
+              "title": "Neuroblastoma",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf#page=37",
+              "page_anchor": "page=37"
+            },
+            {
+              "title": "Uterine Neoplasms",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/uterine.pdf#page=60",
+              "page_anchor": "page=60"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "4",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=54",
+              "source_texts": []
+            },
+            {
+              "citation_key": "9",
+              "reference_text": "National Comprehensive Cancer Network. Soft Tissue Sarcoma.",
+              "publication_info_string": "Updated 2026-07-23",
+              "title": "Soft Tissue Sarcoma",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-07-23",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/sarcoma.pdf#page=63",
+              "source_texts": []
+            },
+            {
+              "citation_key": "12",
+              "reference_text": "National Comprehensive Cancer Network. T-Cell Lymphomas.",
+              "publication_info_string": "Updated 2026-02-13",
+              "title": "T-Cell Lymphomas",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-02-13",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/t-cell.pdf#page=21",
+              "source_texts": []
+            },
+            {
+              "citation_key": "14",
+              "reference_text": "National Comprehensive Cancer Network. Histiocytic Neoplasms.",
+              "publication_info_string": "Updated 2026-09-16",
+              "title": "Histiocytic Neoplasms",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-16",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf#page=48",
+              "source_texts": []
+            },
+            {
+              "citation_key": "16",
+              "reference_text": "National Comprehensive Cancer Network. Neuroblastoma.",
+              "publication_info_string": "Updated 2026-04-28",
+              "title": "Neuroblastoma",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-28",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf#page=37",
+              "source_texts": []
+            },
+            {
+              "citation_key": "19",
+              "reference_text": "Singh N, Temin S, Baker S, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/35816666\">Therapy for Stage IV Non-Small-Cell Lung Cancer With Driver Alterations: ASCO Living Guideline</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2022;40(28):3310-3322. doi:10.1200/JCO.22.00824.",
+              "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2022;40(28):3310-3322. doi:10.1200/JCO.22.00824.",
+              "title": "Therapy for Stage IV Non-Small-Cell Lung Cancer With Driver Alterations: ASCO Living Guideline",
+              "authors": "Singh N, Temin S, Baker S, et al.",
+              "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+              "date": "2022-10-01",
+              "doi": "10.1200/JCO.22.00824",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/35816666",
+              "source_texts": []
+            },
+            {
+              "citation_key": "27",
+              "reference_text": "National Comprehensive Cancer Network. Uterine Neoplasms.",
+              "publication_info_string": "Updated 2026-06-16",
+              "title": "Uterine Neoplasms",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-06-16",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/uterine.pdf#page=60",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 16,
+          "additive_citations": 30,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf",
+              "nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+              "nccn.org/professionals/physician_gls/pdf/sarcoma.pdf",
+              "nccn.org/professionals/physician_gls/pdf/t-cell.pdf",
+              "nccn.org/professionals/physician_gls/pdf/uterine.pdf",
+              "pubmed.ncbi.nlm.nih.gov/35816666"
+            ],
+            "trials": [
+              "ALEX",
+              "ALINA",
+              "ALKAZAR",
+              "ALTA1L",
+              "ANBL1531",
+              "CROWN",
+              "EXALT3",
+              "JALEX",
+              "PROFILE"
+            ]
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf",
+          "nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+          "nccn.org/professionals/physician_gls/pdf/sarcoma.pdf",
+          "nccn.org/professionals/physician_gls/pdf/t-cell.pdf",
+          "nccn.org/professionals/physician_gls/pdf/uterine.pdf",
+          "pubmed.ncbi.nlm.nih.gov/35816666"
+        ],
+        "candidate": [
+          "nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+          "nccn.org/professionals/physician_gls/pdf/sarcoma.pdf"
+        ],
+        "overlap": [
+          "nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+          "nccn.org/professionals/physician_gls/pdf/sarcoma.pdf"
+        ],
+        "darwin_reference_recall": 0.42857142857142855,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf",
+          "nccn.org/professionals/physician_gls/pdf/t-cell.pdf",
+          "nccn.org/professionals/physician_gls/pdf/uterine.pdf",
+          "pubmed.ncbi.nlm.nih.gov/35816666"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [
+          "ALEX",
+          "ALINA",
+          "ALKAZAR",
+          "ALTA1L",
+          "ANBL1531",
+          "CROWN",
+          "EXALT3",
+          "JALEX",
+          "PROFILE"
+        ],
+        "candidate": [
+          "ALEX",
+          "ALTA1L",
+          "ANBL1531",
+          "CROWN",
+          "JALEX",
+          "NCT03093116",
+          "NCT03126916",
+          "NCT04094610",
+          "NCT06765109",
+          "NCT07001384",
+          "NCT07013565"
+        ],
+        "overlap": [
+          "ALEX",
+          "ALTA1L",
+          "ANBL1531",
+          "CROWN",
+          "JALEX"
+        ],
+        "darwin_reference_recall": 0.5555555555555556,
+        "darwin_only": [
+          "ALINA",
+          "ALKAZAR",
+          "EXALT3",
+          "PROFILE"
+        ],
+        "osler_only": [
+          "NCT03093116",
+          "NCT03126916",
+          "NCT04094610",
+          "NCT06765109",
+          "NCT07001384",
+          "NCT07013565"
+        ]
+      }
+    },
+    {
+      "gene": "ACACB",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 31.673134541000763,
+          "ttft_seconds": 2.644845249997161,
+          "answer_chars": 4139,
+          "citations": 12,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=100",
+              "page_anchor": "page=100"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "4",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=100",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 0,
+          "additive_citations": 12,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+            ],
+            "trials": [
+              "NCT01396161",
+              "NCT01792635",
+              "NCT01819922"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 139.17822079200414,
+          "ttft_seconds": 2.354423708995455,
+          "answer_chars": 6198,
+          "citations": 25,
+          "guidelines": [
+            {
+              "title": "Breast Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=96",
+              "page_anchor": "page=96"
+            },
+            {
+              "title": "Biliary Tract Cancers",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/btc.pdf#page=38",
+              "page_anchor": "page=38"
+            },
+            {
+              "title": "Neuroendocrine and Adrenal Tumors",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroendocrine.pdf#page=109",
+              "page_anchor": "page=109"
+            },
+            {
+              "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=19",
+              "page_anchor": "page=19"
+            },
+            {
+              "title": "Genetic/Familial High-Risk Assessment: Colorectal, Endometrial, Esophageal, and Gastric",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf#page=21",
+              "page_anchor": "page=21"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "1",
+              "reference_text": "National Comprehensive Cancer Network. Breast Cancer.",
+              "publication_info_string": "Updated 2026-09-25",
+              "title": "Breast Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-25",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=96",
+              "source_texts": []
+            },
+            {
+              "citation_key": "2",
+              "reference_text": "National Comprehensive Cancer Network. Biliary Tract Cancers.",
+              "publication_info_string": "Updated 2026-03-10",
+              "title": "Biliary Tract Cancers",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-03-10",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/btc.pdf#page=38",
+              "source_texts": []
+            },
+            {
+              "citation_key": "3",
+              "reference_text": "National Comprehensive Cancer Network. Neuroendocrine and Adrenal Tumors.",
+              "publication_info_string": "Updated 2026-04-21",
+              "title": "Neuroendocrine and Adrenal Tumors",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-21",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroendocrine.pdf#page=109",
+              "source_texts": []
+            },
+            {
+              "citation_key": "23",
+              "reference_text": "National Comprehensive Cancer Network. Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate.",
+              "publication_info_string": "Updated 2026-08-31",
+              "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-08-31",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=19",
+              "source_texts": []
+            },
+            {
+              "citation_key": "24",
+              "reference_text": "National Comprehensive Cancer Network. Genetic/Familial High-Risk Assessment: Colorectal, Endometrial, Esophageal, and Gastric.",
+              "publication_info_string": "Updated 2026-06-16",
+              "title": "Genetic/Familial High-Risk Assessment: Colorectal, Endometrial, Esophageal, and Gastric",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-06-16",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf#page=21",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 0,
+          "additive_citations": 25,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+              "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+              "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+              "nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf",
+              "nccn.org/professionals/physician_gls/pdf/neuroendocrine.pdf"
+            ],
+            "trials": []
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf",
+          "nccn.org/professionals/physician_gls/pdf/neuroendocrine.pdf"
+        ],
+        "candidate": [
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf",
+          "nccn.org/professionals/physician_gls/pdf/neuroendocrine.pdf"
+        ],
+        "osler_only": [
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ]
+      },
+      "trials_agreement": {
+        "reference": [],
+        "candidate": [
+          "NCT01396161",
+          "NCT01792635",
+          "NCT01819922"
+        ],
+        "overlap": [],
+        "darwin_reference_recall": null,
+        "darwin_only": [],
+        "osler_only": [
+          "NCT01396161",
+          "NCT01792635",
+          "NCT01819922"
+        ]
+      }
+    },
+    {
+      "gene": "AIRE",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 31.514603040996008,
+          "ttft_seconds": 2.332546834004461,
+          "answer_chars": 4030,
+          "citations": 12,
+          "guidelines": [],
+          "guideline_citations": [],
+          "trial_mentions": 0,
+          "additive_citations": 12,
+          "agreement_labels": {
+            "guidelines": [],
+            "trials": [
+              "PROFILE"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 151.30603658299515,
+          "ttft_seconds": 2.2100608339969767,
+          "answer_chars": 6760,
+          "citations": 24,
+          "guidelines": [
+            {
+              "title": "Colon Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=50",
+              "page_anchor": "page=50"
+            },
+            {
+              "title": "Breast Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=96",
+              "page_anchor": "page=96"
+            },
+            {
+              "title": "Thymomas and Thymic Carcinomas",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/thymic.pdf#page=16",
+              "page_anchor": "page=16"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "3",
+              "reference_text": "National Comprehensive Cancer Network. Colon Cancer.",
+              "publication_info_string": "Updated 2026-04-07",
+              "title": "Colon Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-07",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=50",
+              "source_texts": []
+            },
+            {
+              "citation_key": "4",
+              "reference_text": "National Comprehensive Cancer Network. Breast Cancer.",
+              "publication_info_string": "Updated 2026-09-25",
+              "title": "Breast Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-25",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=96",
+              "source_texts": []
+            },
+            {
+              "citation_key": "21",
+              "reference_text": "National Comprehensive Cancer Network. Thymomas and Thymic Carcinomas.",
+              "publication_info_string": "Updated 2026-04-10",
+              "title": "Thymomas and Thymic Carcinomas",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-10",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/thymic.pdf#page=16",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 0,
+          "additive_citations": 24,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+              "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+              "nccn.org/professionals/physician_gls/pdf/thymic.pdf"
+            ],
+            "trials": []
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+          "nccn.org/professionals/physician_gls/pdf/thymic.pdf"
+        ],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+          "nccn.org/professionals/physician_gls/pdf/thymic.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [],
+        "candidate": [
+          "PROFILE"
+        ],
+        "overlap": [],
+        "darwin_reference_recall": null,
+        "darwin_only": [],
+        "osler_only": [
+          "PROFILE"
+        ]
+      }
+    },
+    {
+      "gene": "ANKRD13A",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 27.338826332997996,
+          "ttft_seconds": 4.34188287500001,
+          "answer_chars": 9515,
+          "citations": 7,
+          "guidelines": [],
+          "guideline_citations": [],
+          "trial_mentions": 0,
+          "additive_citations": 6,
+          "agreement_labels": {
+            "guidelines": [],
+            "trials": []
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 109.20455395900353,
+          "ttft_seconds": 2.894666624997626,
+          "answer_chars": 4614,
+          "citations": 22,
+          "guidelines": [
+            {
+              "title": "Breast Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=96",
+              "page_anchor": "page=96"
+            },
+            {
+              "title": "Colon Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=50",
+              "page_anchor": "page=50"
+            },
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=100",
+              "page_anchor": "page=100"
+            },
+            {
+              "title": "Esophageal and Esophagogastric Junction Cancers",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/esophageal.pdf#page=49",
+              "page_anchor": "page=49"
+            },
+            {
+              "title": "Gastric Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/gastric.pdf#page=31",
+              "page_anchor": "page=31"
+            },
+            {
+              "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=19",
+              "page_anchor": "page=19"
+            },
+            {
+              "title": "Genetic/Familial High-Risk Assessment: Colorectal, Endometrial, Esophageal, and Gastric",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf#page=21",
+              "page_anchor": "page=21"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "1",
+              "reference_text": "National Comprehensive Cancer Network. Breast Cancer.",
+              "publication_info_string": "Updated 2026-09-25",
+              "title": "Breast Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-25",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=96",
+              "source_texts": []
+            },
+            {
+              "citation_key": "2",
+              "reference_text": "National Comprehensive Cancer Network. Colon Cancer.",
+              "publication_info_string": "Updated 2026-04-07",
+              "title": "Colon Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-07",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=50",
+              "source_texts": []
+            },
+            {
+              "citation_key": "3",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=100",
+              "source_texts": []
+            },
+            {
+              "citation_key": "4",
+              "reference_text": "National Comprehensive Cancer Network. Esophageal and Esophagogastric Junction Cancers.",
+              "publication_info_string": "Updated 2026-09-16",
+              "title": "Esophageal and Esophagogastric Junction Cancers",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-16",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/esophageal.pdf#page=49",
+              "source_texts": []
+            },
+            {
+              "citation_key": "5",
+              "reference_text": "National Comprehensive Cancer Network. Gastric Cancer.",
+              "publication_info_string": "Updated 2026-09-16",
+              "title": "Gastric Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-16",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/gastric.pdf#page=31",
+              "source_texts": []
+            },
+            {
+              "citation_key": "20",
+              "reference_text": "National Comprehensive Cancer Network. Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate.",
+              "publication_info_string": "Updated 2026-08-31",
+              "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-08-31",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=19",
+              "source_texts": []
+            },
+            {
+              "citation_key": "21",
+              "reference_text": "National Comprehensive Cancer Network. Genetic/Familial High-Risk Assessment: Colorectal, Endometrial, Esophageal, and Gastric.",
+              "publication_info_string": "Updated 2026-06-16",
+              "title": "Genetic/Familial High-Risk Assessment: Colorectal, Endometrial, Esophageal, and Gastric",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-06-16",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf#page=21",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 0,
+          "additive_citations": 20,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+              "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+              "nccn.org/professionals/physician_gls/pdf/esophageal.pdf",
+              "nccn.org/professionals/physician_gls/pdf/gastric.pdf",
+              "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+              "nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+            ],
+            "trials": [
+              "PROFILE"
+            ]
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+          "nccn.org/professionals/physician_gls/pdf/esophageal.pdf",
+          "nccn.org/professionals/physician_gls/pdf/gastric.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/colon.pdf",
+          "nccn.org/professionals/physician_gls/pdf/esophageal.pdf",
+          "nccn.org/professionals/physician_gls/pdf/gastric.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [
+          "PROFILE"
+        ],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "PROFILE"
+        ],
+        "osler_only": []
+      }
+    },
+    {
+      "gene": "CRACD",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 36.4725102079974,
+          "ttft_seconds": 2.624552125002083,
+          "answer_chars": 3963,
+          "citations": 6,
+          "guidelines": [],
+          "guideline_citations": [],
+          "trial_mentions": 0,
+          "additive_citations": 5,
+          "agreement_labels": {
+            "guidelines": [],
+            "trials": []
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 139.35864229200524,
+          "ttft_seconds": 2.2020209999973304,
+          "answer_chars": 5725,
+          "citations": 12,
+          "guidelines": [
+            {
+              "title": "Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/sclc.pdf#page=4",
+              "page_anchor": "page=4"
+            },
+            {
+              "title": "Gastric Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/gastric.pdf#page=28",
+              "page_anchor": "page=28"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "3",
+              "reference_text": "National Comprehensive Cancer Network. Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-07-01",
+              "title": "Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-07-01",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/sclc.pdf#page=4",
+              "source_texts": []
+            },
+            {
+              "citation_key": "5",
+              "reference_text": "National Comprehensive Cancer Network. Gastric Cancer.",
+              "publication_info_string": "Updated 2026-09-16",
+              "title": "Gastric Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-16",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/gastric.pdf#page=28",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 0,
+          "additive_citations": 11,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/gastric.pdf",
+              "nccn.org/professionals/physician_gls/pdf/sclc.pdf"
+            ],
+            "trials": []
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/gastric.pdf",
+          "nccn.org/professionals/physician_gls/pdf/sclc.pdf"
+        ],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/gastric.pdf",
+          "nccn.org/professionals/physician_gls/pdf/sclc.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": null,
+        "darwin_only": [],
+        "osler_only": []
+      }
+    },
+    {
+      "gene": "DENND2C",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 28.669123375002528,
+          "ttft_seconds": 2.251045208002324,
+          "answer_chars": 3018,
+          "citations": 8,
+          "guidelines": [],
+          "guideline_citations": [],
+          "trial_mentions": 0,
+          "additive_citations": 8,
+          "agreement_labels": {
+            "guidelines": [],
+            "trials": []
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 116.9573946659948,
+          "ttft_seconds": 2.7816552910007886,
+          "answer_chars": 5357,
+          "citations": 22,
+          "guidelines": [
+            {
+              "title": "Breast Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=96",
+              "page_anchor": "page=96"
+            },
+            {
+              "title": "Biliary Tract Cancers",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/btc.pdf#page=38",
+              "page_anchor": "page=38"
+            },
+            {
+              "title": "Neuroendocrine and Adrenal Tumors",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroendocrine.pdf#page=109",
+              "page_anchor": "page=109"
+            },
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110",
+              "page_anchor": "page=110"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "1",
+              "reference_text": "National Comprehensive Cancer Network. Breast Cancer.",
+              "publication_info_string": "Updated 2026-09-25",
+              "title": "Breast Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-25",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=96",
+              "source_texts": []
+            },
+            {
+              "citation_key": "2",
+              "reference_text": "National Comprehensive Cancer Network. Biliary Tract Cancers.",
+              "publication_info_string": "Updated 2026-03-10",
+              "title": "Biliary Tract Cancers",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-03-10",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/btc.pdf#page=38",
+              "source_texts": []
+            },
+            {
+              "citation_key": "3",
+              "reference_text": "National Comprehensive Cancer Network. Neuroendocrine and Adrenal Tumors.",
+              "publication_info_string": "Updated 2026-04-21",
+              "title": "Neuroendocrine and Adrenal Tumors",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-04-21",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroendocrine.pdf#page=109",
+              "source_texts": []
+            },
+            {
+              "citation_key": "4",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 1,
+          "additive_citations": 22,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+              "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+              "nccn.org/professionals/physician_gls/pdf/neuroendocrine.pdf",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+            ],
+            "trials": []
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+          "nccn.org/professionals/physician_gls/pdf/neuroendocrine.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+          "nccn.org/professionals/physician_gls/pdf/neuroendocrine.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": null,
+        "darwin_only": [],
+        "osler_only": []
+      }
+    },
+    {
+      "gene": "FAM117A",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 27.078264291994856,
+          "ttft_seconds": 2.6914614169945708,
+          "answer_chars": 3180,
+          "citations": 6,
+          "guidelines": [],
+          "guideline_citations": [],
+          "trial_mentions": 1,
+          "additive_citations": 4,
+          "agreement_labels": {
+            "guidelines": [],
+            "trials": [
+              "NCT04341181"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 121.2143899579969,
+          "ttft_seconds": 2.787454291996255,
+          "answer_chars": 5812,
+          "citations": 13,
+          "guidelines": [
+            {
+              "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=15",
+              "page_anchor": "page=15"
+            },
+            {
+              "title": "Genetic/Familial High-Risk Assessment: Colorectal, Endometrial, Esophageal, and Gastric",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf#page=18",
+              "page_anchor": "page=18"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "12",
+              "reference_text": "National Comprehensive Cancer Network. Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate.",
+              "publication_info_string": "Updated 2026-08-31",
+              "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-08-31",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=15",
+              "source_texts": []
+            },
+            {
+              "citation_key": "13",
+              "reference_text": "National Comprehensive Cancer Network. Genetic/Familial High-Risk Assessment: Colorectal, Endometrial, Esophageal, and Gastric.",
+              "publication_info_string": "Updated 2026-06-16",
+              "title": "Genetic/Familial High-Risk Assessment: Colorectal, Endometrial, Esophageal, and Gastric",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-06-16",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf#page=18",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 0,
+          "additive_citations": 11,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+              "nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf"
+            ],
+            "trials": [
+              "NCT02465060",
+              "NCT02693535",
+              "NCT03155620"
+            ]
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf"
+        ],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf",
+          "nccn.org/professionals/physician_gls/pdf/genetics_ceeg.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [
+          "NCT02465060",
+          "NCT02693535",
+          "NCT03155620"
+        ],
+        "candidate": [
+          "NCT04341181"
+        ],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "NCT02465060",
+          "NCT02693535",
+          "NCT03155620"
+        ],
+        "osler_only": [
+          "NCT04341181"
+        ]
+      }
+    },
+    {
+      "gene": "RFX7",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 41.980997165999725,
+          "ttft_seconds": 2.7041899589967215,
+          "answer_chars": 4428,
+          "citations": 7,
+          "guidelines": [],
+          "guideline_citations": [],
+          "trial_mentions": 0,
+          "additive_citations": 4,
+          "agreement_labels": {
+            "guidelines": [],
+            "trials": [
+              "NCT05755087",
+              "NCT06649812",
+              "NCT06792734"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 123.4428348329966,
+          "ttft_seconds": 2.288267000003543,
+          "answer_chars": 4562,
+          "citations": 18,
+          "guidelines": [
+            {
+              "title": "B-Cell Lymphomas",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/b-cell.pdf#page=72",
+              "page_anchor": "page=72"
+            },
+            {
+              "title": "T-Cell Lymphomas",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/t-cell.pdf#page=65",
+              "page_anchor": "page=65"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "5",
+              "reference_text": "National Comprehensive Cancer Network. B-Cell Lymphomas.",
+              "publication_info_string": "Updated 2026-05-20",
+              "title": "B-Cell Lymphomas",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-05-20",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/b-cell.pdf#page=72",
+              "source_texts": []
+            },
+            {
+              "citation_key": "6",
+              "reference_text": "National Comprehensive Cancer Network. T-Cell Lymphomas.",
+              "publication_info_string": "Updated 2026-02-13",
+              "title": "T-Cell Lymphomas",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-02-13",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/t-cell.pdf#page=65",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 0,
+          "additive_citations": 16,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/b-cell.pdf",
+              "nccn.org/professionals/physician_gls/pdf/t-cell.pdf"
+            ],
+            "trials": []
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/b-cell.pdf",
+          "nccn.org/professionals/physician_gls/pdf/t-cell.pdf"
+        ],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/b-cell.pdf",
+          "nccn.org/professionals/physician_gls/pdf/t-cell.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [],
+        "candidate": [
+          "NCT05755087",
+          "NCT06649812",
+          "NCT06792734"
+        ],
+        "overlap": [],
+        "darwin_reference_recall": null,
+        "darwin_only": [],
+        "osler_only": [
+          "NCT05755087",
+          "NCT06649812",
+          "NCT06792734"
+        ]
+      }
+    },
+    {
+      "gene": "RP1",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 38.478362624999136,
+          "ttft_seconds": 2.427579584000341,
+          "answer_chars": 3217,
+          "citations": 10,
+          "guidelines": [],
+          "guideline_citations": [],
+          "trial_mentions": 0,
+          "additive_citations": 10,
+          "agreement_labels": {
+            "guidelines": [],
+            "trials": []
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 152.56670454199775,
+          "ttft_seconds": 2.6638657079965924,
+          "answer_chars": 4754,
+          "citations": 17,
+          "guidelines": [
+            {
+              "title": "Melanoma: Cutaneous",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf#page=34",
+              "page_anchor": "page=34"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "11",
+              "reference_text": "National Comprehensive Cancer Network. Melanoma: Cutaneous.",
+              "publication_info_string": "Updated 2026-09-02",
+              "title": "Melanoma: Cutaneous",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-02",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf#page=34",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 1,
+          "additive_citations": 17,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf"
+            ],
+            "trials": []
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf"
+        ],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": null,
+        "darwin_only": [],
+        "osler_only": []
+      }
+    },
+    {
+      "gene": "TRARG1",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 29.898649332993955,
+          "ttft_seconds": 2.7439723329953267,
+          "answer_chars": 2500,
+          "citations": 7,
+          "guidelines": [],
+          "guideline_citations": [],
+          "trial_mentions": 0,
+          "additive_citations": 7,
+          "agreement_labels": {
+            "guidelines": [],
+            "trials": []
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 114.13784441700409,
+          "ttft_seconds": 2.1015796669962583,
+          "answer_chars": 4330,
+          "citations": 14,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=108",
+              "page_anchor": "page=108"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "1",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=108",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 1,
+          "additive_citations": 13,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+            ],
+            "trials": []
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": null,
+        "darwin_only": [],
+        "osler_only": []
+      }
+    },
+    {
+      "gene": "CLCN3P1",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 26.920478749998438,
+          "ttft_seconds": 3.5945190409984207,
+          "answer_chars": 2907,
+          "citations": 7,
+          "guidelines": [],
+          "guideline_citations": [],
+          "trial_mentions": 0,
+          "additive_citations": 7,
+          "agreement_labels": {
+            "guidelines": [],
+            "trials": []
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 106.60148829100217,
+          "ttft_seconds": 2.90847879100329,
+          "answer_chars": 4830,
+          "citations": 23,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=108",
+              "page_anchor": "page=108"
+            },
+            {
+              "title": "Breast Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=96",
+              "page_anchor": "page=96"
+            },
+            {
+              "title": "Biliary Tract Cancers",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/btc.pdf#page=38",
+              "page_anchor": "page=38"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "1",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=108",
+              "source_texts": []
+            },
+            {
+              "citation_key": "2",
+              "reference_text": "National Comprehensive Cancer Network. Breast Cancer.",
+              "publication_info_string": "Updated 2026-09-25",
+              "title": "Breast Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-25",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=96",
+              "source_texts": []
+            },
+            {
+              "citation_key": "3",
+              "reference_text": "National Comprehensive Cancer Network. Biliary Tract Cancers.",
+              "publication_info_string": "Updated 2026-03-10",
+              "title": "Biliary Tract Cancers",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-03-10",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/btc.pdf#page=38",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 0,
+          "additive_citations": 23,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+              "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+            ],
+            "trials": []
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": 0.0,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/breast.pdf",
+          "nccn.org/professionals/physician_gls/pdf/btc.pdf",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "osler_only": []
+      },
+      "trials_agreement": {
+        "reference": [],
+        "candidate": [],
+        "overlap": [],
+        "darwin_reference_recall": null,
+        "darwin_only": [],
+        "osler_only": []
+      }
+    },
+    {
+      "gene": "EML4::ALK",
+      "models": {
+        "osler": {
+          "status": "success",
+          "wall_seconds": 42.885112208001374,
+          "ttft_seconds": 2.1535140840060194,
+          "answer_chars": 4842,
+          "citations": 14,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=54",
+              "page_anchor": "page=54"
+            },
+            {
+              "title": "Comparative effectiveness of ALK tyrosine kinase inhibitors in ALK-positive non\u2013small cell lung cancer: A systematic review and network meta-analysis.",
+              "url": "https://meetings.asco.org/abstracts-presentations/266509",
+              "page_anchor": null
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "1",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=54",
+              "source_texts": []
+            },
+            {
+              "citation_key": "14",
+              "reference_text": "J Clin Oncol 44, 2026 (suppl 16; abstr e20753)",
+              "publication_info_string": "Journal of Clinical Oncology. 2026;44(Suppl 16):e20753. doi:10.1200/JCO.2026.44.16_suppl.e20753.",
+              "title": "Comparative effectiveness of ALK tyrosine kinase inhibitors in ALK-positive non\u2013small cell lung cancer: A systematic review and network meta-analysis.",
+              "authors": "Srivastava Y, Biswas S, Krishnan E, et al.",
+              "journal": "",
+              "date": "2026-05-29",
+              "doi": "",
+              "url": "https://meetings.asco.org/abstracts-presentations/266509",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 5,
+          "additive_citations": 14,
+          "agreement_labels": {
+            "guidelines": [
+              "meetings.asco.org/abstracts-presentations/266509",
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+            ],
+            "trials": [
+              "ALEX",
+              "CROWN",
+              "CROWN7",
+              "PROFILE"
+            ]
+          }
+        },
+        "darwin": {
+          "status": "success",
+          "wall_seconds": 207.7797602089995,
+          "ttft_seconds": 2.53094350000174,
+          "answer_chars": 9116,
+          "citations": 21,
+          "guidelines": [
+            {
+              "title": "Non-Small Cell Lung Cancer",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=54",
+              "page_anchor": "page=54"
+            },
+            {
+              "title": "Soft Tissue Sarcoma",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/sarcoma.pdf#page=63",
+              "page_anchor": "page=63"
+            }
+          ],
+          "guideline_citations": [
+            {
+              "citation_key": "2",
+              "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.",
+              "publication_info_string": "Updated 2026-09-22",
+              "title": "Non-Small Cell Lung Cancer",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-09-22",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=54",
+              "source_texts": []
+            },
+            {
+              "citation_key": "13",
+              "reference_text": "National Comprehensive Cancer Network. Soft Tissue Sarcoma.",
+              "publication_info_string": "Updated 2026-07-23",
+              "title": "Soft Tissue Sarcoma",
+              "authors": "National Comprehensive Cancer Network",
+              "journal": "",
+              "date": "2026-07-23",
+              "doi": "",
+              "url": "https://www.nccn.org/professionals/physician_gls/pdf/sarcoma.pdf#page=63",
+              "source_texts": []
+            }
+          ],
+          "trial_mentions": 10,
+          "additive_citations": 21,
+          "agreement_labels": {
+            "guidelines": [
+              "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+              "nccn.org/professionals/physician_gls/pdf/sarcoma.pdf"
+            ],
+            "trials": [
+              "ALINA",
+              "ALTA1L",
+              "CROWN"
+            ]
+          }
+        }
+      },
+      "guidelines_agreement": {
+        "reference": [
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf",
+          "nccn.org/professionals/physician_gls/pdf/sarcoma.pdf"
+        ],
+        "candidate": [
+          "meetings.asco.org/abstracts-presentations/266509",
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "overlap": [
+          "nccn.org/professionals/physician_gls/pdf/nscl.pdf"
+        ],
+        "darwin_reference_recall": 0.5,
+        "darwin_only": [
+          "nccn.org/professionals/physician_gls/pdf/sarcoma.pdf"
+        ],
+        "osler_only": [
+          "meetings.asco.org/abstracts-presentations/266509"
+        ]
+      },
+      "trials_agreement": {
+        "reference": [
+          "ALINA",
+          "ALTA1L",
+          "CROWN"
+        ],
+        "candidate": [
+          "ALEX",
+          "CROWN",
+          "CROWN7",
+          "PROFILE"
+        ],
+        "overlap": [
+          "CROWN"
+        ],
+        "darwin_reference_recall": 0.3333333333333333,
+        "darwin_only": [
+          "ALINA",
+          "ALTA1L"
+        ],
+        "osler_only": [
+          "ALEX",
+          "CROWN7",
+          "PROFILE"
+        ]
+      }
+    }
+  ],
+  "paid_call_attempts": 34
+}

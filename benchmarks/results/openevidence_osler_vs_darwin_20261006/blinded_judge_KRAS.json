@@ -1,0 +1,42 @@
+{
+  "judge_model": "claude-haiku-4-5-20251001",
+  "paid_judge_calls": 1,
+  "usage": {
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "inference_geo": "not_available",
+    "input_tokens": 15977,
+    "output_tokens": 950,
+    "output_tokens_details": null,
+    "server_tool_use": null,
+    "service_tier": "standard"
+  },
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "mapping": {
+    "KRAS": {
+      "A": "osler",
+      "B": "darwin"
+    }
+  },
+  "per_gene": [
+    {
+      "gene": "KRAS",
+      "A": {
+        "factual_correctness": 4,
+        "specificity": 5,
+        "hallucination_safety": 4
+      },
+      "B": {
+        "factual_correctness": 4,
+        "specificity": 5,
+        "hallucination_safety": 4
+      },
+      "comparison": "Both answers provide comprehensive, guideline-aligned summaries of KRAS-targeted therapy across NSCLC, colorectal cancer, and pancreatic cancer. Both correctly identify that G12C inhibitors (sotorasib, adagrasib) are second-line in NSCLC and require combination with anti-EGFR agents in mCRC; both recognize daraxonrasib's category 1 status in pancreatic adenocarcinoma. Answer A presents trial efficacy metrics in a continuous narrative with extensive numeric detail (ORR 37%, PFS 6.8 mo, OS 12.5 mo for CodeBreaK 100; PFS 5.6 vs 4.5 mo HR 0.66 for CodeBreaK 200). Answer B is more cautious about data maturity, explicitly noting that adagrasib OS from KRYSTAL-12 remain unreported and that sotorasib showed no OS advantage in CodeBreaK 200, which is a more accurate statement of the evidence. Answer B also includes critical safety detail (hepatotoxicity rates, drug-drug interactions, dermatologic burden, QTc prolongation specifics) and caveats on daraxonrasib (RAS wild-type inclusion in RASolute 302, ECOG PS 0\u20131 trial enrollment vs. NCCN guideline listing for PS 2\u20133). Answer A omits ESMO verification uncertainty; Answer B explicitly flags inability to retrieve a specific ESMO document and qualifies secondary-source claims, adhering more strictly to the rubric's emphasis on acknowledging unverified support. Both cite the same core publications (NCCN v9.2026 and v4.2026, ASCO 2026, CodeBreaK and KRYSTAL trials). Answer A includes emerging agents (daraxonrasib in NSCLC, fulzerasib, zoldonrasib) but frames these as emerging rather than guideline-recommended. Answer B covers emerging data more selectively (KRYSTAL-7 nonrandomized results, olomorasib phase 1/2, Krascendo-1 head-to-head divarasib comparison only via press release) and explicitly notes these are not yet guideline-recommended. Neither answer presents a verifiable factual error contradicted by the provided primary-source facts (which concern ALK, TP53, and osimertinib, not KRAS). Both appropriately reference allele-specificity and testing requirements.",
+      "spot_check_flags": "No suspicious trial IDs or fabricated outcomes identified. CodeBreaK 100, CodeBreaK 200, CodeBreaK 300, KRYSTAL-1, KRYSTAL-12, RASolute 302, RASOLVE-301 are correctly named and attributed. HR and ORR values in both answers align with cited sources. Answer B's explicit uncertainty about ESMO document retrieval and caveats on RASolute 302 inclusion (92% KRAS G12, 5% G13/Q61, 3% no RAS mutation) and trial ECOG PS 0\u20131 are appropriately qualified. Answer A's statement on CodeBreaK 200 PFS (5.6 vs 4.5 mo, HR 0.66) is present; Answer B does not cite numeric CodeBreaK 200 results, consistent with its emphasis on mature OS data. Both correctly avoid overstating ESMO recommendations where text support is unavailable or explicitly qualifies it as secondary-source material."
+    }
+  ]
+}

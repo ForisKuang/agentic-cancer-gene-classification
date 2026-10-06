@@ -1,0 +1,42 @@
+{
+  "judge_model": "claude-haiku-4-5-20251001",
+  "paid_judge_calls": 1,
+  "usage": {
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "inference_geo": "not_available",
+    "input_tokens": 12600,
+    "output_tokens": 964,
+    "output_tokens_details": null,
+    "server_tool_use": null,
+    "service_tier": "standard"
+  },
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "mapping": {
+    "EGFR": {
+      "A": "osler",
+      "B": "darwin"
+    }
+  },
+  "per_gene": [
+    {
+      "gene": "EGFR",
+      "A": {
+        "factual_correctness": 4,
+        "specificity": 5,
+        "hallucination_safety": 4
+      },
+      "B": {
+        "factual_correctness": 4,
+        "specificity": 5,
+        "hallucination_safety": 4
+      },
+      "comparison": "Both answers provide comprehensive, guideline-aligned coverage of EGFR-mutant NSCLC across metastatic, adjuvant, and stage III settings with strong trial citation. Both correctly cite FLAURA, FLAURA2, MARIPOSA, ADAURA, LAURA, PAPILLON, and WU-KONG28 with generally accurate numeric outcomes matching supplied spot-check data (LAURA PFS 39.1 vs 5.6 months HR 0.16; WU-KONG28 PFS 10.3 vs 7.5 months HR 0.65; ADAURA 8-year OS 79% vs 64% HR 0.52). Both appropriately enumerate mutation subtypes (exon 19 deletion, L858R, exon 20 insertion, atypical mutations) and recommend osimertinib as foundational therapy with mutation-specific alternatives. Both mention amivantamab-lazertinib, datopotamab deruxtecan, and afatinib with appropriate context. Answer A presents algorithms visually (implicit reference to NCCN/ASCO figures) and includes Cochrane meta-analysis (HR 0.54 for adjuvant TKIs). Answer B explicitly names NCCN algorithm versions (NSCL-21, NSCL-22, NSCL-24, NSCL-25) and adds procedural detail on amivantamab prophylaxis (doxycycline, clindamycin lotion, dexamethasone premedication). Answer B also explicitly excludes dacomitinib as discontinued and clarifies testing caveat for exon 20 insertions (PCR under-detection, NGS preferred, specific insertion subtypes). Both correctly address colorectal cancer EGFR antibodies (cetuximab/panitumumab on RAS/BRAF/sidedness, not EGFR mutation); Answer B adds BRAF V600E + encorafenib detail. Both mention glioblastoma EGFR alterations with failed trials (EGFRvIII CAR-T, depatuxizumab mafodotin). Answer B includes investigational agents (silevertinib/BDTX-1535, ERAS-801) with appropriate qualification.",
+      "spot_check_flags": "No NCT IDs explicitly claimed for major trials; WU-KONG28 correctly reported per spot-check. LAURA PFS, ADAURA 8-year OS, and PAPILLON ORR figures align with supplied sources. Indirect comparison (osimertinib-chemotherapy vs amivantamab-lazertinib) reported in Answer B as HR 0.79 PFS / HR 0.95 OS with no significant difference; this indirect comparison is attributed to Del Bono et al. 2026 and cannot be independently verified against primary trial data. CHRYSALIS ORR 40% appears in both answers for previously treated exon 20 insertion patients; second-line sunvozertinib ORRs WU-KONG6 61% and WU-KONG1B 46\u201347% cited in Answer B with ILD 5% qualifier. Both answers acknowledge T790M resistance testing appropriately. No invented trial IDs detected. Both appropriately qualify invasive therapies (biopsy at progression, imaging for oligoprogression) and caveat clinical decision-making (e.g., 'not head-to-head,' prophylaxis mandatory). Answer A cites Cochrane meta-analysis date 2025-05-27 with HR 0.54; Answer B does not include this pooled estimate but maintains comparable nuance on adjuvant benefit."
+    }
+  ]
+}

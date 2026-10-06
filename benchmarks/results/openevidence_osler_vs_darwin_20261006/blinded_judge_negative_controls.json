@@ -1,0 +1,213 @@
+{
+  "judge_model": "claude-haiku-4-5-20251001",
+  "paid_judge_calls": 1,
+  "usage": {
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "inference_geo": "not_available",
+    "input_tokens": 66253,
+    "output_tokens": 6986,
+    "output_tokens_details": null,
+    "server_tool_use": null,
+    "service_tier": "standard"
+  },
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "mapping": {
+    "ACACB": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "AIRE": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "ANKRD13A": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "CRACD": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "DENND2C": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "FAM117A": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "RFX7": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "RP1": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "TRARG1": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "CLCN3P1": {
+      "A": "darwin",
+      "B": "osler"
+    }
+  },
+  "per_gene": [
+    {
+      "gene": "ACACB",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B correctly establish that no NCCN, ASCO, or ESMO guideline recommends ACACB-directed therapy and no clinical trial has designated ACACB as predictive. Both accurately describe ACC as a metabolic rather than genomic biomarker, distinguish ACC1 (ACACA) from ACC2 (ACACB), and note that preclinical evidence does not justify clinical use. A emphasizes that ESCAT tier X applies and expands on context-dependent pro-cancer effects (acetyl-CoA \u2192 SMAD2 acetylation/EMT, AMPK-dependent ACC inactivation reducing PUFA synthesis and ferroptosis resistance, PHD3 loss promoting tumor growth). B emphasizes non-isoform-selective inhibition and provides more detail on the firsocostat breast cancer IC50 (80\u201393 \u00b5M, far above clinically achievable) and comparison to denifanstat (TVB-2640) in phase 3. Both appropriately cite the 2026 Adams et al. Nature paper (10.1038/s41388-026-03733-9) stating ND-646/654 have not progressed to clinical trials. The key biological distinction\u2014that ACC inhibition is not uniformly antitumor\u2014is handled more fully in A, while B's treatment-agnostic guidance is similarly sound. No material contradictions. Minor: B omits A's discussion of co-occurring MSI/dMMR/TMB as actionable findings on the same report.",
+      "spot_check_flags": "Both cite identical NCCN guideline URLs (breast, biliary, neuroendocrine). Both reference the 2026 Adams/Nature paper on ACC inhibitors in development. Neither contains invented trial IDs or unsupported numeric claims. The claim 'ND-646 and ND-654 have not progressed to clinical trials' appears in both and matches the Adams citation (10.1038/s41388-026-03733-9). The firsocostat breast cancer IC50 (80\u201393 \u00b5M) in B matches citation 13 (Picerno et al. 2026-01-24, Pharmaceuticals). No obvious discrepancies."
+    },
+    {
+      "gene": "AIRE",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both correctly state no NCCN, ASCO, or ESMO guideline recommends AIRE-directed targeted therapy and no trial has used AIRE as a selection biomarker. Both accurately describe AIRE's role in central immune tolerance and note it is not a kinase or druggable oncogenic driver. A provides more extensive clinical context: germline biallelic loss-of-function (APECED/APS-1) leading to chronic candidiasis and ~5% risk of oral/esophageal SCC in 10 of 49 APS-1 patients, with 27% of deaths from cancer in the Norwegian cohort; links to screening recommendations; and importantly clarifies that loss of AIRE expression in thymomas (not a targetable genomic lesion) underpins paraneoplastic autoimmunity and is NOT predictive of ICI toxicity. A also includes the critical caution that \"AIRE\" is ambiguous in oncology literature (adenosine-to-inosine RNA editing via ADAR1 is sometimes labeled AIRE, completely different from the autoimmune regulator gene). B emphasizes the preclinical RANKL/mTEC depletion and tumor epitopeome-resetting strategies, notes AIRE polymorphisms and melanoma protection, and flags the AIRE-based immune subtyping paper (Liu et al. 2025, bladder cancer) as using \"AIRE\" to denote A-to-I editing, not the gene. Both handle the thymic epithelial tumor / paraneoplastic autoimmunity issue but with different emphasis: A stresses it is loss of expression (not a genomic lesion) and warns against ICI use in thymoma; B cites the meta-analysis (58.3% grade 3\u20135 irAEs in thymoma vs. 17.1% in thymic carcinoma) and single-center series (irAEs in all thymoma patients on ICIs) and notes NCCN cautions and histologic separation (CD5, c-KIT, GLUT-1). A's nomenclature caution is more prominent and clinically actionable. No factual contradiction, but A's coverage of germline APS-1 and B's emphasizing paraneoplastic ICI risk represent complementary but distinct clinical scenarios.",
+      "spot_check_flags": "Both reference identical NCCN, ESMO, and JSCO\u2013ESMO\u2013ASCO consensus citations. A cites the Norwegian APS-1 long-term cohort (Kucuka et al. 2026, 10.1210/clinem/dgag060). B references the Remon et al. meta-analysis (2023, 10.1016/j.ejca.2022.12.005) on ICI-related adverse events in thymic epithelial tumors. The AIRE-based immune subtyping paper (Liu et al., bladder cancer, 2025) is correctly flagged by both as using AIRE as adenosine-to-inosine RNA editing, not the AIRE gene. No spurious trial IDs or invented outcomes detected. The nomenclature caution about ADAR1-mediated A-to-I editing versus AIRE gene is present in A only but is a genuine concern worth noting in A's favor for completeness."
+    },
+    {
+      "gene": "ANKRD13A",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both correctly state no NCCN, ASCO, or ESMO guideline addresses ANKRD13A, no trial has selected by it, and it is not an actionable biomarker. Both accurately describe its role as a ubiquitin-binding adaptor in EGFR trafficking (UIMs recognizing K63-linked polyubiquitin chains, interaction with ITCH and RNF11, promotion of lysosomal sorting). A explicitly warns against confusing ANKRD13A with ANKRD1 (which has preclinical resistance-to-EGFR-TKI data) and notes the only actionable scenario is if ANKRD13A is the 5\u2032 partner of a retained kinase domain (RET, NTRK, ALK, ROS1, BRAF). B more thoroughly reviews the NCCN biomarker tables (NSCL-19, NSCL-H, BINV-Q-7, COL-D-7, GAST-B, ESOPH-B) and provides more granular guidance on handling the finding (structural rearrangement, SNV/indel, copy-number change, potential fusion-partner scenarios) with explicit references to AMP/ASCO/CAP tier III (VUS) classification. B also cites two caveats on tumor-agnostic options (dabrafenib/trametinib excludes colorectal cancer; pralsetinib limited to NSCLC and thyroid, not selpercatinib's broader tumor-agnostic RET indication). A is more concise; B is more comprehensive on report triage. Both are factually correct with no contradictions.",
+      "spot_check_flags": "Both reference NCCN NSCLC, breast, and other disease guidelines with identical URLs. A cites Lee et al. (Nature Communications, 2016, 10.1038/ncomms12799) on ANKRD13A in COPII-mediated anterograde transport of RTKs. B cites the same sources plus additional NCCN disease-specific biomarker pages. No invented trial IDs or spurious outcomes. The caution about ANKRD1 vs. ANKRD13A is accurate and important. B's reference to AMP/ASCO/CAP tier III classification (citation 19, Li et al. 2023 JMD) is appropriate and well-cited. No hallucination risk detected."
+    },
+    {
+      "gene": "CRACD",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both correctly establish that no NCCN, ASCO, or ESMO guideline recommends CRACD-directed therapy and no clinical trial has designated CRACD as a predictive biomarker. Both accurately describe CRACD as a tumor suppressor promoting actin polymerization by inhibiting capping proteins CAPZA/CAPZB. Both appropriately caution that therapeutic interest lies in exploiting downstream vulnerabilities created by loss rather than restoring or inhibiting CRACD itself. A and B both reference the 2026 Nature Communications paper (Seo et al., 10.1038/s41467-026-77348-9) on CRACD loss driving HIF1\u03b1-PD-L1 axis in gastric cancer and the 2025 paper on CRACD mutation in SCLC (10.1038/s41467-025-67078-9). A presents the gastric cancer mechanistic cascade (actin dysregulation \u2192 NF-\u03baB/COX2 and NADPH oxidase-ROS \u2192 HIF1\u03b1 stabilization \u2192 PD-L1) and notes investigators' explicit call for patient-cohort validation and trial incorporation. B emphasizes NCCN/ASCO guidance (no molecular profiling recommendation in de novo SCLC per ASCO; HER2, PD-L1, MMR/MSI, CLDN18.2, BRAF, NTRK, RET listed for gastric cancer), and notes FDA alert on tazemetostat and voluntary market withdrawal risk. Both warn against off-label EZH2/HIF1\u03b1 inhibition outside trials. A notes the figure summarizing the ROS\u2013HIF1\u03b1\u2013PD-L1 cascade. B provides broader guideline context and mentions the tazemetostat safety signal.",
+      "spot_check_flags": "Both cite the 2026 Seo et al. Nature Communications paper (CRACD loss in gastric cancer, 10.1038/s41467-026-77348-9) and the 2025 paper on SCLC (10.1038/s41467-025-67078-9). B references NCCN and ASCO guidelines with appropriate URLs and publication dates. The tazemetostat FDA alert is cited in B (citation 12) and is appropriate. The PX-478 HIF1\u03b1 inhibitor and EZH2 inhibitor trials are discussed preclinically in A; B notes the absence of EZH2 trial stratification by CRACD and cites valemetostat/irinotecan (NCT05755087 in A, not in B's text but cited as NCT references in A). No spurious NCT IDs or invented outcomes. Both appropriately grade CRACD as preclinical and unvalidated."
+    },
+    {
+      "gene": "DENND2C",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both correctly state no NCCN, ASCO, or ESMO guideline or trial addresses DENND2C-directed therapy. Both accurately describe DENND2C as a DENN-domain guanine-nucleotide exchange factor for Rab GTPases involved in membrane trafficking. Both appropriately emphasize that no oncogenic driver role, recurrent hotspot, recurrent fusion, or hereditary cancer association for DENND2C was identified. A notes family-wide characterization placed DENND2 as GEFs for Rab9-dependent trafficking and warns against extrapolating from paralogs (DENND2B, DENND2D). B provides more extensive molecular tumor board and basket-trial guidance (TAPUR, DRUP, ProTarget) and emphasizes that enrollment in these platforms still requires an alteration with an established drug-variant match, which DENND2C lacks. A references copy-number calls at this locus potentially representing larger segmental 1p events. Both appropriately classify as AMP/ASCO/CAP tier III (VUS). A and B both cite similar guideline references (NCCN tables, ESMO, ASCO PCO).",
+      "spot_check_flags": "Both reference NCCN guidelines and ESMO/ASCO frameworks identically. A cites Yoshimura et al. (2010, J Cell Biol, 10.1083/jcb.201008051) on family-wide DENN domain characterization; B cites the same and related works. Both appropriately avoid inventing DENND2C-specific trials. B's reference to ProTarget (NCT04341181, citation 8) is appropriate and accurate. No spurious outcomes or hallucinations. The distinction between lack of therapeutic actionability and lack of cancer association is correctly drawn in both."
+    },
+    {
+      "gene": "FAM117A",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both correctly state no NCCN, ASCO, or ESMO guideline recommends FAM117A-directed therapy and no trial has tested a FAM117A-selected approach. Both accurately note FAM117A does not appear in OncoKB, AMP/ASCO/CAP, ESCAT, or CIViC frameworks, and would sit at ESCAT tier X. Both describe the 2022 Wu et al. preclinical work showing low FAM117A expression as poor-prognosis factor in lung adenocarcinoma with palbociclib (PD0332991) sensitivity in cell lines/xenografts, correctly emphasizing this is expression-based (not mutation-based) and hypothesis-generating only. A also mentions the 2025 Chen et al. gastric cancer study (FAM117A/PIGU as regulatory factors in p53 signaling and E-/N-cadherin). Both warn against extrapolating palbociclib data to off-label CDK4/6 inhibition. A notes FAM117A is not a cancer susceptibility gene and discusses nomenclature caution (confirm FAM117A vs. FAM117B). B emphasizes ASCO's requirement for both functional and clinical evidence and cites ProTarget as an appropriate route if standard options are exhausted. A provides more explicit guidance on fusion scenarios.",
+      "spot_check_flags": "Both reference identical Wu et al. (2022, Evidence-Based Complementary and Alternative Medicine, 10.1155/2022/3945446) lung adenocarcinoma study. Both cite Chen et al. (2025, Computational and Structural Biotechnology Journal, 10.1016/j.csbj.2025.08.036) gastric cancer paper. A references ASCO PCO on not all variants being therapeutically actionable. No invented trial IDs or spurious outcomes. The palbociclib preclinical signal is appropriately contextualized as insufficient to justify off-label use by both. No hallucination risk."
+    },
+    {
+      "gene": "RFX7",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both correctly state no NCCN, ASCO, or ESMO guideline recommends RFX7-directed therapy and no trial has selected by RFX7 status. Both accurately describe RFX7 as a winged-helix transcription factor and tumor suppressor restraining MYC activity. Both note RFX7 mutations in 3\u20135% of DLBCL and 13\u201315% of EBV-negative Burkitt lymphoma, with prognostic weight in unmutated CLL. A mentions MYC-targeted agents under development as hypothetical interest and includes a figure from Nature Immunology showing RFX7 mutation distribution and survival difference; provides trial-matching guidance via MYC-pathway or related agents (mentions NCT05755087 tegavivint, NCT06792734 BTM-3566, NCT06649812 ViPOR). B provides more detailed guideline context (NCCN B-Cell Lymphomas BCEL-A minimal gene set, emphasizing EZH2 as the only annotated treatment-significant alteration), cites NCCN T-Cell Lymphomas, and notes ESMO has not assigned RFX7 a tier. B emphasizes TP53 co-occurrence (30\u201370% of RFX7-mutant BL/DLBCL cases) and notes that TP53 mutation and MYC with BCL2/BCL6 rearrangement are the co-occurring alterations with classification/risk implications. Both caution that low RFX7 transcript independently correlates with worse DLBCL outcome even without coding mutation.",
+      "spot_check_flags": "Both reference Fischer et al. (2026, Nature Immunology, 10.1038/s41590-026-02526-2) and the second RFX7 Nature Immunology paper (10.1038/s41590-026-02533-3) on RFX7 limiting MYC. Both appropriately note RFX7 remains a research-stage prognostic marker. A's trial citations (NCT05755087, NCT06792734, NCT06649812) are presented as mechanistically relevant proxies, not RFX7-directed therapies\u2014a correct qualification. B's emphasis on TP53 co-occurrence is accurate per the Fischer paper. No invented trials or spurious outcomes. A mentions the figure from Nature Immunology; B references the same publication without describing the figure. No hallucination risk in either."
+    },
+    {
+      "gene": "RP1",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both correctly state no NCCN, ASCO, or ESMO guideline recommends targeted therapy for RP1 alterations and no trial has designated RP1 as a biomarker. Both address the ambiguity of \"RP1\" and distinguish the retinitis pigmentosa 1 gene from MAPRE2/EB2 and RP1-prefixed lncRNAs. A emphasizes RP1 (retinitis pigmentosa 1) as a photoreceptor-specific microtubule-associated ciliary protein not associated with cancer predisposition; notes MAPRE2/EB2 (legacy RP1 name) as APC/tubulin-binding with preclinical associations in nasopharyngeal/pancreatic/hepatocellular cancer but no targeted agent. B provides identical accuracy on these points and adds important detail on vusolimogene oderparepvec (RP1 code name)\u2014an oncolytic HSV-1 engineered to express GM-CSF and GALV-GP-R, with injectable-lesion and anti-PD-1 failure criteria (not genomic), ORR 24.2% in efficacy-evaluable population (lower than published 32.9%), median DOR 14.1 months (lower than published 33.7), with concern about efficacy durability and adequacy of efficacy-evaluable population reflected in two complete response letters. B provides detailed dosing (intratumoral injection q2w \u00d7 8 weeks, 10\u2076 PFU/mL dose 1 then 10\u2077 PFU/mL thereafter, max 10 mL/dose; nivolumab 240 mg IV q2w \u00d7 16 weeks then 480 mg q4w to 24 months) and IGNYTE trial exclusions (uncontrolled CNS metastases, hepatitis B/C, HIV, prior severe HSV-1, chronic systemic corticosteroids, prior oncolytic therapy). B notes ASCO systemic therapy for melanoma guideline predates this agent.",
+      "spot_check_flags": "A correctly notes RP1 is not in major actionability frameworks. B's description of vusolimogene oderparepvec is detailed and accurate per the FDA label and Wong et al. (2025, JCO, 10.1200/JCO-25-01346). The ORR 24.2% and median DOR 14.1 months (lower than published efficacy-evaluable rates) reflect the label language and FDA concern, which B appropriately notes. The IGNYTE trial characteristics and dosing table reference are accurate. No spurious trial IDs or invented outcomes. B's caveat about the two complete response letters and FDA concern is clinically relevant and accurate. The distinction between RP1 as a gene (actionability question) versus RP1 as a drug code (different context) is well handled by both."
+    },
+    {
+      "gene": "TRARG1",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both correctly state no NCCN, ASCO, or ESMO guideline recommends TRARG1-directed therapy and no trial has designated it a biomarker. Both accurately describe TRARG1 (trafficking regulator of GLUT4-1) as a metabolic protein regulating insulin-stimulated GLUT4 trafficking and insulin sensitivity in adipocytes, a GSK3 substrate within insulin/PI3K/Akt signaling, with literature concerning glucose metabolism not cancer therapy. Both appropriately warn against confusion with TARG1 (distinct gene), which has preclinical cancer data (MEK inhibitor sensitivity, synthetic-lethal strategies with DarT genotoxin) but also no clinical guideline or trial endorsement. A notes TRG fusions (T-cell receptor gamma) in T/B-ALL and TRAF-family alterations are recognized but do not correspond to TRARG1. B provides more extensive NCCN NSCLC biomarker detail (EGFR, KRAS, ALK, ROS1, BRAF, NTRK1/2/3, MET exon 14, RET, ERBB2/HER2, NRG1, PD-L1, emerging biomarkers including high-level MET amplification, FGFR mutations/fusions, KRAS G12/G13/Q61) to emphasize TRARG1 absence. B also discusses fusion scenarios (TRARG1 as 5\u2032 partner to ALK, RET, ROS1, NTRK kinase), SNV/indel/CNV handling, and cites the Tibau et al. (2024, BMJ, 10.1136/bmj-2023-079126) paper showing only ~1/8 of NCCN-endorsed genome-targeted recommendations rated as high clinical benefit.",
+      "spot_check_flags": "Both reference Duan et al. (2022, Biochemical Journal, 10.1042/BCJ20220153) on TRARG1 as GSK3 substrate correctly. A cites Tromans-Coia et al. (2021, NAR, 10.1093/nar/gkab771) on TARG1 and ADP-ribosylation. Both avoid invented trial IDs. B's reference to Tibau et al. (2024, BMJ) on guideline-endorsed targets is accurate and appropriate. No hallucination risk. B's disclaimer that even guideline-endorsed targets have limited high-clinical-benefit evidence is clinically relevant and accurate."
+    },
+    {
+      "gene": "CLCN3P1",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both correctly state no NCCN, ASCO, or ESMO guideline or trial addresses CLCN3P1-directed therapy. Both accurately identify CLCN3P1 as a pseudogene\u2014a transcribed, non-protein-coding copy of CLCN3 (chloride voltage-gated channel 3)\u2014and emphasize that even the parent gene CLCN3 has no guideline-directed therapy. Both note pseudogenes can be transcriptionally active and prognostically relevant but stress that no pseudogene is currently established as a treatment-selection biomarker. A emphasizes read mismapping as a recognized source of spurious calls and cautions confirming the lab call before acting. A reviews the parent-gene preclinical literature (ClC-3 overexpression in nasopharyngeal carcinoma proliferation, cervical SCC migration/invasion, metastasis via membrane ruffling, HNRNPK/CLCN3 axis in lung adenocarcinoma, multidrug resistance via NF-\u03baB/P-glycoprotein, glioma cisplatin sensitization) and notes channel modulators (NPPB, tamoxifen, chlorotoxin) are not selective inhibitors. B cites the Tibau et al. (2024, BMJ, 10.1136/bmj-2023-079126) analysis showing ~50 driver alterations and 411 NCCN recommendations, with CLCN3P1 not among them, and similarly reviews preclinical parent-gene findings (multidrug resistance, invasion/metastasis/prognosis, cell-cycle regulation). Both recommend molecular tumor board review and re-review for genuinely actionable alterations including tumor-agnostic biomarkers (MSI-H/dMMR, TMB-H, NTRK fusions, RET fusions, BRAF V600E, HER2).",
+      "spot_check_flags": "Both reference NCCN guidelines (NSCLC, breast, biliary) identically. Both accurately cite preclinical CLCN3 literature (Ye et al. 2016 on ClC-3 and cyclin D1-CDK4/6 in nasopharyngeal carcinoma; Guan et al. 2019 on cervical SCC; Xu et al. 2015 on membrane ruffling and metastasis; Chen et al. 2019 on multidrug resistance; Li et al. 2022 on HNRNPK/CLCN3 in lung adenocarcinoma). A emphasizes pseudogene biology more thoroughly; B emphasizes the scarcity of driver alterations with guideline recommendations. No invented trials or spurious outcomes. The caution about read mismapping (A) and the emphasis on pseudogene status (both) are appropriate. B's reference to Tibau et al. (2024) is clinically sound and accurate."
+    }
+  ]
+}
