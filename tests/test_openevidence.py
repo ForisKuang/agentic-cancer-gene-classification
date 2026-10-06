@@ -823,32 +823,37 @@ def test_strip_widgets_leaves_kind_and_hex_like_prose_alone(prefix, prose):
     assert cleaned == prose
 
 
-def test_strip_widgets_keeps_widget_example_inside_fenced_code_block():
-    text = (
-        _EXAMPLE_WIDGET
-        + "\n\nThe frontend receives a payload like:\n```json\n"
-        + _EXAMPLE_WIDGET
-        + "\n```\nAnd then prose[[1]]."
-    )
+def test_strip_widgets_removes_widget_inside_fenced_code_block():
+    """The literal marker is never legitimate clinical prose, so a complete
+    widget is removed even inside markdown code."""
+    text = "Lead[[1]].\n```json\n" + _EXAMPLE_WIDGET + "\n```\nAnd then prose[[2]]."
 
-    cleaned = _strip_generation_step_widgets(text)
-
-    assert cleaned == text[len(_EXAMPLE_WIDGET):].lstrip()
-    assert "```json\n" + _EXAMPLE_WIDGET + "\n```" in cleaned
-
-
-def test_strip_widgets_keeps_widget_example_in_unterminated_fence():
-    text = "Example:\n```\n" + _EXAMPLE_WIDGET
-    assert _strip_generation_step_widgets(text) == text
+    assert _strip_generation_step_widgets(text) == "Lead[[1]].\n```json\n\n```\nAnd then prose[[2]]."
 
 
 @pytest.mark.parametrize("ticks", ["`", "``"])
-def test_strip_widgets_keeps_widget_example_inside_inline_code_span(ticks):
-    text = "Progress is sent as " + ticks + _EXAMPLE_WIDGET + ticks + " deltas[[1]]. " + _EXAMPLE_WIDGET + "\n\nEnd."
+def test_strip_widgets_removes_widget_inside_inline_code_span(ticks):
+    text = "Sent as " + ticks + _EXAMPLE_WIDGET + ticks + " deltas[[1]]."
+
+    assert _strip_generation_step_widgets(text) == "Sent as " + ticks + "\n\n" + ticks + " deltas[[1]]."
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ("Use ``` with care", ""),                         # unmatched fence earlier in prose
+        ("Paired `x` then a stray `", "` closes it"),      # stray tick pair around the widget
+        ("A tick ` here,\n \nand", " ` there"),            # pair across a whitespace-only line
+        ("A tick ` here,\r\n\r\nand", " ` there"),
+    ],
+)
+def test_strip_widgets_stray_backticks_do_not_shield_a_real_widget(before, after):
+    text = before + "[[1]].\n" + _EXAMPLE_WIDGET + _EXAMPLE_WIDGET + after + "\n\nEnd[[2]]."
 
     cleaned = _strip_generation_step_widgets(text)
 
-    assert cleaned == "Progress is sent as " + ticks + _EXAMPLE_WIDGET + ticks + " deltas[[1]].\n\nEnd."
+    assert "REACTCOMPONENT" not in cleaned and '"callid"' not in cleaned
+    assert cleaned == "\n\n".join(part for part in (before + "[[1]].", after.strip(), "End[[2]].") if part)
 
 
 def test_card_fields_render_markdown_links_as_plain_text_on_real_capture():
@@ -884,3 +889,29 @@ def test_card_trial_mentions_render_markdown_links_as_plain_text():
     assert [m.sentence for m in distill_openevidence(analysis).trial_mentions] == [expected]
     assert [m.sentence for m in distill_additive_openevidence(analysis).trial_mentions] == [expected]
     assert "[FLAURA](/clinical-trials/NCT02296125)" in analysis.text
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("See [NCCN](/guidelines/nccn) now.", "See NCCN now."),
+        ("An image ![EGFR pathway](/img/egfr.png) here.", "An image EGFR pathway here."),
+        ("Cited [[1]](/cite/1) and [[12]](https://x.org/a).", "Cited [[1]](/cite/1) and [[12]](https://x.org/a)."),
+        ("Nested [outer [inner]](/path) label.", "Nested outer [inner] label."),
+        ("Markers [[1]][[2]] then [link](/a).", "Markers [[1]][[2]] then link."),
+    ],
+)
+def test_strip_markdown_links_edge_cases(text, expected):
+    assert openevidence_module._strip_markdown_links(text) == expected
+
+
+def test_card_sentence_link_edge_cases_leave_stored_text_unchanged():
+    text = "In ![FLAURA logo](/img/f.png) [FLAURA [NCT02296125]](/ct/NCT02296125), PFS improved[[1]]."
+    analysis = _build_analysis("q", [{"text": text}])
+
+    assert analysis.text == text
+    distilled = distill_openevidence(analysis)
+    assert distilled.consensus_role == "In FLAURA logo FLAURA [NCT02296125], PFS improved."
+    assert [m.sentence for m in distill_additive_openevidence(analysis).trial_mentions] == [
+        "In FLAURA logo FLAURA [NCT02296125], PFS improved."
+    ]

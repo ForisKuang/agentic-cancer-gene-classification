@@ -280,15 +280,13 @@ _ORPHAN_WIDGET_HEAD = '{"steps": [{"callid": "'
 # a headless tail; without this anchor, re-attaching _ORPHAN_WIDGET_HEAD
 # would happily fold leading prose like `[[1]] Patient evidence: ` into the
 # synthetic callid string and delete it along with the tail.
+#
+# Deliberately NOT handled, because neither occurs in OpenEvidence's wire
+# format (the headless tail always directly follows the first leading
+# widget): a headless tail after arbitrary non-widget prose is left in place,
+# and prose at the very start of the text that itself has this exact
+# tail shape and completes into a finished widget would be removed.
 _ORPHAN_WIDGET_TAIL_START = re.compile(r'[0-9a-fA-F-]{1,36}", "kind": "')
-
-# Markdown code — a fenced block (an unterminated fence runs to the end) or an
-# inline code span that doesn't cross a paragraph break. A widget marker
-# inside either is a quoted example in the answer, not UI state, and is kept.
-_MARKDOWN_CODE_PATTERN = re.compile(
-    r"```.*?(?:```|\Z)|(?<!`)(`+)(?!`)(?:(?!\n\n).)+?(?<!`)\1(?!`)",
-    re.DOTALL,
-)
 
 _JSON_DECODER = json.JSONDecoder()
 
@@ -344,17 +342,18 @@ def _strip_generation_step_widgets(text: str) -> str:
     Each widget's exact end is found by JSON-decoding it (nested props and
     braces inside strings included), so no following prose, citation, or
     citation marker is consumed; whitespace at a removed widget's seam is
-    collapsed to a paragraph break. A marker inside a markdown code fence or
-    inline code span (an example quoted in the answer) is left alone, and so
-    is a marker whose JSON doesn't decode — e.g. a widget truncated before
-    its closing brace — rather than guessing where the prose resumes.
+    collapsed to a paragraph break. A complete marker-prefixed widget is
+    removed wherever it appears, markdown code included — the literal marker
+    is never legitimate clinical prose, and honoring code fences/spans would
+    let a stray backtick in the answer shield a real widget. A marker whose
+    JSON doesn't decode (e.g. a widget truncated before its closing brace) is
+    left in place rather than guessing where the prose resumes.
     """
     stripped = text.lstrip()
     orphan_length = _orphan_widget_tail_length(stripped)
     if orphan_length:
         text = stripped[orphan_length:].lstrip()
 
-    code_spans = [match.span() for match in _MARKDOWN_CODE_PATTERN.finditer(text)]
     kept: List[str] = []
     position = 0
     search_from = 0
@@ -363,9 +362,6 @@ def _strip_generation_step_widgets(text: str) -> str:
         if start < 0:
             break
         payload_start = start + len(_GENERATION_STEP_MARKER)
-        if any(span_start <= start < span_end for span_start, span_end in code_spans):
-            search_from = payload_start
-            continue
         try:
             payload, end = _JSON_DECODER.raw_decode(text, payload_start)
         except json.JSONDecodeError:
@@ -453,11 +449,15 @@ _TRIAL_ACRONYM_PATTERN = re.compile(
 )
 _OUTCOME_STAT_PATTERN = re.compile(r"\b(PFS|OS|HR|ORR|DFS)\b")
 _CITATION_MARKER_PATTERN = re.compile(r"\[\[\d+\]\]")
-# A markdown link, e.g. "[small cell lung cancer](/rare-disease/small-cell-
-# lung-cancer)" — OpenEvidence links are site-relative, and the card renders
-# its fields as plain text (textContent), so card sentences keep only the
-# link text. Never matches a "[[1]]" citation marker (no "(url)" after it).
-_MARKDOWN_LINK_PATTERN = re.compile(r"\[([^\[\]\n]+)\]\(([^()\s]*)\)")
+# A markdown link or image, e.g. "[small cell lung cancer](/rare-disease/
+# small-cell-lung-cancer)" — OpenEvidence links are site-relative, and the card
+# renders its fields as plain text (textContent), so card sentences keep only
+# the link text / image alt text. The label may contain one level of nested
+# brackets ("[outer [inner]](/path)" -> "outer [inner]"), but a "[[n]]"
+# citation marker is never treated as a label, even when followed by "(url)".
+_MARKDOWN_LINK_PATTERN = re.compile(
+    r"!?\[(?!\[\d+\]\])((?:[^\[\]\n]|\[[^\[\]\n]*\])+)\]\([^()\s]*\)"
+)
 _SENTENCE_SPLIT_PATTERN = re.compile(r"(?<=[.!?])\s+")
 
 
