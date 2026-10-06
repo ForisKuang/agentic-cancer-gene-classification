@@ -253,7 +253,7 @@ class AnnotationJobStatusResponse(BaseModel):
     # Internal bookkeeping for callers that reuse this job store (e.g. the gene
     # query API): which endpoint family created the job and its request.
     kind: str = Field(default="annotate", exclude=True)
-    request: Optional[AnnotateRequest] = Field(default=None, exclude=True)
+    context: Dict[str, Any] = Field(default_factory=dict, exclude=True)
 
 
 class FusionContextResponse(BaseModel):
@@ -465,15 +465,25 @@ def _fusion_evidence_inputs(fusions: List[FusionInput]) -> List[FusionInput]:
     return inputs
 
 
+async def _save_run_result(
+    http_request: Request,
+    request_payload: dict,
+    result: AnnotationResult,
+) -> None:
+    """Save a run, raising on failure. For callers that hand out a link to the
+    run and so must not report success unless it was actually saved."""
+    await http_request.app.state.run_store.save_run(
+        result.run_id, result.timestamp, request_payload, result.model_dump()
+    )
+
+
 async def _persist_run_result(
     http_request: Request,
     request_payload: dict,
     result: AnnotationResult,
 ) -> None:
     try:
-        await http_request.app.state.run_store.save_run(
-            result.run_id, result.timestamp, request_payload, result.model_dump()
-        )
+        await _save_run_result(http_request, request_payload, result)
     except Exception:
         # A run's own result always returns even if it can't be persisted for
         # later sharing — the run store isn't on the critical path for the caller.
@@ -1150,12 +1160,17 @@ async def _launch_annotation_job(
     current_user: Optional[AuthenticatedUser],
     *,
     kind: str = "annotate",
+    context: Optional[Dict[str, Any]] = None,
+    require_persistence: bool = False,
     complete_action: str = "job_complete",
     error_action: str = "job_error",
     extra_details: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Queue a background annotation run in the in-memory job store and
-    return its job ID. Shared by /v1/annotate/jobs and the gene query API."""
+    return its job ID. Shared by /v1/annotate/jobs and the gene query API.
+
+    With require_persistence, a failure to save the run fails the job instead
+    of being logged and ignored."""
     await _evict_stale_annotation_jobs()
 
     job_id = str(uuid.uuid4())
@@ -1164,7 +1179,7 @@ async def _launch_annotation_job(
         status="queued",
         fusions_processed=len(request.fusions),
         kind=kind,
-        request=request,
+        context=dict(context or {}),
     )
     await _store_annotation_job(job)
 
@@ -1195,7 +1210,10 @@ async def _launch_annotation_job(
                 on_annotation=on_annotation,
                 on_total_known=on_total_known,
             )
-            await _persist_run_result(http_request, request.model_dump(), result)
+            if require_persistence:
+                await _save_run_result(http_request, request.model_dump(), result)
+            else:
+                await _persist_run_result(http_request, request.model_dump(), result)
             current = await _get_annotation_job(job_id)
             current.status = "complete"
             current.result = result

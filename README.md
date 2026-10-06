@@ -333,8 +333,18 @@ from the API-keys feature) or an existing ACGC session cookie.
 | `GET /v1/genes/query/jobs/{job_id}` | Poll a background query |
 
 `genes` accepts symbols or `{"gene": ..., "tumor_type": ...}` objects.
-Duplicate symbols (case-insensitive) are collapsed. Fusions are rejected with
-422; use `/v1/annotate` for those. Lists longer than the cap also return 422.
+Duplicate symbols (case-insensitive) are collapsed. A symbol may contain only
+letters, digits, `-` and `.`, and must start and end with a letter or digit
+(e.g. `ALK`, `HLA-A`, `C1orf112`, `ENSG00000141510.17`); anything else, including
+fusions and dangling separators like `ALK::`, returns 422 (use `/v1/annotate`
+for fusions). Lists longer than the cap also return 422. Each result's
+`tumor_type` is the one supplied for that gene (aliases are traced back to
+their input), or `null` if none was given. A symbol HGNC can't resolve comes
+back with `error: "Gene symbol could not be resolved."`.
+
+A response is only returned once its run is saved, so `view_url` always
+resolves; if the run can't be saved, the request returns 500 (or the job
+fails) with a generic message.
 
 ```bash
 export ACGC=https://acgc.oncokb.org

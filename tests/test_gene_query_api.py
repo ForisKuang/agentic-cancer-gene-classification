@@ -1,8 +1,8 @@
 """Tests for the slim gene query API (src/api/gene_query.py).
 
-run_pipeline is stubbed and the MySQL-backed run store is replaced with an
-in-memory fake (via main.RunStore, which the app lifespan calls), so these run
-without MySQL, Redis, or LLM credentials.
+run_pipeline and HGNC normalization are stubbed and the MySQL-backed run store
+is replaced with an in-memory fake (via main.RunStore, which the app lifespan
+calls), so these run without MySQL, Redis, network, or LLM credentials.
 """
 
 from __future__ import annotations
@@ -14,7 +14,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src import main
-from src.api.gene_query import GeneRationale, to_gene_rationale
+from src.api import gene_query
+from src.api.gene_query import GeneQueryItem, GeneRationale, to_gene_rationale
 from src.config import settings
 from src.models.schema import (
     AnnotationResult,
@@ -22,15 +23,24 @@ from src.models.schema import (
     EvidenceCard,
     GeneAnnotation,
     QualityFlag,
+    ResolvedGene,
     SupportingQuote,
 )
 
 _RUN_ID = "33333333-3333-3333-3333-333333333333"
 _ABSTRACT = "SECRET-ABSTRACT-TEXT about ALK rearrangements"
 _QUOTE = "SECRET-QUOTE-TEXT from the paper"
+# Alias -> canonical symbol, shared by the pipeline and normalization stubs.
+_ALIASES = {"MOZ": "KAT6A"}
+
+
+def _canonical(symbol: str) -> str:
+    return _ALIASES.get(symbol.upper(), symbol.upper())
 
 
 class FakeRunStore:
+    fail_saves = False
+
     def __init__(self):
         self.saved_runs = []
 
@@ -42,6 +52,8 @@ class FakeRunStore:
         pass
 
     async def save_run(self, run_id, timestamp, request_payload, result_payload):
+        if self.fail_saves:
+            raise RuntimeError("mysql: SECRET-DB-ERROR")
         self.saved_runs.append((run_id, timestamp, request_payload, result_payload))
 
 
@@ -78,7 +90,7 @@ def pipeline_calls(monkeypatch):
 
     async def fake_run_pipeline(fusions, local_backend=None, run_store=None, force_refresh=False, **kwargs):
         calls.append({"fusions": fusions, "local_backend": local_backend, "force_refresh": force_refresh, **kwargs})
-        annotations = [_rich_annotation(item.fusion.upper()) for item in fusions]
+        annotations = [_rich_annotation(gene) for gene in dict.fromkeys(_canonical(item.fusion) for item in fusions)]
         on_annotation = kwargs.get("on_annotation")
         if on_annotation:
             for annotation in annotations:
@@ -95,8 +107,22 @@ def pipeline_calls(monkeypatch):
     return calls
 
 
+@pytest.fixture(autouse=True)
+def fake_normalization(monkeypatch):
+    async def fake_normalize_fusions(symbols):
+        gene_map = {}
+        for symbol in symbols:
+            canonical = _canonical(symbol)
+            resolved = ResolvedGene(input_symbol=symbol, canonical_symbol=canonical, resolved=True)
+            gene_map.setdefault(canonical, (resolved, []))[1].append(symbol)
+        return gene_map
+
+    monkeypatch.setattr(gene_query, "normalize_fusions", fake_normalize_fusions)
+
+
 @pytest.fixture
 def client(monkeypatch, pipeline_calls):
+    monkeypatch.setattr(FakeRunStore, "fail_saves", False)
     monkeypatch.setattr(main, "RunStore", FakeRunStore)
     monkeypatch.setattr(settings, "public_app_base_url", "https://acgc.example.org/")
     with TestClient(main.app) as test_client:
@@ -136,15 +162,18 @@ def test_slim_mapping_is_an_allowlist():
         assert forbidden_key not in serialized.lower()
 
 
-def test_slim_mapping_hides_raw_synthesis_errors_but_keeps_unresolvable():
+def test_slim_mapping_returns_fixed_error_messages():
     raw = to_gene_rationale(_rich_annotation(error="Synthesis error: Traceback secret"))
     unresolved = to_gene_rationale(
         _rich_annotation(error="Unresolvable gene symbol — bare Ensembl ID or unannotated locus")
     )
+    smuggled = to_gene_rationale(
+        _rich_annotation(error="Unresolvable gene symbol SECRET-APPENDED: password=hunter2")
+    )
 
-    assert "secret" not in (raw.error or "").lower()
-    assert raw.error
-    assert unresolved.error.startswith("Unresolvable gene symbol")
+    assert raw.error and "secret" not in raw.error.lower()
+    assert unresolved.error == "Gene symbol could not be resolved."
+    assert smuggled.error == "Gene symbol could not be resolved."
 
 
 # --- POST /v1/genes/query -----------------------------------------------------
@@ -161,6 +190,7 @@ def test_query_returns_run_id_view_url_and_slim_results(client, pipeline_calls):
     assert body["run_id"] == _RUN_ID
     assert body["view_url"] == f"https://acgc.example.org/?run={_RUN_ID}"
     assert [item["gene"] for item in body["results"]] == ["ALK", "TP53"]
+    assert body["results"][0]["tumor_type"] is None
     assert body["results"][1]["tumor_type"] == "LUAD"
     assert body["results"][0]["citation_pmids"] == ["12345", "67890"]
     assert _ABSTRACT not in response.text and _QUOTE not in response.text
@@ -199,10 +229,61 @@ def test_query_default_cap_is_50(client):
     assert response.status_code == 422
 
 
-@pytest.mark.parametrize("bad", ["", "   ", "EML4::ALK", "X" * 65])
+@pytest.mark.parametrize(
+    "bad",
+    ["", "   ", "EML4::ALK", "X" * 65, "!!!", "ALK TP53", "::ALK", "ALK::", "ALK--", "--ALK", "ALK/", "ALK-", "AL;K"],
+)
 def test_query_rejects_invalid_symbols(client, bad):
     assert client.post("/v1/genes/query", json={"genes": [bad]}).status_code == 422
     assert client.post("/v1/genes/query", json={"genes": [{"gene": bad}]}).status_code == 422
+
+
+@pytest.mark.parametrize("good", ["ALK", "tp53", "HLA-A", "C1orf112", "ENSG00000141510.17", "A"])
+def test_symbol_validation_accepts_hgnc_style_symbols(good):
+    assert GeneQueryItem(gene=f"  {good} ").gene == good
+
+
+def test_query_maps_tumor_types_per_gene_and_through_aliases(client):
+    response = client.post(
+        "/v1/genes/query",
+        json={"genes": [{"gene": "MOZ", "tumor_type": "AML"}, "ALK", {"gene": "TP53", "tumor_type": "LUAD"}]},
+    )
+
+    results = {item["gene"]: item["tumor_type"] for item in response.json()["results"]}
+    assert results == {"KAT6A": "AML", "ALK": None, "TP53": "LUAD"}
+
+
+def test_query_alias_without_tumor_type_is_not_assigned_another_genes(client):
+    response = client.post("/v1/genes/query", json={"genes": ["MOZ", {"gene": "TP53", "tumor_type": "LUAD"}]})
+
+    results = {item["gene"]: item["tumor_type"] for item in response.json()["results"]}
+    assert results == {"KAT6A": None, "TP53": "LUAD"}
+
+
+def test_query_tumor_types_fall_back_to_exact_symbols_if_normalization_fails(client, monkeypatch):
+    async def broken(symbols):
+        raise RuntimeError("HGNC down")
+
+    monkeypatch.setattr(gene_query, "normalize_fusions", broken)
+
+    response = client.post("/v1/genes/query", json={"genes": ["ALK", {"gene": "tp53", "tumor_type": "LUAD"}]})
+
+    results = {item["gene"]: item["tumor_type"] for item in response.json()["results"]}
+    assert results == {"ALK": None, "TP53": "LUAD"}
+
+
+@pytest.mark.parametrize("path", ["post", "get"])
+def test_query_fails_when_run_cannot_be_saved(client, monkeypatch, path):
+    monkeypatch.setattr(FakeRunStore, "fail_saves", True)
+
+    if path == "post":
+        response = client.post("/v1/genes/query", json={"genes": ["ALK"]})
+    else:
+        response = client.get("/v1/genes/ALK")
+
+    assert response.status_code == 500
+    assert "view_url" not in response.text
+    assert "SECRET-DB-ERROR" not in response.text
 
 
 def test_query_hides_pipeline_exception_text(client, monkeypatch):
@@ -276,6 +357,7 @@ def test_gene_query_jobs_flow(client):
     assert body["run_id"] == _RUN_ID
     assert body["view_url"] == f"https://acgc.example.org/?run={_RUN_ID}"
     assert [item["gene"] for item in body["results"]] == ["ALK", "TP53"]
+    assert body["results"][0]["tumor_type"] is None
     assert body["results"][1]["tumor_type"] == "LUAD"
     assert _ABSTRACT not in json.dumps(body)
     assert len(main.app.state.run_store.saved_runs) == 1
@@ -295,6 +377,27 @@ def test_gene_query_job_failure_is_generic(client, monkeypatch):
     assert "secret" not in body["error"]
 
 
+def test_gene_query_job_fails_when_run_cannot_be_saved(client, monkeypatch):
+    monkeypatch.setattr(FakeRunStore, "fail_saves", True)
+
+    created = client.post("/v1/genes/query/jobs", json={"genes": ["ALK"]})
+    body = _poll(client, created.json()["status_url"])
+
+    assert body["status"] == "failed"
+    assert body["run_id"] is None and body["view_url"] is None
+    assert "SECRET-DB-ERROR" not in json.dumps(body)
+
+
+def test_plain_annotation_job_still_completes_when_run_cannot_be_saved(client, monkeypatch):
+    # Unchanged /v1/annotate/jobs behavior: persistence is best-effort there.
+    monkeypatch.setattr(FakeRunStore, "fail_saves", True)
+
+    created = client.post("/v1/annotate/jobs", json={"fusions": ["ALK"]})
+    body = _poll(client, created.json()["status_url"])
+
+    assert body["status"] == "complete"
+
+
 def test_gene_query_job_status_ignores_plain_annotation_jobs(client):
     created = client.post("/v1/annotate/jobs", json={"fusions": ["ALK"]})
     job_id = created.json()["job_id"]
@@ -303,7 +406,7 @@ def test_gene_query_job_status_ignores_plain_annotation_jobs(client):
     assert client.get("/v1/genes/query/jobs/does-not-exist").status_code == 404
     # The original job endpoint still serves it, without the internal fields.
     original = client.get(f"/v1/annotate/jobs/{job_id}").json()
-    assert "request" not in original and "kind" not in original
+    assert "context" not in original and "kind" not in original
 
 
 # --- POST /v1/annotate/gene ---------------------------------------------------

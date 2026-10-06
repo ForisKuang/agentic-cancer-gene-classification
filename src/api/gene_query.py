@@ -14,6 +14,7 @@ this router and tests monkeypatch ``src.main.run_pipeline``.
 from __future__ import annotations
 
 import logging
+import re
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
@@ -23,7 +24,7 @@ from src.auth import AuthenticatedUser, record_user_annotation_activity, require
 from src.config import settings
 from src.models.schema import AnnotateRequest, AnnotationResult, CacheStatus, FusionInput, GeneAnnotation
 from src.observability import record_user_action, record_user_seen, tag_current_span
-from src.pipeline.normalization import is_fusion_input
+from src.pipeline.normalization import FUSION_SEPARATORS, normalize_fusions
 
 if TYPE_CHECKING:
     from types import ModuleType
@@ -33,7 +34,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1/genes", tags=["gene query"])
 
 _MAX_SYMBOL_LENGTH = 64
+# Conservative HGNC-style symbol (e.g. ALK, HLA-A, C1orf112) or Ensembl ID
+# (ENSG00000141510.17): letters, digits, '-' and '.', starting and ending with a
+# letter or digit. Fusion separators ('::', '--', '/') are rejected separately,
+# including dangling forms like 'ALK::' that would normalize into one gene.
+_SYMBOL_PATTERN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9.\-]*[A-Za-z0-9])?$")
 _UNRESOLVABLE_PREFIX = "Unresolvable gene symbol"
+_UNRESOLVABLE_ERROR = "Gene symbol could not be resolved."
 _GENERIC_GENE_ERROR = "Annotation failed for this gene; open view_url for details."
 _GENERIC_FAILURE = "Gene query failed. Please retry; contact the ACGC team if this persists."
 
@@ -52,7 +59,13 @@ def _app() -> "ModuleType":
 class GeneQueryItem(BaseModel):
     """One gene to query, with optional tumor-type context."""
 
-    gene: str = Field(..., description="HGNC gene symbol, e.g. `ALK`. Fusions are not accepted.")
+    gene: str = Field(
+        ...,
+        description=(
+            "HGNC-style gene symbol or Ensembl ID, e.g. `ALK`, `HLA-A`: letters, digits, `-` and `.`, "
+            "starting and ending with a letter or digit. Fusions are not accepted."
+        ),
+    )
     tumor_type: Optional[str] = Field(
         default=None, description="Optional tumor type used to focus literature retrieval, e.g. `LUAD`."
     )
@@ -191,17 +204,23 @@ def _validate_symbol(value: str) -> str:
         raise ValueError("Gene symbol must not be empty")
     if len(symbol) > _MAX_SYMBOL_LENGTH:
         raise ValueError(f"Gene symbol must be at most {_MAX_SYMBOL_LENGTH} characters")
-    if is_fusion_input(symbol):
+    if FUSION_SEPARATORS.search(symbol):
         raise ValueError("Fusions are not supported by the gene query API; use POST /v1/annotate")
+    if not _SYMBOL_PATTERN.match(symbol):
+        raise ValueError(
+            "Gene symbol may contain only letters, digits, '-' and '.', "
+            "and must start and end with a letter or digit"
+        )
     return symbol
 
 
 def _slim_error(error: Optional[str]) -> Optional[str]:
     if not error:
         return None
+    # Fixed messages only: per-gene errors can embed raw exception text, which
+    # stays in the UI behind view_url.
     if error.startswith(_UNRESOLVABLE_PREFIX):
-        return error
-    # Other per-gene errors can embed raw exception text; keep that in the UI.
+        return _UNRESOLVABLE_ERROR
     return _GENERIC_GENE_ERROR
 
 
@@ -225,18 +244,37 @@ def to_gene_rationale(annotation: GeneAnnotation, tumor_type: Optional[str] = No
     )
 
 
-def _tumor_type_for(annotation: GeneAnnotation, by_gene: Dict[str, Optional[str]]) -> Optional[str]:
-    tumor_type = by_gene.get(annotation.gene.upper())
-    if tumor_type is not None:
-        return tumor_type
-    # The pipeline may canonicalize an alias; fall back to the only tumor type given, if unambiguous.
-    distinct = {value for value in by_gene.values() if value}
-    return distinct.pop() if len(distinct) == 1 else None
+async def tumor_types_by_gene(items: List[GeneQueryItem]) -> Dict[str, Optional[str]]:
+    """Map each annotated gene symbol (upper-cased) to the tumor type the
+    pipeline used for it: the first non-null tumor type among the inputs that
+    resolved to that gene, or None when none of them had one.
+
+    Inputs given as aliases resolve to a different canonical symbol, so this
+    reruns HGNC normalization (cached by the pipeline run that precedes it)
+    to trace each canonical gene back to its originating inputs.
+    """
+    by_gene: Dict[str, Optional[str]] = {}
+    for item in items:
+        key = item.gene.upper()
+        by_gene[key] = by_gene.get(key) or item.tumor_type
+    try:
+        gene_map = await normalize_fusions([item.gene for item in items])
+    except Exception:
+        logger.warning("Gene query normalization failed; tumor types use exact symbols only", exc_info=True)
+        return by_gene
+    for canonical, (_, inputs) in gene_map.items():
+        originating = set(inputs)
+        tumor_type = next(
+            (item.tumor_type for item in items if item.gene in originating and item.tumor_type), None
+        )
+        by_gene[canonical.upper()] = tumor_type
+    return by_gene
 
 
-def to_gene_rationales(annotations: List[GeneAnnotation], request: AnnotateRequest) -> List[GeneRationale]:
-    by_gene = {item.fusion.upper(): item.tumor_type for item in request.fusions}
-    return [to_gene_rationale(annotation, _tumor_type_for(annotation, by_gene)) for annotation in annotations]
+def to_gene_rationales(
+    annotations: List[GeneAnnotation], tumor_types: Dict[str, Optional[str]]
+) -> List[GeneRationale]:
+    return [to_gene_rationale(annotation, tumor_types.get(annotation.gene.upper())) for annotation in annotations]
 
 
 def _to_annotate_request(items: List[GeneQueryItem], force_refresh: bool) -> AnnotateRequest:
@@ -316,7 +354,12 @@ async def _run_gene_query(
         logger.exception("Gene query pipeline error")
         raise HTTPException(status_code=500, detail=_GENERIC_FAILURE) from exc
 
-    await app._persist_run_result(http_request, annotate_request.model_dump(), result)
+    try:
+        # Strict: view_url must point at a run that actually exists.
+        await app._save_run_result(http_request, annotate_request.model_dump(), result)
+    except Exception as exc:
+        logger.exception("Gene query failed to save run %s", result.run_id)
+        raise HTTPException(status_code=500, detail=_GENERIC_FAILURE) from exc
     if current_user and current_user.email:
         await record_user_annotation_activity(current_user.email, count=result.genes_annotated)
     record_user_action(
@@ -333,7 +376,7 @@ async def _run_gene_query(
     return GeneQueryResponse(
         run_id=result.run_id,
         view_url=app._run_view_url(http_request, result.run_id),
-        results=to_gene_rationales(result.annotations, annotate_request),
+        results=to_gene_rationales(result.annotations, await tumor_types_by_gene(items)),
     )
 
 
@@ -372,6 +415,8 @@ async def create_gene_query_job(
         http_request,
         current_user,
         kind="gene_query",
+        context={"items": items},
+        require_persistence=True,
         complete_action="gene_query_complete",
         error_action="gene_query_error",
         extra_details={"route": "query_jobs", "genes_count": len(items)},
@@ -391,8 +436,17 @@ async def get_gene_query_job(
         job = await app._get_annotation_job(job_id)
     except HTTPException:
         job = None
-    if job is None or job.kind != "gene_query" or job.request is None:
+    if job is None or job.kind != "gene_query":
         raise HTTPException(status_code=404, detail="Gene query job not found")
+
+    results: List[GeneRationale] = []
+    if job.annotations:
+        tumor_types = job.context.get("tumor_types")
+        if tumor_types is None:
+            tumor_types = await tumor_types_by_gene(job.context["items"])
+            if job.status == "complete":
+                job.context["tumor_types"] = tumor_types  # final; reuse on later polls
+        results = to_gene_rationales(job.annotations, tumor_types)
 
     run_id = job.result.run_id if job.status == "complete" and job.result else None
     return GeneQueryJobStatusResponse(
@@ -402,7 +456,7 @@ async def get_gene_query_job(
         genes_total=job.genes_total,
         run_id=run_id,
         view_url=app._run_view_url(http_request, run_id) if run_id else None,
-        results=to_gene_rationales(job.annotations, job.request),
+        results=results,
         error=_GENERIC_FAILURE if job.status == "failed" else None,
     )
 
