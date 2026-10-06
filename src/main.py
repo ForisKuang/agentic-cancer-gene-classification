@@ -30,6 +30,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from benchmarks.run_benchmark import DEFAULT_HOLDOUT, run_benchmark
+from src.api_keys_routes import router as api_keys_router
 from src.auth import (
     AuthenticatedUser,
     AuthMeResponse,
@@ -44,6 +45,7 @@ from src.auth import (
     generate_sp_metadata_xml,
     get_current_user,
     get_google_auth_url,
+    get_request_user,
     get_google_user_info,
     get_keycloak_auth_url,
     get_keycloak_user_info,
@@ -171,9 +173,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+app.include_router(api_keys_router)
 
 _STATIC_DIR = Path(__file__).parent / "static"
 if _STATIC_DIR.exists():
@@ -195,7 +198,7 @@ async def no_cache_static(request: Request, call_next):
 
 @app.middleware("http")
 async def user_context_middleware(request: Request, call_next):
-    user = get_current_user(request)
+    user = await get_request_user(request)
     if not user:
         header_val = request.headers.get(settings.datadog_user_id_header)
         if header_val and header_val.strip():
@@ -214,6 +217,8 @@ async def user_context_middleware(request: Request, call_next):
         name=user.name if user else None,
         role=user.role if user else None,
         domain=user.domain if user else None,
+        auth_method=user.auth_method if user else None,
+        api_key_id=user.api_key_id if user else None,
     )
     if user:
         tag_user(
@@ -222,6 +227,7 @@ async def user_context_middleware(request: Request, call_next):
             name=user.name,
             role=user.role,
         )
+        tag_current_span({"acgc.auth_method": user.auth_method, "acgc.api_key_id": user.api_key_id or ""})
     try:
         return await call_next(request)
     finally:

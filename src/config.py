@@ -230,6 +230,11 @@ class Settings(BaseSettings):
     jit_default_role: str = "curator"  # Default role for new users: curator, annotator, viewer
     jit_require_admin_approval: bool = False  # If True, new JIT users start in pending status
 
+    # ACGC API keys (scripted access: `Authorization: Bearer acgc_...`)
+    api_key_rate_limit_per_minute: int = Field(default=60, ge=1)  # Per-key request budget
+    api_key_max_expires_in_days: int = Field(default=365, ge=1)  # Upper bound for expires_in_days
+    api_key_last_used_update_seconds: int = Field(default=60, ge=0)  # Throttle for last_used_at writes
+
     @property
     def keycloak_enabled(self) -> bool:
         return bool(self.keycloak_url.strip() and self.keycloak_client_id.strip())
