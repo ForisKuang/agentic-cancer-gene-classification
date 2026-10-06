@@ -122,6 +122,11 @@ Turning on OpenEvidence also needs these (see `.env.example`):
 | `OPENEVIDENCE_TIMEOUT_SECONDS` | `60` | Per-call timeout; a timeout is not retried and just hides the card. |
 | `OPENEVIDENCE_CACHE_TTL_SECONDS` | `604800` | Redis TTL for cached analyses (one week). |
 | `OPENEVIDENCE_SIDECAR_CONCURRENCY` | `3` | Max concurrent live OpenEvidence calls across all sidecar requests. |
+| `OPENEVIDENCE_SIDECAR_PENDING_WAIT_SECONDS` | `2` | On a cache miss the lookup runs in the background; the request waits this long before answering `status: "pending"` (HTTP 503 + `Retry-After`) and the card polls. |
+| `OPENEVIDENCE_SIDECAR_RETRY_AFTER_SECONDS` | `10` | Poll hint (`retry_after_seconds` / `Retry-After`) sent with a pending answer. |
+| `OPENEVIDENCE_SIDECAR_INFLIGHT_TTL_SECONDS` | `600` | TTL of the Redis in-flight lease that dedupes a lookup across workers/pods; bounds how long a pod that died mid-call can block a key. |
+| `OPENEVIDENCE_SIDECAR_FAILED_TTL_SECONDS` | `300` | How long a failed lookup answers `status: "failed"` instead of re-calling the paid API. Failures are never cached. |
+| `OPENEVIDENCE_SIDECAR_LOOKUP_TIMEOUT_SECONDS` | `540` | Hard cap on one background lookup, excluding queue time. Keep it below the in-flight TTL. |
 | `OPENEVIDENCE_WARMUP_CONCURRENCY` | `5` | Concurrency for the offline `benchmarks/warm_openevidence_cache.py` warmup. |
 
 ## Run With Anthropic SDK
