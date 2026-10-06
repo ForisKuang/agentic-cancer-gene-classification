@@ -58,13 +58,14 @@ def _ensembl_lookup_id(symbol: str) -> str:
     return symbol.split(".", 1)[0]
 
 
-def _unresolvable_gene(symbol: str) -> ResolvedGene:
+def _unresolvable_gene(symbol: str, lookup_failed: bool = False) -> ResolvedGene:
     return ResolvedGene(
         input_symbol=symbol,
         canonical_symbol=symbol,
         hgnc_id=None,
         resolved=False,
         unresolvable=True,
+        lookup_failed=lookup_failed,
     )
 
 
@@ -110,8 +111,19 @@ async def _resolve_ensembl_ids(
         )
         resp.raise_for_status()
         data = resp.json()
-    except httpx.HTTPError:
-        return {symbol: _unresolvable_gene(symbol) for symbol in symbol_list}
+    except httpx.HTTPError as exc:
+        # A 400/404 for a single ID is Ensembl saying it doesn't exist; anything
+        # else (timeouts, 5xx, a 4xx for a whole batch) is a failed lookup.
+        confirmed_absent = (
+            isinstance(exc, httpx.HTTPStatusError)
+            and exc.response.status_code in (400, 404)
+            and len(lookup_to_symbols) == 1
+        )
+        if not confirmed_absent:
+            logger.warning("Ensembl lookup failed for %d IDs: %s", len(lookup_to_symbols), exc)
+        return {
+            symbol: _unresolvable_gene(symbol, lookup_failed=not confirmed_absent) for symbol in symbol_list
+        }
 
     resolved: Dict[str, ResolvedGene] = {}
     for lookup_id, original_symbols in lookup_to_symbols.items():

@@ -41,6 +41,7 @@ _MAX_SYMBOL_LENGTH = 64
 _SYMBOL_PATTERN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9.\-]*[A-Za-z0-9])?$")
 _UNRESOLVABLE_PREFIX = "Unresolvable gene symbol"
 _UNRESOLVABLE_ERROR = "Gene symbol could not be resolved."
+_LOOKUP_FAILED_ERROR = "Gene symbol lookup is temporarily unavailable; please retry."
 _GENE_NOT_FOUND = "Gene symbol not found."
 _GENERIC_GENE_ERROR = "Annotation failed for this gene; open view_url for details."
 _GENERIC_FAILURE = "Gene query failed. Please retry; contact the ACGC team if this persists."
@@ -225,13 +226,18 @@ def _is_unresolvable(annotation: GeneAnnotation) -> bool:
     return bool(annotation.error and annotation.error.startswith(_UNRESOLVABLE_PREFIX))
 
 
+def _is_confirmed_absent(annotation: GeneAnnotation) -> bool:
+    """Unresolvable because HGNC/Ensembl said so, not because the lookup failed."""
+    return _is_unresolvable(annotation) and not annotation.symbol_lookup_failed
+
+
 def _slim_error(annotation: GeneAnnotation) -> Optional[str]:
     if not annotation.error:
         return None
     # Fixed messages only: per-gene errors can embed raw exception text, which
     # stays in the UI behind view_url.
     if _is_unresolvable(annotation):
-        return _UNRESOLVABLE_ERROR
+        return _LOOKUP_FAILED_ERROR if annotation.symbol_lookup_failed else _UNRESOLVABLE_ERROR
     return _GENERIC_GENE_ERROR
 
 
@@ -449,8 +455,9 @@ async def query_gene(
 ) -> GeneQueryResponse:
     """Convenience form of POST /v1/genes/query for a single gene.
 
-    Returns 404 when HGNC does not recognize the symbol (the batch POST instead
-    reports this per gene in `error`). The run is still saved either way.
+    Returns 404 when HGNC/Ensembl confirm the symbol doesn't exist, and 503
+    when the lookup service failed (the batch POST instead reports either case
+    per gene in `error`). The run is still saved either way.
     """
     try:
         item = GeneQueryItem(gene=symbol, tumor_type=tumor_type)
@@ -461,5 +468,7 @@ async def query_gene(
         raise HTTPException(status_code=422, detail=detail) from exc
     result = await _run_gene_query([item], force_refresh, http_request, current_user, route="gene")
     if result.annotations and all(_is_unresolvable(annotation) for annotation in result.annotations):
-        raise HTTPException(status_code=404, detail=_GENE_NOT_FOUND)
+        if all(_is_confirmed_absent(annotation) for annotation in result.annotations):
+            raise HTTPException(status_code=404, detail=_GENE_NOT_FOUND)
+        raise HTTPException(status_code=503, detail=_LOOKUP_FAILED_ERROR)
     return _response(http_request, result)
