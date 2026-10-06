@@ -37,6 +37,8 @@ from src.pipeline.openevidence import (
     _cache_key,
     _iter_sse_payloads,
     _parse_sse_events,
+    _strip_generation_step_widgets,
+    distill_additive_openevidence,
     distill_openevidence,
 )
 
@@ -767,3 +769,118 @@ async def test_get_gene_analysis_cleans_widget_leak_from_already_cached_entry(mo
 
     assert analysis.text == fresh.text
     assert distill_openevidence(analysis).consensus_role.startswith(_REAL_STREAMS["ALK"][1])
+
+
+# --- Cross-review regressions: never delete prose or quoted examples --------
+
+_EXAMPLE_WIDGET = _WIDGET_MARKER + json.dumps(
+    {"steps": [{"callid": "c0ffee00-0000-0000-0000-00000000abcd", "kind": "search"}], "done": True, "summary": "s"}
+)
+
+
+def _egfr_headless_tail_and_prose() -> str:
+    """EGFR's real headless widget tail followed by its real prose."""
+    return _leading_only_strip_text(_real_stream("EGFR"))
+
+
+@pytest.mark.parametrize("prefix", ["", _EXAMPLE_WIDGET])
+def test_strip_widgets_keeps_prose_and_marker_before_a_headless_tail(prefix):
+    """Codex repro: prose (with a [[1]] marker) in front of the headless tail
+    must not be folded into the synthetic callid string and deleted."""
+    leading_prose = "[[1]] Patient evidence: "
+    text = prefix + leading_prose + _egfr_headless_tail_and_prose()
+
+    cleaned = _strip_generation_step_widgets(text)
+
+    assert cleaned.startswith(leading_prose)
+    assert cleaned == text[len(prefix):]
+
+
+@pytest.mark.parametrize("prefix", ["", _EXAMPLE_WIDGET])
+@pytest.mark.parametrize(
+    "prose",
+    [
+        'The payload labels each step as "callid", "kind": "search", and so on. EGFR TKIs remain standard[[1]].',
+        'Schema note: {"steps": [{"callid": "x", "kind": "search"}], "done": true, "summary": "s"} is UI state.',
+        'ACE2", "kind": "receptor"} is how the dataset labels it; ACE inhibitors are unaffected[[2]].',
+        'BEAD", "kind": "search", "id": "x"}], "done": true, "summary": "looks like a tail"} then prose[[3]].',
+        "deadbeef cafe: ACE inhibitors and FADD-dependent apoptosis are discussed below.",
+        "ABC1-DEF2 fusions are rare.",
+    ],
+)
+def test_strip_widgets_leaves_kind_and_hex_like_prose_alone(prefix, prose):
+    """Prose that merely contains `", "kind":`, or starts with hex-like
+    words, is never treated as a headless widget tail — at the start of the
+    text or right after a real widget. Only text that both begins with the
+    wire shape (hex callid tail + `", "kind": "`) AND completes into a
+    finished widget object is removed (the BEAD case, which is exactly that
+    shape by construction); the prose after it is kept."""
+    text = prefix + prose
+    cleaned = _strip_generation_step_widgets(text)
+    if prose.startswith("BEAD"):
+        assert cleaned == "then prose[[3]]."
+        return
+    assert cleaned == prose
+
+
+def test_strip_widgets_keeps_widget_example_inside_fenced_code_block():
+    text = (
+        _EXAMPLE_WIDGET
+        + "\n\nThe frontend receives a payload like:\n```json\n"
+        + _EXAMPLE_WIDGET
+        + "\n```\nAnd then prose[[1]]."
+    )
+
+    cleaned = _strip_generation_step_widgets(text)
+
+    assert cleaned == text[len(_EXAMPLE_WIDGET):].lstrip()
+    assert "```json\n" + _EXAMPLE_WIDGET + "\n```" in cleaned
+
+
+def test_strip_widgets_keeps_widget_example_in_unterminated_fence():
+    text = "Example:\n```\n" + _EXAMPLE_WIDGET
+    assert _strip_generation_step_widgets(text) == text
+
+
+@pytest.mark.parametrize("ticks", ["`", "``"])
+def test_strip_widgets_keeps_widget_example_inside_inline_code_span(ticks):
+    text = "Progress is sent as " + ticks + _EXAMPLE_WIDGET + ticks + " deltas[[1]]. " + _EXAMPLE_WIDGET + "\n\nEnd."
+
+    cleaned = _strip_generation_step_widgets(text)
+
+    assert cleaned == "Progress is sent as " + ticks + _EXAMPLE_WIDGET + ticks + " deltas[[1]].\n\nEnd."
+
+
+def test_card_fields_render_markdown_links_as_plain_text_on_real_capture():
+    """The card sets consensus_role / trial sentences via textContent, so
+    OpenEvidence's relative markdown links must reduce to their link text
+    there; analysis.text itself keeps the markdown."""
+    analysis = _build_analysis("q", _parse_sse_events(_real_stream("EGFR")))
+    assert "[small cell lung cancer](/rare-disease/small-cell-lung-cancer)" in analysis.text
+
+    distilled = distill_openevidence(analysis)
+    assert distilled.consensus_role.startswith(
+        "Targeted therapy for EGFR alterations is overwhelmingly a non–small cell lung cancer (NSCLC) story"
+    )
+    additive = distill_additive_openevidence(analysis)
+    sentences = [distilled.consensus_role] + [m.sentence for m in distilled.trial_mentions + additive.trial_mentions]
+    assert distilled.trial_mentions and additive.trial_mentions
+    for sentence in sentences:
+        assert not re.search(r"\]\(", sentence), sentence
+        assert "[[" not in sentence
+
+
+def test_card_trial_mentions_render_markdown_links_as_plain_text():
+    """None of the captured trial/outcome sentences happen to carry a link,
+    so this pins the trial-sentence path (both distill entry points) with
+    OpenEvidence's real relative-link shape."""
+    analysis = _build_analysis(
+        "q",
+        [{"text": "In [FLAURA](/clinical-trials/NCT02296125), osimertinib improved PFS[[1]]. "
+                  "See [NCCN](/guidelines/nccn) for [[2]] details."}],
+    )
+
+    expected = "In FLAURA, osimertinib improved PFS."
+    assert [m.sentence for m in distill_openevidence(analysis).trial_mentions] == [expected]
+    assert [m.sentence for m in distill_additive_openevidence(analysis).trial_mentions] == [expected]
+    assert "[FLAURA](/clinical-trials/NCT02296125)" in analysis.text

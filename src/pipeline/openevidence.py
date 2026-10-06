@@ -273,6 +273,23 @@ _GENERATION_STEP_MARKER = "REACTCOMPONENT!:!InlineGenerationStep!:!"
 # three containers deep (widget object > "steps" array > step object > string).
 _ORPHAN_WIDGET_HEAD = '{"steps": [{"callid": "'
 
+# The observed start of that orphaned remainder: the last few hex digits of
+# the callid UUID, its closing quote, then the step's "kind" key — e.g.
+# `a9ac", "kind": "search"`. Only text that begins EXACTLY like this (at the
+# start of the analysis, or directly after a removed widget) is ever tried as
+# a headless tail; without this anchor, re-attaching _ORPHAN_WIDGET_HEAD
+# would happily fold leading prose like `[[1]] Patient evidence: ` into the
+# synthetic callid string and delete it along with the tail.
+_ORPHAN_WIDGET_TAIL_START = re.compile(r'[0-9a-fA-F-]{1,36}", "kind": "')
+
+# Markdown code — a fenced block (an unterminated fence runs to the end) or an
+# inline code span that doesn't cross a paragraph break. A widget marker
+# inside either is a quoted example in the answer, not UI state, and is kept.
+_MARKDOWN_CODE_PATTERN = re.compile(
+    r"```.*?(?:```|\Z)|(?<!`)(`+)(?!`)(?:(?!\n\n).)+?(?<!`)\1(?!`)",
+    re.DOTALL,
+)
+
 _JSON_DECODER = json.JSONDecoder()
 
 
@@ -286,8 +303,11 @@ def _orphan_widget_tail_length(text: str) -> int:
     Accepted only if re-attaching _ORPHAN_WIDGET_HEAD yields one complete
     JSON object shaped like a finished widget state ("steps" of step objects
     plus the top-level "done"/"summary" keys every real widget carries) — prose
-    can't satisfy that, so real text is never mistaken for a fragment.
+    can't satisfy that, so real text is never mistaken for a fragment. Only
+    attempted when `text` starts with _ORPHAN_WIDGET_TAIL_START.
     """
+    if not _ORPHAN_WIDGET_TAIL_START.match(text):
+        return 0
     try:
         payload, end = _JSON_DECODER.raw_decode(_ORPHAN_WIDGET_HEAD + text)
     except json.JSONDecodeError:
@@ -324,14 +344,17 @@ def _strip_generation_step_widgets(text: str) -> str:
     Each widget's exact end is found by JSON-decoding it (nested props and
     braces inside strings included), so no following prose, citation, or
     citation marker is consumed; whitespace at a removed widget's seam is
-    collapsed to a paragraph break. A marker whose JSON doesn't decode is
-    left in place rather than guessing where the prose resumes.
+    collapsed to a paragraph break. A marker inside a markdown code fence or
+    inline code span (an example quoted in the answer) is left alone, and so
+    is a marker whose JSON doesn't decode — e.g. a widget truncated before
+    its closing brace — rather than guessing where the prose resumes.
     """
     stripped = text.lstrip()
     orphan_length = _orphan_widget_tail_length(stripped)
     if orphan_length:
         text = stripped[orphan_length:].lstrip()
 
+    code_spans = [match.span() for match in _MARKDOWN_CODE_PATTERN.finditer(text)]
     kept: List[str] = []
     position = 0
     search_from = 0
@@ -340,6 +363,9 @@ def _strip_generation_step_widgets(text: str) -> str:
         if start < 0:
             break
         payload_start = start + len(_GENERATION_STEP_MARKER)
+        if any(span_start <= start < span_end for span_start, span_end in code_spans):
+            search_from = payload_start
+            continue
         try:
             payload, end = _JSON_DECODER.raw_decode(text, payload_start)
         except json.JSONDecodeError:
@@ -427,11 +453,22 @@ _TRIAL_ACRONYM_PATTERN = re.compile(
 )
 _OUTCOME_STAT_PATTERN = re.compile(r"\b(PFS|OS|HR|ORR|DFS)\b")
 _CITATION_MARKER_PATTERN = re.compile(r"\[\[\d+\]\]")
+# A markdown link, e.g. "[small cell lung cancer](/rare-disease/small-cell-
+# lung-cancer)" — OpenEvidence links are site-relative, and the card renders
+# its fields as plain text (textContent), so card sentences keep only the
+# link text. Never matches a "[[1]]" citation marker (no "(url)" after it).
+_MARKDOWN_LINK_PATTERN = re.compile(r"\[([^\[\]\n]+)\]\(([^()\s]*)\)")
 _SENTENCE_SPLIT_PATTERN = re.compile(r"(?<=[.!?])\s+")
 
 
+def _strip_markdown_links(text: str) -> str:
+    return _MARKDOWN_LINK_PATTERN.sub(r"\1", text)
+
+
 def _split_sentences(text: str) -> List[str]:
-    cleaned = _CITATION_MARKER_PATTERN.sub("", text)
+    """Card-ready sentences: citation markers removed, markdown links
+    reduced to their text (see _MARKDOWN_LINK_PATTERN)."""
+    cleaned = _strip_markdown_links(_CITATION_MARKER_PATTERN.sub("", text))
     return [sentence.strip() for sentence in _SENTENCE_SPLIT_PATTERN.split(cleaned) if sentence.strip()]
 
 
@@ -711,7 +748,7 @@ def _split_sentences_with_citation_keys(text: str) -> List[Tuple[str, List[str]]
         raw_sentence = match.group("sentence")
         trailing_markers = match.group("trailing_markers") or ""
         keys = _CITATION_KEY_PATTERN.findall(raw_sentence) + _CITATION_KEY_PATTERN.findall(trailing_markers)
-        cleaned_sentence = _CITATION_MARKER_PATTERN.sub("", raw_sentence).strip()
+        cleaned_sentence = _strip_markdown_links(_CITATION_MARKER_PATTERN.sub("", raw_sentence)).strip()
         if not cleaned_sentence:
             continue
         pairs.append((cleaned_sentence, keys))
