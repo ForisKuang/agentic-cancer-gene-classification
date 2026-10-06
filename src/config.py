@@ -164,7 +164,8 @@ class Settings(BaseSettings):
     openevidence_enabled: bool = False
     openevidence_api_key: str = ""
     openevidence_base_url: str = "https://api.openevidence.com"
-    openevidence_model: str = "darwin"
+    # Lower latency: benchmarks/openevidence_osler_vs_darwin_report.md (PR #103).
+    openevidence_model: str = "osler"
     # A live-verified smoke test against the real API took ~220s and still
     # hadn't finished a single moderately complex clinical question — 60s is
     # a more realistic floor than the old 30s default, but OpenEvidence may
