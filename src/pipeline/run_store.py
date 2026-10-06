@@ -183,10 +183,6 @@ class RunStore:
                     await cursor.execute(_CREATE_PMID_EVIDENCE_TABLE_SQL)
                 await cursor.execute(_CREATE_FEEDBACK_TABLE_SQL)
                 await cursor.execute(_CREATE_API_KEYS_TABLE_SQL)
-                # Pre-release builds stored a secret-derived key_prefix column; drop it.
-                await cursor.execute("SHOW COLUMNS FROM api_keys LIKE 'key_prefix'")
-                if await cursor.fetchone() is not None:
-                    await cursor.execute("ALTER TABLE api_keys DROP COLUMN key_prefix")
 
     async def _ensure_gene_annotation_schema(self, cursor) -> None:
         """Migrate older gene-only annotation caches to gene + tumor-type keys."""

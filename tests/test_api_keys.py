@@ -462,13 +462,19 @@ def test_store_error_during_lookup_fails_closed_with_503(store, monkeypatch):
 
 
 def test_emitted_logs_carry_auth_method_and_key_id_but_no_secret(store, caplog):
-    created = _create_key(_session_client())
-    key = created["key"]
-    caplog.set_level(logging.DEBUG, logger="src.auth")
-    caplog.set_level(logging.DEBUG, logger="src.api_keys_routes")
+    # Capture everything (all loggers, DEBUG) before any key exists.
+    caplog.set_level(logging.DEBUG)
+    session = _session_client()
+    created = _create_key(session)
+    second = _create_key(session, expires_in_days=7)
+    unknown = generate_api_key()
+    plaintexts = [created["key"], second["key"], unknown]
+
     client = TestClient(app)
-    assert client.get(PROTECTED, headers=_bearer(key)).status_code == 404
-    assert client.get(PROTECTED, headers=_bearer(generate_api_key())).status_code == 401
+    assert client.get(PROTECTED, headers=_bearer(created["key"])).status_code == 404
+    assert client.get(PROTECTED, headers=_bearer(unknown)).status_code == 401
+    session.delete(f"/v1/api-keys/{second['id']}")
+    assert client.get(PROTECTED, headers=_bearer(second["key"])).status_code == 401
 
     authed = [r for r in caplog.records if "authenticated with API key" in r.getMessage()]
     assert authed, "expected an API-key auth log record"
@@ -478,13 +484,16 @@ def test_emitted_logs_carry_auth_method_and_key_id_but_no_secret(store, caplog):
     assert getattr(record, "usr.id") == "curator@mskcc.org"
     assert created["id"] in record.getMessage()
 
-    # Also check creation logs: no part of the secret ever reaches a log line.
-    _create_key(_session_client())
-    secret = key[len("acgc_"):]
+    # No key, nor its first 8 secret characters, in any record's message,
+    # args, or structured attributes.
+    assert caplog.records
     for r in caplog.records:
-        message = r.getMessage()
-        assert secret[:8] not in message
-        assert key not in message
+        haystacks = [r.getMessage(), repr(r.args), repr(vars(r))]
+        for key in plaintexts:
+            secret_head = key[len("acgc_"):][:8]
+            for text in haystacks:
+                assert key not in text
+                assert secret_head not in text
 
 
 def test_auth_disabled_ignores_api_keys(store, monkeypatch):
