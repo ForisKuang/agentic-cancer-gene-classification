@@ -1013,6 +1013,7 @@ async function pollAnnotationJob(statusUrl) {
 
     if (status.status === "complete") {
       state.currentResult = status.result;
+      adoptOpenEvidenceRunId(status.result.run_id); // same run: its progress id was the job_id
       renderAnnotationResult(status.result);
       return status.result;
     }
@@ -1468,6 +1469,7 @@ function switchResultsView(mode) {
 }
 
 function renderAnnotationResult(result) {
+  syncOpenEvidenceRun(result.run_id);
   const allAnnotations = result.annotations || [];
   const visibleAnnotations = allAnnotations.filter((a) => !a.insufficient_evidence);
   const hiddenAnnotations = allAnnotations.filter((a) => a.insufficient_evidence);
@@ -2230,6 +2232,24 @@ function renderOpenEvidenceCardNotice(body, message, kind) {
 //   a lifecycle left with no cards is cancelled before making its request.
 const openEvidenceLifecycles = new Map();
 
+// Terminal outcomes ("timeout" / "failed") per key, kept for the current
+// annotation run only: a progress re-render of the same run replays the
+// note instead of starting a new lifecycle (no fresh deadline, no new
+// requests), while a new run — a different run_id — starts clean and so
+// retries. renderAnnotationResult syncs the run; a job's switch from its
+// progress id (job_id) to the final run_id is adopted as the same run.
+const openEvidenceTerminal = { runId: undefined, byKey: new Map() };
+
+function syncOpenEvidenceRun(runId) {
+  if (runId === openEvidenceTerminal.runId) return;
+  openEvidenceTerminal.runId = runId;
+  openEvidenceTerminal.byKey.clear();
+}
+
+function adoptOpenEvidenceRunId(runId) {
+  openEvidenceTerminal.runId = runId;
+}
+
 function openEvidenceKey(gene, tumorType, fusion) {
   return `${gene}|${tumorType || ""}|${fusion || ""}`;
 }
@@ -2292,14 +2312,18 @@ function createOpenEvidenceLifecycle(key, request) {
     lifecycle.cancel();
     return false;
   };
-  const timeOut = () =>
-    finish((subscriber) => renderOpenEvidenceCardNotice(subscriber.body, OPENEVIDENCE_MESSAGES.timeout, "timeout"), {
-      interrupt: true,
+  const settleTerminal = (kind, { interrupt }) => {
+    if (lifecycle.finished) return;
+    openEvidenceTerminal.byKey.set(key, kind);
+    finish((subscriber) => renderOpenEvidenceCardNotice(subscriber.body, OPENEVIDENCE_MESSAGES[kind], kind), {
+      interrupt,
     });
+  };
+  const timeOut = () => settleTerminal("timeout", { interrupt: true });
   const handle = (response) => {
     if (lifecycle.finished || !stillWanted()) return; // late answer, or nobody left to show it
     if (response?.status === "failed") {
-      finish((subscriber) => renderOpenEvidenceCardNotice(subscriber.body, OPENEVIDENCE_MESSAGES.failed, "failed"));
+      settleTerminal("failed", { interrupt: false });
       return;
     }
     if (response?.status !== "pending") {
@@ -2361,9 +2385,16 @@ function showOpenEvidencePending(subscriber) {
 }
 
 // Subscribes one card to its key's lifecycle, starting one if none is
-// running. `request(signal)` is only used when a new lifecycle starts.
+// running — unless the key already timed out or failed in this run, in
+// which case the card just shows that note. `request(signal)` is only used
+// when a new lifecycle starts.
 function loadOpenEvidenceCard(card, body, key, request) {
   let lifecycle = openEvidenceLifecycles.get(key);
+  const terminal = openEvidenceTerminal.byKey.get(key);
+  if (!lifecycle && terminal) {
+    renderOpenEvidenceCardNotice(body, OPENEVIDENCE_MESSAGES[terminal], terminal);
+    return;
+  }
   const isNew = !lifecycle;
   if (isNew) {
     lifecycle = createOpenEvidenceLifecycle(key, request);

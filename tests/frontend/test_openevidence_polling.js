@@ -297,16 +297,24 @@ async function test_non_pending_503_is_an_error_and_not_memoized() {
   assert.deepStrictEqual(Object.keys(sandbox.state.openEvidenceByGene), []);
 }
 
-async function test_failed_answer_is_not_memoized_so_a_rerun_recovers() {
+async function test_failed_answer_is_kept_for_the_run_but_a_new_run_recovers() {
   const { sandbox, callsFor, rendered, notices } = await setup({ ALK: (i) => (i === 0 ? FAILED : READY) });
-  mountCard(sandbox, "ALK");
+  const run = result("ALK");
+  renderRun(sandbox, run);
   await waitFor(() => notices.length === 1, "the failed state to render");
   assert.deepStrictEqual(Object.keys(sandbox.state.openEvidenceByGene), [], "failed must not be memoized");
 
-  // Re-running (re-rendering) after the server's failure record expired.
-  mountCard(sandbox, "ALK");
-  await waitFor(() => rendered.length === 1, "the rerun's ready answer to render");
-  assert.strictEqual(callsFor("ALK").length, 2, "the rerun must make a fresh request");
+  // Progress re-renders of the same run replay the failed note, no requests.
+  renderRun(sandbox, run);
+  renderRun(sandbox, run);
+  await sleep(10);
+  assert.strictEqual(callsFor("ALK").length, 1);
+  assert.deepStrictEqual(notices.map((notice) => notice.kind), ["failed", "failed", "failed"]);
+
+  // A new run (after the server's failure record expired) asks again and recovers.
+  renderRun(sandbox, { ...run, run_id: "run-2" });
+  await waitFor(() => rendered.length === 1, "the new run's ready answer to render");
+  assert.strictEqual(callsFor("ALK").length, 2, "the new run must make a fresh request");
   assert.strictEqual(rendered[0].response.status, "ready");
 }
 
@@ -398,7 +406,7 @@ async function test_navigation_after_a_rerender_aborts_kept_requests_and_frees_t
   assert.strictEqual(callsFor("KRAS").length, 1);
 }
 
-async function test_repeated_rerenders_do_not_extend_the_deadline() {
+async function test_repeated_rerenders_do_not_extend_or_restart_the_deadline() {
   const gates = [];
   const { sandbox, callsFor, notices } = await setup(
     { ALK: () => new Promise((resolve) => gates.push(() => resolve(READY))) },
@@ -414,6 +422,49 @@ async function test_repeated_rerenders_do_not_extend_the_deadline() {
   assert.strictEqual(notices[0].kind, "timeout");
   assert.ok(Date.now() - startedAt < 150, `timed out after ${Date.now() - startedAt}ms`);
   assert.strictEqual(callsFor("ALK").length, 1, "re-renders reused the one request");
+
+  // Keep re-rendering the same run past the timeout: no new lifecycle, no
+  // fresh deadline, no new requests — the timed-out note just persists.
+  for (let i = 0; i < 8; i += 1) {
+    renderRun(sandbox, run);
+    await sleep(5);
+  }
+  await sleep(40);
+  assert.strictEqual(callsFor("ALK").length, 1, "no requests after the timeout within the same run");
+  assert.ok(notices.length > 1 && notices.every((notice) => notice.kind === "timeout"), "the timeout note persists");
+}
+
+async function test_job_completion_switching_to_the_final_run_id_is_the_same_run() {
+  const gates = [];
+  const { sandbox, callsFor, notices } = await setup(
+    { ALK: () => new Promise((resolve) => gates.push(() => resolve(READY))) },
+    { poll: { totalCapMs: 30 } }
+  );
+  const progress = { ...result("ALK"), run_id: "job-1" }; // progress renders carry the job_id
+  renderRun(sandbox, progress);
+  await waitFor(() => notices.length === 1, "the key to time out during the job");
+
+  // pollAnnotationJob adopts the completed result's run_id before rendering it.
+  sandbox.adoptOpenEvidenceRunId("run-final");
+  renderRun(sandbox, { ...progress, run_id: "run-final" });
+  await sleep(20);
+  assert.strictEqual(callsFor("ALK").length, 1, "completing the same job is not a new run");
+  assert.strictEqual(notices[notices.length - 1].kind, "timeout");
+}
+
+async function test_a_new_run_retries_a_key_that_timed_out() {
+  const gates = [];
+  const { sandbox, callsFor, notices } = await setup(
+    { ALK: () => new Promise((resolve) => gates.push(() => resolve(READY))) },
+    { poll: { totalCapMs: 30 } }
+  );
+  const run = result("ALK");
+  renderRun(sandbox, run);
+  await waitFor(() => notices.length === 1, "the first run to time out");
+
+  renderRun(sandbox, { ...run, run_id: "run-2" });
+  await waitFor(() => callsFor("ALK").length === 2, "a new run to request again");
+  await waitFor(() => notices.length === 2, "the new run gets its own deadline");
 }
 
 async function test_queued_card_removed_before_its_turn_makes_no_request() {
@@ -469,12 +520,14 @@ const TESTS = [
   test_flag_off_pending_capable_client_makes_zero_requests,
   test_pending_cards_do_not_occupy_the_fetch_queue,
   test_non_pending_503_is_an_error_and_not_memoized,
-  test_failed_answer_is_not_memoized_so_a_rerun_recovers,
+  test_failed_answer_is_kept_for_the_run_but_a_new_run_recovers,
   test_leaving_the_results_view_stops_polling_and_aborts_in_flight_requests,
   test_rerendering_results_reuses_an_in_flight_request,
   test_rerendered_requests_still_time_out_abort_and_free_their_slots,
   test_navigation_after_a_rerender_aborts_kept_requests_and_frees_their_slots,
-  test_repeated_rerenders_do_not_extend_the_deadline,
+  test_repeated_rerenders_do_not_extend_or_restart_the_deadline,
+  test_a_new_run_retries_a_key_that_timed_out,
+  test_job_completion_switching_to_the_final_run_id_is_the_same_run,
   test_queued_card_removed_before_its_turn_makes_no_request,
   test_stalled_request_times_out_frees_its_slot_and_ignores_late_answers,
 ];
