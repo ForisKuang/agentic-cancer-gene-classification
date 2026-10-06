@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 
+import pytest
 from fastapi.testclient import TestClient
 
 from src import main
@@ -31,6 +32,15 @@ from src.pipeline.openevidence import (
     distilled_openevidence_has_additive_content,
     is_non_pubmed_sourced_citation,
 )
+
+@pytest.fixture(autouse=True)
+def _reset_openevidence_sidecar_state():
+    """The sidecar's in-process task registry and result/failure memos are
+    module-level — clear them so one test's lookup can't answer another's."""
+    main._reset_openevidence_sidecar_state()
+    yield
+    main._reset_openevidence_sidecar_state()
+
 
 # Real, live-captured citation shapes (see tests/test_openevidence.py) reused
 # here to keep the distillation fixtures realistic.

@@ -30,20 +30,34 @@ import pytest
 
 _FRONTEND_DIR = Path(__file__).parent / "frontend"
 _TEST_SCRIPT = _FRONTEND_DIR / "test_openevidence_gate.js"
+_POLLING_TEST_SCRIPT = _FRONTEND_DIR / "test_openevidence_polling.js"
 
 
-def test_openevidence_frontend_gate():
+def _run_node_script(script: Path, label: str) -> None:
     node = shutil.which("node")
     if node is None:
         pytest.skip("node is not available on PATH")
 
     result = subprocess.run(
-        [node, str(_TEST_SCRIPT)],
+        [node, str(script)],
         capture_output=True,
         text=True,
         timeout=30,
     )
 
     assert result.returncode == 0, (
-        f"frontend OpenEvidence gate tests failed\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        f"frontend OpenEvidence {label} tests failed\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
     )
+
+
+def test_openevidence_frontend_gate():
+    _run_node_script(_TEST_SCRIPT, "gate")
+
+
+def test_openevidence_frontend_pending_polling():
+    """The sidecar card's "pending + poll" handling (see
+    tests/frontend/test_openevidence_polling.js): poll -> ready renders,
+    failed/timeout removes the card, polling stops when the card is removed
+    or replaced or the flag turns off, the flag off still makes zero
+    requests, and pending cards don't hog the client fetch queue."""
+    _run_node_script(_POLLING_TEST_SCRIPT, "pending-polling")

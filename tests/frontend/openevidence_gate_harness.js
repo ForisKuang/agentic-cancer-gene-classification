@@ -39,7 +39,7 @@ function loadedSource() {
   // lexical scope, not as properties of the sandbox/global object (unlike
   // `function` declarations, which do attach) — so `state` isn't reachable
   // from outside as `sandbox.state` without this explicit re-export.
-  return `${declarations}\nglobalThis.state = state;\nglobalThis.elements = elements;\n`;
+  return `${declarations}\nglobalThis.state = state;\nglobalThis.elements = elements;\nglobalThis.OPENEVIDENCE_POLL = OPENEVIDENCE_POLL;\n`;
 }
 
 // Depth-first search through the FakeElement tree (as built by
@@ -122,16 +122,35 @@ class FakeElement {
   dispatchEvent() {
     return true;
   }
+  // Mirrors Node.isConnected closely enough for the sidecar's polling to
+  // notice a card being removed or its results list being replaced: true
+  // only when an unbroken _parent chain reaches a document-owned root (see
+  // buildSandbox) and nothing on the way was remove()d.
+  get isConnected() {
+    for (let node = this; node; node = node._parent) {
+      if (node._removed) return false;
+      if (node._isRoot) return true;
+    }
+    return false;
+  }
   appendChild(child) {
     this.children.push(child);
+    child._parent = this;
     return child;
   }
   removeChild(child) {
     this.children = this.children.filter((c) => c !== child);
+    if (child._parent === this) child._parent = null;
     return child;
   }
   replaceChildren(...nodes) {
+    this.children.forEach((child) => {
+      if (child._parent === this) child._parent = null;
+    });
     this.children = nodes;
+    nodes.forEach((child) => {
+      child._parent = this;
+    });
   }
   remove() {
     this._removed = true;
@@ -162,18 +181,23 @@ function buildSandbox({ fetchImpl }) {
   // tests can assert nothing was created at all (not just "nothing
   // fetched") for a given code path — see createdElementTags below.
   const createdElements = [];
+  const rootElement = (tag) => {
+    const el = new FakeElement(tag);
+    el._isRoot = true;
+    return el;
+  };
   const fakeDocument = {
-    querySelector: (selector) => new FakeElement(selector),
+    querySelector: (selector) => rootElement(selector),
     querySelectorAll: () => [],
     createElement: (tag) => {
       const el = new FakeElement(tag);
       createdElements.push(el);
       return el;
     },
-    getElementById: (id) => new FakeElement(`#${id}`),
+    getElementById: (id) => rootElement(`#${id}`),
     addEventListener: () => {},
     removeEventListener: () => {},
-    body: new FakeElement("body"),
+    body: rootElement("body"),
   };
   const fakeWindow = {
     addEventListener: () => {},

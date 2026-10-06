@@ -37,7 +37,7 @@ from src.models.schema import (
     OpenEvidenceGuideline,
     OpenEvidenceTrialMention,
 )
-from src.pipeline.cache import cached_call
+from src.pipeline.cache import _get_client, cached_call
 from src.pipeline.normalization import split_fusion
 
 logger = logging.getLogger(__name__)
@@ -812,3 +812,101 @@ class OpenEvidenceClient:
             logger.error("OpenEvidence lookup failed for %s: %s", gene, exc)
             raise
         return OpenEvidenceAnalysis(**payload)
+
+
+# ---------------------------------------------------------------------------
+# Sidecar "pending + poll" support (see GET /v1/genes/{gene}/openevidence in
+# main.py). A cold OpenEvidence call routinely outlives the prod ingress's
+# 300s request timeout, so the sidecar endpoint never holds a request open
+# for one: it reads the cache directly, and on a miss starts the lookup in
+# the background and answers "pending". These helpers are the cross-worker/
+# cross-pod half of that design — short-lived Redis markers keyed off the
+# same _cache_key the cache itself uses. All of them fail open (Redis down
+# behaves like "no marker"/"cache miss"), so they never break the endpoint;
+# main.py's in-process registry still dedupes within a worker either way.
+# ---------------------------------------------------------------------------
+
+_INFLIGHT_MARKER_PREFIX = "openevidence_inflight:"
+_FAILED_MARKER_PREFIX = "openevidence_failed:"
+
+
+def sidecar_cache_key(gene: str, tumor_type: Optional[str] = None, fusion: Optional[str] = None) -> str:
+    """The exact cache slot OpenEvidenceClient.get_gene_analysis reads and
+    writes for these arguments — the sidecar's dedupe/pending/failed state
+    is keyed off it so warmed entries and sidecar lookups always agree."""
+    return _cache_key(gene, tumor_type, fusion=fusion)
+
+
+async def get_cached_gene_analysis(
+    gene: str, tumor_type: Optional[str] = None, fusion: Optional[str] = None
+) -> Optional[OpenEvidenceAnalysis]:
+    """Cache-only read of get_gene_analysis's slot: never makes a live call
+    and never needs an API key. Returns None on a miss, an unreadable entry,
+    or Redis being unreachable."""
+    key = _cache_key(gene, tumor_type, fusion=fusion)
+    try:
+        cached = await _get_client().get(key)
+    except Exception as exc:
+        logger.warning("OpenEvidence cache peek failed for %r: %s", key, exc)
+        return None
+    if cached is None:
+        return None
+    try:
+        return OpenEvidenceAnalysis(**json.loads(cached))
+    except Exception as exc:
+        logger.warning("Ignoring unreadable OpenEvidence cache entry %r: %s", key, exc)
+        return None
+
+
+async def claim_inflight_marker(cache_key: str, ttl_seconds: int) -> bool:
+    """SET NX the short-TTL "lookup in flight" marker for `cache_key`.
+
+    True means this caller owns the lookup (or Redis is unreachable, so only
+    the in-process registry can dedupe); False means another worker/pod
+    already claimed it. The TTL bounds how long a pod that died mid-call can
+    wedge the key."""
+    try:
+        claimed = await _get_client().set(
+            _INFLIGHT_MARKER_PREFIX + cache_key, "1", ex=max(1, int(ttl_seconds)), nx=True
+        )
+    except Exception as exc:
+        logger.warning("OpenEvidence in-flight marker claim failed for %r: %s", cache_key, exc)
+        return True
+    return bool(claimed)
+
+
+async def refresh_inflight_marker(cache_key: str, ttl_seconds: int) -> None:
+    """Restart the in-flight marker's TTL (e.g. once a queued lookup actually
+    gets a concurrency slot), so queue time doesn't eat into it."""
+    try:
+        await _get_client().set(_INFLIGHT_MARKER_PREFIX + cache_key, "1", ex=max(1, int(ttl_seconds)))
+    except Exception as exc:
+        logger.warning("OpenEvidence in-flight marker refresh failed for %r: %s", cache_key, exc)
+
+
+async def clear_inflight_marker(cache_key: str) -> None:
+    try:
+        await _get_client().delete(_INFLIGHT_MARKER_PREFIX + cache_key)
+    except Exception as exc:
+        logger.warning("OpenEvidence in-flight marker clear failed for %r: %s", cache_key, exc)
+
+
+async def record_failed_marker(cache_key: str, error: str, ttl_seconds: int) -> None:
+    """Remember a failed lookup for a few minutes so polling clients get
+    "failed" and stop, instead of each poll re-triggering a paid call. The
+    failed ANSWER itself is still never cached."""
+    try:
+        await _get_client().set(_FAILED_MARKER_PREFIX + cache_key, error, ex=max(1, int(ttl_seconds)))
+    except Exception as exc:
+        logger.warning("OpenEvidence failed-marker write failed for %r: %s", cache_key, exc)
+
+
+async def get_failed_marker(cache_key: str) -> Optional[str]:
+    try:
+        value = await _get_client().get(_FAILED_MARKER_PREFIX + cache_key)
+    except Exception as exc:
+        logger.warning("OpenEvidence failed-marker read failed for %r: %s", cache_key, exc)
+        return None
+    if value is None:
+        return None
+    return value.decode("utf-8", "replace") if isinstance(value, bytes) else str(value)

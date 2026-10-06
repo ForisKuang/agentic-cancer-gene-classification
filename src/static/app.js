@@ -2085,6 +2085,59 @@ function enqueueOpenEvidenceFetch(job) {
   runOpenEvidenceFetchQueue();
 }
 
+// "Pending + poll": on a cache miss the server starts the (90-290s)
+// OpenEvidence lookup in the background and answers status "pending" (HTTP
+// 503 + retry_after_seconds) instead of holding the request open past the
+// ingress timeout — see GET /v1/genes/{gene}/openevidence in main.py. The
+// card keeps its loading state and re-polls the same URL with backoff: the
+// first delay is the server's retry_after hint, then x1.5 per poll, capped
+// at maxDelayMs, and the card is dropped after totalCapMs. Each poll is its
+// own short trip through the fetch queue above, so a pending card never
+// holds a concurrency slot while it waits.
+const OPENEVIDENCE_POLL = {
+  defaultDelayMs: 10000,
+  minDelayMs: 1000,
+  maxDelayMs: 20000,
+  backoff: 1.5,
+  totalCapMs: 12 * 60 * 1000,
+};
+
+function nextOpenEvidencePollDelayMs(response, previousDelayMs) {
+  const hintSeconds = Number(response?.retry_after_seconds);
+  const hintMs = Number.isFinite(hintSeconds) && hintSeconds > 0 ? hintSeconds * 1000 : OPENEVIDENCE_POLL.defaultDelayMs;
+  const delayMs = previousDelayMs === null ? hintMs : Math.max(hintMs, previousDelayMs * OPENEVIDENCE_POLL.backoff);
+  return Math.min(OPENEVIDENCE_POLL.maxDelayMs, Math.max(OPENEVIDENCE_POLL.minDelayMs, delayMs));
+}
+
+// Loads (and, while "pending", keeps re-polling) one sidecar card. Polling
+// stops — and the card is dropped — once the card is no longer on the page
+// (removed, or replaced by a new annotation run/re-render, which rebuilds
+// the whole results list), the flag turns off, or totalCapMs runs out.
+function loadOpenEvidenceCard(card, body, request) {
+  const startedAt = Date.now();
+  let delayMs = null;
+  const poll = () => enqueueOpenEvidenceFetch(() => request().then(handle).catch(() => card.remove()));
+  const handle = (response) => {
+    if (response?.status !== "pending") {
+      renderOpenEvidenceCardBody(card, body, response);
+      return;
+    }
+    delayMs = nextOpenEvidencePollDelayMs(response, delayMs);
+    if (Date.now() - startedAt + delayMs > OPENEVIDENCE_POLL.totalCapMs) {
+      card.remove();
+      return;
+    }
+    setTimeout(() => {
+      if (!state.openevidenceEnabled || card.isConnected === false) {
+        card.remove();
+        return;
+      }
+      poll();
+    }, delayMs);
+  };
+  poll();
+}
+
 function fetchGeneOpenEvidence(
   gene,
   tumorType,
@@ -2122,13 +2175,25 @@ function fetchGeneOpenEvidence(
   (corePmids || []).forEach((pmid) => pmid && params.append("core_pmids", pmid));
   (coreTitles || []).forEach((title) => title && params.append("core_titles", title));
   const query = params.toString();
+  const forget = () => {
+    if (state.openEvidenceByGene[key] === promise) delete state.openEvidenceByGene[key];
+  };
   const promise = fetch(`/v1/genes/${encodeURIComponent(gene)}/openevidence${query ? `?${query}` : ""}`)
-    .then((response) => {
-      if (!response.ok) throw new Error(response.statusText || "Request failed");
-      return response.json();
+    .then(async (response) => {
+      // A "pending" answer arrives as HTTP 503 with a JSON body (so older
+      // clients treat it as a transient error) — any other non-2xx, or a
+      // 503 that isn't our pending body (e.g. from the ingress), is an error.
+      if (!response.ok && response.status !== 503) throw new Error(response.statusText || "Request failed");
+      const payload = await response.json();
+      if (payload?.status === "pending") {
+        forget(); // never memoize "pending" — the next poll must really re-fetch
+      } else if (!response.ok) {
+        throw new Error(response.statusText || "Request failed");
+      }
+      return payload;
     })
     .catch((error) => {
-      delete state.openEvidenceByGene[key]; // allow retry on next render
+      forget(); // allow retry on next render
       throw error;
     });
   state.openEvidenceByGene[key] = promise;
@@ -2263,7 +2328,7 @@ function renderOpenEvidenceCard(annotation) {
   const body = card.querySelector(".openevidence-card-body");
   body.appendChild(renderLoadingState("Checking OpenEvidence…"));
 
-  enqueueOpenEvidenceFetch(() =>
+  loadOpenEvidenceCard(card, body, () =>
     fetchGeneOpenEvidence(annotation.gene, tumorTypeForAnnotation(annotation), {
       cancerAssociated: annotation.cancer_associated,
       insufficientEvidence: annotation.insufficient_evidence,
@@ -2276,8 +2341,6 @@ function renderOpenEvidenceCard(annotation) {
       // request hits the cache slot warmup filled.
       fusion: annotation.fusions?.[0],
     })
-      .then((response) => renderOpenEvidenceCardBody(card, body, response))
-      .catch(() => card.remove())
   );
 
   return card;
