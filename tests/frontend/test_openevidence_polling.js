@@ -60,7 +60,7 @@ function geneOf(url) {
 
 // `answers` maps gene -> function(callIndex) returning the JSON payload the
 // server answers with on that gene's Nth request (0-based).
-async function setup(answers, { poll } = {}) {
+async function setup(answers, { poll, routes = {} } = {}) {
   const calls = [];
   const aborted = [];
   const fetchImpl = async (url, options) => {
@@ -68,6 +68,7 @@ async function setup(answers, { poll } = {}) {
     if (url === "/v1/dev/status") {
       return { ok: true, status: 200, json: async () => ({ enabled: false, openevidence_enabled: true }) };
     }
+    if (routes[url]) return routes[url]();
     calls.push(url);
     options?.signal?.addEventListener("abort", () => aborted.push(url));
     const gene = geneOf(url);
@@ -435,21 +436,28 @@ async function test_repeated_rerenders_do_not_extend_or_restart_the_deadline() {
 }
 
 async function test_job_completion_switching_to_the_final_run_id_is_the_same_run() {
-  const gates = [];
+  // Drives the real pollAnnotationJob: one "running" status (rendered with
+  // run_id = job_id) during which ALK times out, then "complete" with the
+  // final run_id. The completed render must not count as a new run.
+  const statuses = [
+    { status: "running", job_id: "job-1", annotations: [annotation("ALK")], genes_total: 1, genes_completed: 0 },
+    { status: "complete", job_id: "job-1", result: { ...result("ALK"), run_id: "run-final" } },
+  ];
   const { sandbox, callsFor, notices } = await setup(
-    { ALK: () => new Promise((resolve) => gates.push(() => resolve(READY))) },
-    { poll: { totalCapMs: 30 } }
+    { ALK: () => new Promise(() => {}) },
+    {
+      poll: { totalCapMs: 30 },
+      routes: { "/v1/jobs/job-1": async () => ({ ok: true, status: 200, json: async () => statuses.shift() }) },
+    }
   );
-  const progress = { ...result("ALK"), run_id: "job-1" }; // progress renders carry the job_id
-  renderRun(sandbox, progress);
-  await waitFor(() => notices.length === 1, "the key to time out during the job");
+  sandbox.sleep = () => sleep(80); // the job's poll interval: ALK's 30ms deadline expires meanwhile
 
-  // pollAnnotationJob adopts the completed result's run_id before rendering it.
-  sandbox.adoptOpenEvidenceRunId("run-final");
-  renderRun(sandbox, { ...progress, run_id: "run-final" });
+  const final = await sandbox.pollAnnotationJob("/v1/jobs/job-1");
+  assert.strictEqual(final.run_id, "run-final");
   await sleep(20);
   assert.strictEqual(callsFor("ALK").length, 1, "completing the same job is not a new run");
-  assert.strictEqual(notices[notices.length - 1].kind, "timeout");
+  assert.ok(notices.length >= 2, "the completed render replays the timed-out note");
+  assert.ok(notices.every((notice) => notice.kind === "timeout"));
 }
 
 async function test_a_new_run_retries_a_key_that_timed_out() {

@@ -996,6 +996,10 @@ async function pollAnnotationJob(statusUrl) {
     if (status.status === "failed") {
       throw new Error(status.error || "Annotation job failed");
     }
+    // Progress renders carry the job_id as run_id; the completed result has
+    // the real run_id. Adopt it as the same OpenEvidence run before the
+    // completed result is first rendered, so its timed-out/failed keys stay.
+    if (status.result?.run_id) adoptOpenEvidenceRunId(status.job_id, status.result.run_id);
 
     const partial = status.result || {
       run_id: status.job_id,
@@ -1013,7 +1017,6 @@ async function pollAnnotationJob(statusUrl) {
 
     if (status.status === "complete") {
       state.currentResult = status.result;
-      adoptOpenEvidenceRunId(status.result.run_id); // same run: its progress id was the job_id
       renderAnnotationResult(status.result);
       return status.result;
     }
@@ -2237,7 +2240,8 @@ const openEvidenceLifecycles = new Map();
 // note instead of starting a new lifecycle (no fresh deadline, no new
 // requests), while a new run — a different run_id — starts clean and so
 // retries. renderAnnotationResult syncs the run; a job's switch from its
-// progress id (job_id) to the final run_id is adopted as the same run.
+// progress id (job_id) to the final run_id is adopted as the same run
+// (pollAnnotationJob, before the completed result is first rendered).
 const openEvidenceTerminal = { runId: undefined, byKey: new Map() };
 
 function syncOpenEvidenceRun(runId) {
@@ -2246,8 +2250,10 @@ function syncOpenEvidenceRun(runId) {
   openEvidenceTerminal.byKey.clear();
 }
 
-function adoptOpenEvidenceRunId(runId) {
-  openEvidenceTerminal.runId = runId;
+// Renames the current run from a job's progress id to its final run_id —
+// only if the current run really is that job's.
+function adoptOpenEvidenceRunId(jobId, runId) {
+  if (openEvidenceTerminal.runId === jobId) openEvidenceTerminal.runId = runId;
 }
 
 function openEvidenceKey(gene, tumorType, fusion) {
