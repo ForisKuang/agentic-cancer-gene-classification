@@ -110,6 +110,8 @@ class Settings(BaseSettings):
     context_score_pubtype_case_report_weight: float = 0.3
     context_score_pubtype_editorial_weight: float = 0.15
     annotation_job_ttl_seconds: int = 3600
+    # Max entries accepted per gene query API request (POST /v1/genes/query[/jobs]).
+    gene_query_max_genes: int = 50
 
     redis_url: str = "redis://localhost:6379/0"
     redis_cache_ttl_seconds: int = 86400

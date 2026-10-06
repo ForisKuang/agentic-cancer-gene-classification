@@ -214,7 +214,8 @@ The response is one `GeneAnnotation` object with fields such as `gene`,
 `cancer_association_rationale`, `cancer_type_prevalence`, `gene_class`,
 `signaling_pathways`, `gene_summary`, `citations`, `supporting_quotes`,
 `retrieval_count`, `retrieved_pmids`, `evidence_support_score`, and cache
-metadata.
+metadata, plus the saved run's `run_id` and a `view_url` that opens it in the
+UI. For a slim, rationale-only response, see [Gene query API](#gene-query-api).
 
 For batch runs or mixed genes and fusions, use `/v1/annotate`:
 
@@ -312,6 +313,84 @@ replaced with Bedrock model IDs via `BEDROCK_SYNTHESIS_MODEL`,
 `BEDROCK_RETRIEVAL_MODEL`, or by setting `SYNTHESIS_MODEL`,
 `SYNTHESIS_FAST_MODEL`, `SELECTION_MODEL`, and `RETRIEVAL_MODEL` to Bedrock IDs
 directly.
+
+## Gene query API
+
+Slim endpoints for scripts that only need a gene's classification and
+rationale. Each response links to the full report (evidence cards, abstracts,
+quotes, clinical actionability) in the ACGC UI via `view_url`; opening it
+requires an ACGC login. Cached annotations are reused when fresh, so repeat
+queries are cheap; `force_refresh: true` recomputes and triggers new LLM runs.
+
+Authenticate with an API key (`Authorization: Bearer $ACGC_API_KEY`; keys come
+from the API-keys feature) or an existing ACGC session cookie.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /v1/genes/query` | Classify up to `GENE_QUERY_MAX_GENES` genes (default 50); saves one run |
+| `GET /v1/genes/{symbol}?tumor_type=&force_refresh=` | Same response for a single gene |
+| `POST /v1/genes/query/jobs` | Start the same query in the background for long batches |
+| `GET /v1/genes/query/jobs/{job_id}` | Poll a background query |
+
+`genes` accepts symbols or `{"gene": ..., "tumor_type": ...}` objects.
+Duplicate symbols (case-insensitive) are collapsed. Fusions are rejected with
+422; use `/v1/annotate` for those. Lists longer than the cap also return 422.
+
+```bash
+export ACGC=https://acgc.oncokb.org
+curl -X POST "$ACGC/v1/genes/query" \
+  -H "Authorization: Bearer $ACGC_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"genes": ["ALK", {"gene": "TP53", "tumor_type": "LUAD"}]}'
+
+curl "$ACGC/v1/genes/BRAF?tumor_type=Melanoma" \
+  -H "Authorization: Bearer $ACGC_API_KEY"
+```
+
+Example response:
+
+```json
+{
+  "run_id": "0b8f3c2e-5d1a-4c3e-9f57-2a6c1d9e4b10",
+  "view_url": "https://acgc.oncokb.org/?run=0b8f3c2e-5d1a-4c3e-9f57-2a6c1d9e4b10",
+  "results": [
+    {
+      "gene": "ALK",
+      "tumor_type": null,
+      "cancer_associated": true,
+      "gene_class": "Receptor tyrosine kinase",
+      "in_oncokb": true,
+      "rationale": "ALK rearrangements are established oncogenic drivers ...",
+      "gene_summary": "ALK encodes a receptor tyrosine kinase ...",
+      "citation_pmids": ["17625570", "20979469"],
+      "evidence_support_score": 0.92,
+      "quality_flags": [],
+      "cache_status": "reused",
+      "cached_at": "2026-10-01T14:03:11+00:00",
+      "error": null
+    }
+  ]
+}
+```
+
+For long batches, start a job and poll it. `run_id`, `view_url`, and the full
+`results` are set once `status` is `complete`. On failure, `error` holds a
+generic message and the details stay in the server logs.
+
+```bash
+curl -X POST "$ACGC/v1/genes/query/jobs" \
+  -H "Authorization: Bearer $ACGC_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"genes": ["ALK", "TP53", "BRAF"]}'
+# {"job_id": "...", "status_url": "/v1/genes/query/jobs/..."}
+
+curl "$ACGC/v1/genes/query/jobs/$JOB_ID" -H "Authorization: Bearer $ACGC_API_KEY"
+# {"job_id": "...", "status": "complete", "genes_completed": 3, "genes_total": 3,
+#  "run_id": "...", "view_url": "https://acgc.oncokb.org/?run=...", "results": [...], "error": null}
+```
+
+`view_url` is built from `PUBLIC_APP_BASE_URL`, or from the request's base URL
+when that is unset.
 
 ## Latency Comparison
 

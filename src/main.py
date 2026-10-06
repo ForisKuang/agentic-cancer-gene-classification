@@ -76,6 +76,7 @@ from src.models.schema import (
     FusionPositionContext,
     GeneAnnotateRequest,
     GeneAnnotation,
+    GeneAnnotationWithRun,
     LocalBackend,
 )
 from src.observability import (
@@ -249,6 +250,10 @@ class AnnotationJobStatusResponse(BaseModel):
     error: Optional[str] = None
     timings_ms: Dict[str, float] = Field(default_factory=dict)
     created_at: float = Field(default_factory=time.monotonic, exclude=True)
+    # Internal bookkeeping for callers that reuse this job store (e.g. the gene
+    # query API): which endpoint family created the job and its request.
+    kind: str = Field(default="annotate", exclude=True)
+    request: Optional[AnnotateRequest] = Field(default=None, exclude=True)
 
 
 class FusionContextResponse(BaseModel):
@@ -497,6 +502,11 @@ def _public_app_base_url(request: Request) -> str:
     if configured:
         return configured
     return str(request.base_url).rstrip("/")
+
+
+def _run_view_url(request: Request, run_id: str) -> str:
+    """Absolute UI deep link for a saved run (see app.js loadSharedRun)."""
+    return f"{_public_app_base_url(request)}/?run={run_id}"
 
 
 def _request_user_id(request: Request, current_user: Optional[AuthenticatedUser] = None) -> Optional[str]:
@@ -1134,13 +1144,18 @@ async def annotate(
     return result
 
 
-@app.post("/v1/annotate/jobs", response_model=AnnotationJobCreateResponse)
-async def create_annotation_job(
+async def _launch_annotation_job(
     request: AnnotateRequest,
     http_request: Request,
-    current_user: AuthenticatedUser = Depends(require_auth),
-) -> AnnotationJobCreateResponse:
-    _record_annotation_request_metrics(request, http_request, current_user)
+    current_user: Optional[AuthenticatedUser],
+    *,
+    kind: str = "annotate",
+    complete_action: str = "job_complete",
+    error_action: str = "job_error",
+    extra_details: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Queue a background annotation run in the in-memory job store and
+    return its job ID. Shared by /v1/annotate/jobs and the gene query API."""
     await _evict_stale_annotation_jobs()
 
     job_id = str(uuid.uuid4())
@@ -1148,6 +1163,8 @@ async def create_annotation_job(
         job_id=job_id,
         status="queued",
         fusions_processed=len(request.fusions),
+        kind=kind,
+        request=request,
     )
     await _store_annotation_job(job)
 
@@ -1191,18 +1208,19 @@ async def create_annotation_job(
                 await record_user_annotation_activity(current_user.email, count=result.genes_annotated)
             record_user_action(
                 user_id=current_user.email if current_user else _request_user_id(http_request),
-                action="job_complete",
+                action=complete_action,
                 details={
                     "job_id": job_id,
                     "duration_ms": round(result.timings_ms.get("total", 0.0), 1),
                     "genes_completed": result.genes_annotated,
+                    **(extra_details or {}),
                 },
             )
         except Exception as exc:
             logger.exception("Annotation job %s failed", job_id)
             record_user_action(
                 user_id=current_user.email if current_user else _request_user_id(http_request),
-                action="job_error",
+                action=error_action,
                 details={"job_id": job_id, "error": str(exc)},
             )
             current = await _get_annotation_job(job_id)
@@ -1211,6 +1229,17 @@ async def create_annotation_job(
             await _store_annotation_job(current)
 
     _track_background_task(run_job())
+    return job_id
+
+
+@app.post("/v1/annotate/jobs", response_model=AnnotationJobCreateResponse)
+async def create_annotation_job(
+    request: AnnotateRequest,
+    http_request: Request,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> AnnotationJobCreateResponse:
+    _record_annotation_request_metrics(request, http_request, current_user)
+    job_id = await _launch_annotation_job(request, http_request, current_user)
     return AnnotationJobCreateResponse(
         job_id=job_id,
         status_url=f"/v1/annotate/jobs/{job_id}",
@@ -1363,17 +1392,19 @@ async def get_fusion_evidence_job(
     return await _get_fusion_evidence_job(job_id)
 
 
-@app.post("/v1/annotate/gene", response_model=GeneAnnotation)
+@app.post("/v1/annotate/gene", response_model=GeneAnnotationWithRun)
 async def annotate_gene(
     request: GeneAnnotateRequest,
     http_request: Request,
     current_user: AuthenticatedUser = Depends(require_auth),
-) -> GeneAnnotation:
+) -> GeneAnnotationWithRun:
     """
-    Annotate a single gene and return the result-card payload as JSON.
+    Annotate a single gene and return the result-card payload as JSON, plus the
+    saved run's `run_id` and a `view_url` that opens it in the UI.
 
     This is a convenience endpoint for external REST clients. For batch runs or
-    mixed gene/fusion inputs, use POST /v1/annotate.
+    mixed gene/fusion inputs, use POST /v1/annotate. For a slim, rationale-only
+    response, use POST /v1/genes/query.
     """
     _record_annotation_request_metrics(request, http_request, current_user)
     gene_input = FusionInput(gene=request.gene, tumor_type=request.tumor_type)
@@ -1405,7 +1436,11 @@ async def annotate_gene(
             "duration_ms": round(result.timings_ms.get("total", 0.0), 1),
         },
     )
-    return result.annotations[0]
+    return GeneAnnotationWithRun(
+        **result.annotations[0].model_dump(),
+        run_id=result.run_id,
+        view_url=_run_view_url(http_request, result.run_id),
+    )
 
 
 @app.get("/v1/annotate/{run_id}", response_model=AnnotationResult)
@@ -1885,6 +1920,13 @@ async def benchmark(
     except Exception as e:
         logger.exception("Benchmark error")
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+# Imported here, after every helper it reuses is defined, to avoid a circular
+# import at module load (the router module looks those helpers up on src.main).
+from src.api.gene_query import router as gene_query_router  # noqa: E402
+
+app.include_router(gene_query_router)
 
 
 @app.exception_handler(Exception)

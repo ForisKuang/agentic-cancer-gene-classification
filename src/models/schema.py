@@ -380,6 +380,18 @@ class GeneAnnotation(BaseModel):
     timings_ms: Dict[str, float] = Field(default_factory=dict)
 
 
+class GeneAnnotationWithRun(GeneAnnotation):
+    """A GeneAnnotation plus the saved run it belongs to (POST /v1/annotate/gene)."""
+
+    run_id: Optional[str] = Field(
+        default=None, description="ID of the saved annotation run containing this gene."
+    )
+    view_url: Optional[str] = Field(
+        default=None,
+        description="Absolute link that opens the full run in the ACGC UI (requires login).",
+    )
+
+
 class FusionInput(BaseModel):
     """Structured gene or fusion input supporting optional tumor type and breakpoint context."""
     fusion: str = Field(
