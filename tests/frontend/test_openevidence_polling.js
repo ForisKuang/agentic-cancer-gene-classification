@@ -2,7 +2,7 @@
 // src/static/app.js (loadOpenEvidenceCard / fetchGeneOpenEvidence): a cache
 // miss answers status "pending" (HTTP 503 + retry_after_seconds, see
 // GET /v1/genes/{gene}/openevidence in main.py) and the card must keep
-// polling until "ready" (render) or "failed"/timeout (remove), stop polling
+// polling until "ready" (render) or "failed"/timeout (explicit note), stop polling
 // once the card leaves the page or the flag turns off, and never let pending
 // cards hog the client-side fetch-concurrency queue.
 // Run via tests/test_frontend_openevidence_gate.py (invokes this with node).
@@ -90,8 +90,20 @@ async function setup(answers, { poll } = {}) {
     rendered.push({ card, response });
     return originalRenderBody(card, body, response);
   };
+  const notices = [];
+  const originalRenderNotice = sandbox.renderOpenEvidenceCardNotice;
+  sandbox.renderOpenEvidenceCardNotice = (body, message, kind) => {
+    notices.push({ message, kind });
+    return originalRenderNotice(body, message, kind);
+  };
+  const loadingMessages = [];
+  const originalRenderLoading = sandbox.renderLoadingState;
+  sandbox.renderLoadingState = (message) => {
+    loadingMessages.push(message);
+    return originalRenderLoading(message);
+  };
   const callsFor = (gene) => calls.filter((url) => geneOf(url) === gene);
-  return { sandbox, calls, callsFor, rendered };
+  return { sandbox, calls, callsFor, rendered, notices, loadingMessages };
 }
 
 // Attaches a card to the (document-owned) results window, the way
@@ -134,21 +146,36 @@ async function test_pending_polls_until_ready_then_renders() {
   assert.strictEqual(callsFor("ALK").length, 4, "polling must stop once ready");
 }
 
-async function test_failed_after_pending_removes_card_and_stops() {
-  const { sandbox, callsFor } = await setup({ ALK: (i) => (i < 2 ? PENDING : FAILED) });
+async function test_pending_shows_still_checking_state_once() {
+  const { sandbox, callsFor, rendered, loadingMessages } = await setup({ ALK: (i) => (i < 3 ? PENDING : READY) });
+  mountCard(sandbox, "ALK");
+
+  await waitFor(() => rendered.length === 1, "the ready answer to render");
+  assert.strictEqual(callsFor("ALK").length, 4);
+  // The initial "Checking…" spinner, then the pending note exactly once (not per poll).
+  assert.deepStrictEqual(loadingMessages, ["Checking OpenEvidence…", sandbox.OPENEVIDENCE_MESSAGES.pending]);
+}
+
+async function test_failed_after_pending_shows_failed_state_and_stops() {
+  const { sandbox, callsFor, rendered, notices } = await setup({ ALK: (i) => (i < 2 ? PENDING : FAILED) });
   const card = mountCard(sandbox, "ALK");
 
-  await waitFor(() => card._removed === true, "the failed card to be removed");
+  await waitFor(() => notices.length === 1, "the failed state to render");
+  assert.deepStrictEqual(notices, [{ message: sandbox.OPENEVIDENCE_MESSAGES.failed, kind: "failed" }]);
+  assert.strictEqual(card._removed, undefined, "a failed card stays on the page with its failed note");
+  assert.strictEqual(rendered.length, 0);
   assert.strictEqual(callsFor("ALK").length, 3);
   await sleep(20);
   assert.strictEqual(callsFor("ALK").length, 3, "polling must stop once failed");
 }
 
-async function test_polling_times_out_and_removes_card() {
-  const { sandbox, callsFor } = await setup({ ALK: () => PENDING }, { poll: { totalCapMs: 40 } });
+async function test_polling_times_out_and_shows_timeout_state() {
+  const { sandbox, callsFor, notices } = await setup({ ALK: () => PENDING }, { poll: { totalCapMs: 40 } });
   const card = mountCard(sandbox, "ALK");
 
-  await waitFor(() => card._removed === true, "the card to be removed at the total polling cap");
+  await waitFor(() => notices.length === 1, "the timed-out state to render at the total polling cap");
+  assert.deepStrictEqual(notices, [{ message: sandbox.OPENEVIDENCE_MESSAGES.timeout, kind: "timeout" }]);
+  assert.strictEqual(card._removed, undefined, "a timed-out card stays on the page with its note");
   const pollsAtTimeout = callsFor("ALK").length;
   assert.ok(pollsAtTimeout >= 2, `expected several polls before the cap; saw ${pollsAtTimeout}`);
   await sleep(30);
@@ -268,8 +295,9 @@ async function test_non_pending_503_is_an_error_and_not_memoized() {
 
 const TESTS = [
   test_pending_polls_until_ready_then_renders,
-  test_failed_after_pending_removes_card_and_stops,
-  test_polling_times_out_and_removes_card,
+  test_pending_shows_still_checking_state_once,
+  test_failed_after_pending_shows_failed_state_and_stops,
+  test_polling_times_out_and_shows_timeout_state,
   test_backoff_starts_at_retry_after_and_is_capped,
   test_polling_stops_when_card_is_removed,
   test_new_annotation_run_stops_polling_for_replaced_cards,

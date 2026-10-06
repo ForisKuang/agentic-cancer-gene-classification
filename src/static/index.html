@@ -21,6 +21,23 @@
           <p>Run, review, and export curation-ready results.</p>
         </div>
 
+        <div class="user-auth-bar hidden" id="user-auth-bar">
+          <div class="user-profile hidden" id="user-profile">
+            <div class="user-avatar" id="user-avatar">?</div>
+            <div class="user-info">
+              <div class="user-name-row">
+                <span class="user-name" id="user-name"></span>
+                <span class="user-role-badge" id="user-role"></span>
+              </div>
+              <span class="user-email" id="user-email"></span>
+            </div>
+            <a class="signout-link" id="signout-btn" href="/auth/logout" title="Sign out">Sign out</a>
+          </div>
+          <div class="user-signin hidden" id="user-signin">
+            <a class="signin-button-sm" id="header-signin-btn" href="/login">Sign In</a>
+          </div>
+        </div>
+
         <nav class="app-tabs" aria-label="App sections">
           <button class="app-tab active" id="nav-annotate" type="button">Annotate</button>
           <button class="app-tab hidden" id="nav-benchmark" type="button">Benchmark</button>

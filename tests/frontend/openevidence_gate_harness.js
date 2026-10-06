@@ -39,7 +39,7 @@ function loadedSource() {
   // lexical scope, not as properties of the sandbox/global object (unlike
   // `function` declarations, which do attach) — so `state` isn't reachable
   // from outside as `sandbox.state` without this explicit re-export.
-  return `${declarations}\nglobalThis.state = state;\nglobalThis.elements = elements;\nglobalThis.OPENEVIDENCE_POLL = OPENEVIDENCE_POLL;\n`;
+  return `${declarations}\nglobalThis.state = state;\nglobalThis.elements = elements;\nglobalThis.OPENEVIDENCE_POLL = OPENEVIDENCE_POLL;\nglobalThis.OPENEVIDENCE_MESSAGES = OPENEVIDENCE_MESSAGES;\n`;
 }
 
 // Depth-first search through the FakeElement tree (as built by

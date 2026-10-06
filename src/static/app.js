@@ -49,6 +49,12 @@ const state = {
   inputMode: "single",
   queue: [],
   batchRows: Array.from({ length: 5 }, emptyRow),
+  auth: {
+    enabled: false,
+    authenticated: false,
+    user: null,
+    allowedDomains: [],
+  },
   enrichmentByGene: new Map(),
   // Breakpoint fields from the most recent submission, keyed by the exact
   // fusion string as submitted (matches GeneAnnotation.fusions entries) —
@@ -111,6 +117,19 @@ const elements = {
   runSummary: document.querySelector("#run-summary"),
   sidebarResizer: document.querySelector("#sidebar-resizer"),
   workspaceTitle: document.querySelector("#workspace-title"),
+  // auth elements
+  userAuthBar: document.querySelector("#user-auth-bar"),
+  userProfile: document.querySelector("#user-profile"),
+  userAvatar: document.querySelector("#user-avatar"),
+  userName: document.querySelector("#user-name"),
+  userRole: document.querySelector("#user-role"),
+  userEmail: document.querySelector("#user-email"),
+  signoutBtn: document.querySelector("#signout-btn"),
+  userSignin: document.querySelector("#user-signin"),
+  headerSigninBtn: document.querySelector("#header-signin-btn"),
+  authGateModal: document.querySelector("#auth-gate-modal"),
+  modalGoogleSigninBtn: document.querySelector("#modal-google-signin-btn"),
+  modalSamlSigninBtn: document.querySelector("#modal-saml-signin-btn"),
   // mode tabs
   tabSingle: document.querySelector("#tab-single"),
   tabBatch: document.querySelector("#tab-batch"),
@@ -234,6 +253,65 @@ function initSidebarResize() {
     if (!inlineWidth) return;
     setSidebarWidth(parseFloat(inlineWidth));
   });
+}
+
+// ---------------------------------------------------------------------------
+// Authentication & SSO status
+// ---------------------------------------------------------------------------
+
+async function checkAuth() {
+  try {
+    const response = await fetch("/auth/me");
+    if (!response.ok) return;
+    const payload = await response.json();
+    state.auth = payload;
+
+    if (!payload.auth_enabled) {
+      if (elements.userAuthBar) elements.userAuthBar.classList.add("hidden");
+      if (elements.authGateModal) elements.authGateModal.classList.add("hidden");
+      return;
+    }
+
+    if (elements.userAuthBar) elements.userAuthBar.classList.remove("hidden");
+
+    const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+    const loginPageHref = `/login?redirect_to=${returnUrl}`;
+    if (elements.headerSigninBtn) elements.headerSigninBtn.href = loginPageHref;
+
+    if (payload.authenticated && payload.user) {
+      if (elements.userProfile) elements.userProfile.classList.remove("hidden");
+      if (elements.userSignin) elements.userSignin.classList.add("hidden");
+      if (elements.authGateModal) elements.authGateModal.classList.add("hidden");
+
+      if (elements.userName) elements.userName.textContent = payload.user.name || payload.user.email;
+      if (elements.userRole) {
+        const role = payload.user.role || "curator";
+        elements.userRole.textContent = role;
+        elements.userRole.className = `user-role-badge role-${role.toLowerCase()}`;
+      }
+      if (elements.userEmail) elements.userEmail.textContent = payload.user.email;
+
+      if (elements.userAvatar) {
+        if (payload.user.picture) {
+          elements.userAvatar.innerHTML = `<img src="${payload.user.picture}" alt="" />`;
+        } else {
+          const initial = (payload.user.name || payload.user.email || "?").charAt(0).toUpperCase();
+          elements.userAvatar.textContent = initial;
+        }
+      }
+
+      if (elements.signoutBtn) {
+        elements.signoutBtn.href = "/auth/logout";
+      }
+    } else {
+      if (elements.userProfile) elements.userProfile.classList.add("hidden");
+      if (elements.userSignin) elements.userSignin.classList.remove("hidden");
+      if (elements.authGateModal) elements.authGateModal.classList.add("hidden");
+      window.location.href = loginPageHref;
+    }
+  } catch (err) {
+    console.warn("Auth status check failed", err);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -2109,22 +2187,46 @@ function nextOpenEvidencePollDelayMs(response, previousDelayMs) {
   return Math.min(OPENEVIDENCE_POLL.maxDelayMs, Math.max(OPENEVIDENCE_POLL.minDelayMs, delayMs));
 }
 
-// Loads (and, while "pending", keeps re-polling) one sidecar card. Polling
-// stops — and the card is dropped — once the card is no longer on the page
-// (removed, or replaced by a new annotation run/re-render, which rebuilds
-// the whole results list), the flag turns off, or totalCapMs runs out.
+const OPENEVIDENCE_MESSAGES = {
+  pending: "Still checking OpenEvidence — this can take a few minutes…",
+  failed: "OpenEvidence lookup failed. Try again later.",
+  timeout: "OpenEvidence is taking longer than expected. Re-run the annotation later to check again.",
+};
+
+// Replaces the card body with a one-line status note (failed/timed out).
+function renderOpenEvidenceCardNotice(body, message, kind) {
+  const note = document.createElement("div");
+  note.className = `subtle openevidence-card-notice openevidence-card-${kind}`;
+  note.setAttribute("role", "status");
+  note.textContent = message;
+  body.replaceChildren(note);
+}
+
+// Loads (and, while "pending", keeps re-polling) one sidecar card. While
+// pending the card shows a "still checking" spinner; a server-reported
+// "failed" or running past totalCapMs leaves an explicit failed/timed-out
+// note in the card. Polling stops — and the card is dropped — once the card
+// is no longer on the page (removed, or replaced by a new annotation
+// run/re-render, which rebuilds the whole results list) or the flag turns
+// off. A transport error still just drops the card (as before), and the
+// next render retries.
 function loadOpenEvidenceCard(card, body, request) {
   const startedAt = Date.now();
   let delayMs = null;
   const poll = () => enqueueOpenEvidenceFetch(() => request().then(handle).catch(() => card.remove()));
   const handle = (response) => {
+    if (response?.status === "failed") {
+      renderOpenEvidenceCardNotice(body, OPENEVIDENCE_MESSAGES.failed, "failed");
+      return;
+    }
     if (response?.status !== "pending") {
       renderOpenEvidenceCardBody(card, body, response);
       return;
     }
+    if (delayMs === null) body.replaceChildren(renderLoadingState(OPENEVIDENCE_MESSAGES.pending));
     delayMs = nextOpenEvidencePollDelayMs(response, delayMs);
     if (Date.now() - startedAt + delayMs > OPENEVIDENCE_POLL.totalCapMs) {
-      card.remove();
+      renderOpenEvidenceCardNotice(body, OPENEVIDENCE_MESSAGES.timeout, "timeout");
       return;
     }
     setTimeout(() => {
@@ -3396,3 +3498,4 @@ renderGrid();
 updateExportState();
 loadDevStatus();
 loadSharedRun();
+checkAuth();

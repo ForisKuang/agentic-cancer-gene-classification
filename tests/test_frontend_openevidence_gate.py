@@ -57,7 +57,8 @@ def test_openevidence_frontend_gate():
 def test_openevidence_frontend_pending_polling():
     """The sidecar card's "pending + poll" handling (see
     tests/frontend/test_openevidence_polling.js): poll -> ready renders,
-    failed/timeout removes the card, polling stops when the card is removed
-    or replaced or the flag turns off, the flag off still makes zero
-    requests, and pending cards don't hog the client fetch queue."""
+    pending shows a "still checking" state, failed/timeout leave an explicit
+    note in the card, polling stops when the card is removed or replaced or
+    the flag turns off, the flag off still makes zero requests, and pending
+    cards don't hog the client fetch queue."""
     _run_node_script(_POLLING_TEST_SCRIPT, "pending-polling")

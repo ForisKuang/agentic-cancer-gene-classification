@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import contextvars
 import hashlib
 import logging
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
+from typing import Any, Dict, Optional
 
 from src.config import settings
 
@@ -132,3 +134,113 @@ def tag_current_span(tags: dict) -> None:
     span = tracer.current_span()
     if span is not None:
         span.set_tags(tags)
+
+
+_current_user_context: contextvars.ContextVar[Optional[Dict[str, Any]]] = contextvars.ContextVar(
+    "_current_user_context", default=None
+)
+
+
+def set_user_context(
+    user_id: Optional[str],
+    email: Optional[str] = None,
+    name: Optional[str] = None,
+    role: Optional[str] = None,
+    domain: Optional[str] = None,
+) -> contextvars.Token:
+    """Sets request-scoped user context for logging and observability."""
+    ctx = {
+        "user_id": user_id or "",
+        "email": email or user_id or "",
+        "name": name or "",
+        "role": role or "",
+        "domain": domain or "",
+    }
+    return _current_user_context.set(ctx)
+
+
+def get_user_context() -> Dict[str, Any]:
+    """Returns the current request-scoped user context, or an empty dict if none set."""
+    ctx = _current_user_context.get()
+    return ctx if ctx is not None else {}
+
+
+def reset_user_context(token: contextvars.Token) -> None:
+    """Resets the user context to its previous state."""
+    _current_user_context.reset(token)
+
+
+def tag_user(
+    user_id: Optional[str],
+    email: Optional[str] = None,
+    name: Optional[str] = None,
+    role: Optional[str] = None,
+) -> None:
+    """Tags active Datadog APM span with standard user metadata (usr.id, usr.email, usr.name, usr.role)."""
+    if not user_id:
+        return
+    try:
+        from ddtrace import tracer
+
+        if hasattr(tracer, "set_user"):
+            tracer.set_user(user_id=user_id, email=email or user_id, name=name or "", role=role or "")
+        else:
+            span = tracer.current_span()
+            if span is not None:
+                tags = {"usr.id": user_id, "usr.email": email or user_id}
+                if name:
+                    tags["usr.name"] = name
+                if role:
+                    tags["usr.role"] = role
+                span.set_tags(tags)
+    except Exception:  # pragma: no cover
+        pass
+
+
+def record_user_action(
+    user_id: Optional[str],
+    action: str,
+    details: Optional[Dict[str, Any]] = None,
+    tags: Optional[Iterable[str]] = None,
+) -> None:
+    """Emits a structured audit log and DogStatsD metrics for a user action.
+
+    Structured log format:
+        USER_ACTION: action=<action> user=<email> <details>
+    This allows instant grouping, filtering, and leaderboard analytics in Datadog Log Explorer.
+    """
+    clean_user = user_id.strip() if user_id and user_id.strip() else "anonymous"
+    extra_details = dict(details or {})
+
+    detail_str = " ".join(f"{k}={v}" for k, v in extra_details.items())
+    msg_suffix = f" {detail_str}" if detail_str else ""
+
+    token = None
+    if user_id and not get_user_context().get("user_id"):
+        token = set_user_context(user_id=clean_user, email=clean_user)
+
+    try:
+        logger.info(
+            "USER_ACTION: action=%s user=%s%s",
+            action,
+            clean_user,
+            msg_suffix,
+            extra={
+                "user_action": action,
+                "user_identity": clean_user,
+                **{k: v for k, v in extra_details.items() if not k.startswith("usr.") and not k.startswith("dd.")},
+            },
+        )
+    finally:
+        if token is not None:
+            reset_user_context(token)
+
+    if user_id and user_id.strip():
+        set_metric("users.active", stable_user_key(user_id), tags=tags)
+        metric_tags = list(tags or []) + [f"action:{action}"]
+        if getattr(settings, "datadog_tag_user_metrics", True):
+            metric_tags.append(f"user:{user_id.strip().lower()}")
+        increment("users.activity", tags=metric_tags)
+    else:
+        anon_tags = list(tags or []) + [f"action:{action}"]
+        increment("users.anonymous_requests", tags=anon_tags)

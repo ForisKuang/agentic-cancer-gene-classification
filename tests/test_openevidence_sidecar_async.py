@@ -394,3 +394,90 @@ async def test_flag_off_starts_no_task_touches_no_client_or_redis(monkeypatch, u
     assert http.json() == {"available": False, "distilled": None, "error": None}
     assert main._openevidence_sidecar_tasks == {}
     assert upstream.calls == []
+
+
+async def test_hung_lookup_times_out_as_failed_and_clears_its_marker(monkeypatch, fake_redis, upstream):
+    monkeypatch.setattr(main.settings, "openevidence_sidecar_lookup_timeout_seconds", 0.05)
+    first, _ = await _request("ALK")  # upstream is never released: the call hangs
+    assert first.status == "pending"
+    await _wait_for_background_lookups()
+
+    result, response = await _request("ALK")
+    assert response.status_code == 200
+    assert result.status == "failed"
+    assert "timed out" in result.error
+    assert len(upstream.calls) == 1
+    assert fake_redis.keys_with_prefix("openevidence:") == []
+    assert fake_redis.keys_with_prefix("openevidence_inflight:") == []
+    assert len(fake_redis.keys_with_prefix("openevidence_failed:")) == 1
+
+
+async def test_lookup_is_tracked_with_the_shared_background_tasks(fake_redis, upstream):
+    await _request("ALK")
+    (task,) = main._openevidence_sidecar_tasks.values()
+    assert task in main._background_tasks
+    upstream.release()
+    await _wait_for_background_lookups()
+    assert task not in main._background_tasks
+
+
+async def test_finished_lookup_memos_are_bounded(monkeypatch, fake_redis, upstream):
+    monkeypatch.setattr(main, "_OPENEVIDENCE_SIDECAR_MEMO_MAX", 2)
+    upstream.fail_with = RuntimeError("boom")
+    upstream.release()
+    for gene in ("ALK", "BRAF", "EGFR"):
+        result, _ = await _request(gene)
+        assert result.status == "failed"
+    await _wait_for_background_lookups()
+    assert list(main._openevidence_sidecar_failures) == [
+        openevidence.sidecar_cache_key(gene, None, None) for gene in ("BRAF", "EGFR")
+    ]
+
+
+async def test_shutdown_cancels_inflight_lookups_and_clears_markers(fake_redis, upstream):
+    result, _ = await _request("ALK")
+    assert result.status == "pending"
+    (task,) = main._openevidence_sidecar_tasks.values()
+
+    await main._cancel_openevidence_sidecar_lookups()
+    await asyncio.sleep(0)
+
+    assert task.cancelled()
+    assert main._openevidence_sidecar_tasks == {}
+    assert task not in main._background_tasks
+    assert fake_redis.keys_with_prefix("openevidence_inflight:") == []
+    # A cancelled lookup is neither cached nor remembered as failed.
+    assert fake_redis.keys_with_prefix("openevidence:") == []
+    assert fake_redis.keys_with_prefix("openevidence_failed:") == []
+
+
+async def test_sidecar_requires_auth_when_enabled(monkeypatch, fake_redis, upstream):
+    monkeypatch.setattr(main.settings, "auth_enabled", True)
+    monkeypatch.setattr(main.settings, "auth_secret_key", "secret-key-for-testing")
+
+    async with _asgi_client() as client:
+        http = await client.get("/v1/genes/ALK/openevidence")
+
+    assert http.status_code == 401
+    assert main._openevidence_sidecar_tasks == {}
+    assert upstream.calls == []
+
+
+async def test_authenticated_client_can_poll_until_ready(monkeypatch, fake_redis, upstream):
+    monkeypatch.setattr(main.settings, "auth_enabled", True)
+    user = main.AuthenticatedUser(
+        email="curator@mskcc.org", name="Curator", domain="mskcc.org", role="curator", provider="keycloak"
+    )
+    monkeypatch.setitem(main.app.dependency_overrides, main.require_auth, lambda: user)
+
+    async with _asgi_client() as client:
+        pending = await client.get("/v1/genes/ALK/openevidence")
+        assert pending.status_code == 503
+        assert pending.json()["status"] == "pending"
+        upstream.release()
+        await _wait_for_background_lookups()
+        ready = await client.get("/v1/genes/ALK/openevidence")
+
+    assert ready.status_code == 200
+    assert ready.json()["status"] == "ready"
+    assert len(upstream.calls) == 1
