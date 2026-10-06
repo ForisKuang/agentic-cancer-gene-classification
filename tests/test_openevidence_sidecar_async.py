@@ -589,3 +589,121 @@ async def test_lease_scripts_check_ownership_on_real_redis():
 
 
 _INFLIGHT_PREFIX = "openevidence_inflight:"
+
+
+class PerCallUpstream:
+    """Each upstream call blocks until the test settles it by index, so one
+    owner's call can fail while another owner's call is still running."""
+
+    def __init__(self) -> None:
+        self.calls: List[str] = []
+        self._results: List[asyncio.Future] = []
+
+    async def __call__(self, question: str, api_key: str, client: httpx.AsyncClient) -> str:
+        future = asyncio.get_running_loop().create_future()
+        self.calls.append(question)
+        self._results.append(future)
+        return await future
+
+    def succeed(self, index: int) -> None:
+        self._results[index].set_result(_SSE_STREAM)
+
+    def fail(self, index: int, exc: BaseException) -> None:
+        self._results[index].set_exception(exc)
+
+
+@pytest.fixture
+def per_call_upstream(monkeypatch):
+    fake = PerCallUpstream()
+    monkeypatch.setattr(openevidence, "_post_streaming_analysis", fake)
+    return fake
+
+
+def _live_heartbeats() -> List[asyncio.Task]:
+    return [
+        task
+        for task in asyncio.all_tasks()
+        if not task.done() and getattr(task.get_coro(), "__name__", "") == "_keep_openevidence_lease_alive"
+    ]
+
+
+async def _lose_lease_to_another_pod(fake_redis, upstream) -> Tuple[asyncio.Task, bytes]:
+    key = openevidence.sidecar_cache_key("ALK", None, None)
+    with _as_other_pod():
+        result, _ = await _request("ALK")  # pod B claims the (now free) lease and calls upstream
+        assert result.status == "pending"
+        pod_b = main._openevidence_sidecar_tasks[key]
+    assert len(upstream.calls) == 2
+    b_token = await fake_redis.get(_inflight_key("ALK"))
+    assert b_token is not None
+    return pod_b, b_token
+
+
+async def _assert_stale_failure_discarded(fake_redis, upstream, pod_a, pod_b, b_token) -> None:
+    key = openevidence.sidecar_cache_key("ALK", None, None)
+    upstream.fail(0, RuntimeError("stale owner failure"))  # A fails while B is still running
+    await asyncio.wait_for(pod_a, timeout=2.0)
+
+    assert pod_a.result() is None, "a lookup that lost its lease must not report a failure"
+    assert fake_redis.keys_with_prefix("openevidence_failed:") == []
+    assert main._openevidence_memo_get(main._openevidence_sidecar_failures, key) is None
+    assert await fake_redis.get(_inflight_key("ALK")) == b_token, "B's lease must be untouched"
+    assert len(_live_heartbeats()) == 1  # only B's; A's heartbeat ended with A
+    with _as_other_pod():
+        result, _ = await _request("ALK")  # a third pod polling meanwhile
+    assert result.status == "pending"
+    result, _ = await _request("ALK")  # pod A's own next poll
+    assert result.status == "pending"
+
+    upstream.succeed(1)
+    await asyncio.wait_for(pod_b, timeout=2.0)
+    await _wait_for_background_lookups()
+    assert _live_heartbeats() == []
+    result, _ = await _request("ALK")
+    assert result.status == "ready"
+    assert len(upstream.calls) == 2
+
+
+async def test_lookup_that_lost_its_lease_mid_call_publishes_no_failure(fake_redis, per_call_upstream):
+    result, _ = await _request("ALK")
+    assert result.status == "pending"
+    pod_a = main._openevidence_sidecar_tasks[openevidence.sidecar_cache_key("ALK", None, None)]
+    await fake_redis.delete(_inflight_key("ALK"))  # Redis lost A's lease mid-call
+
+    pod_b, b_token = await _lose_lease_to_another_pod(fake_redis, per_call_upstream)
+    await _assert_stale_failure_discarded(fake_redis, per_call_upstream, pod_a, pod_b, b_token)
+
+
+async def test_heartbeat_noticing_lease_loss_discards_the_outcome_and_stops(
+    monkeypatch, fake_redis, per_call_upstream
+):
+    monkeypatch.setattr(main.settings, "openevidence_sidecar_inflight_ttl_seconds", 0.3)
+    result, _ = await _request("ALK")
+    assert result.status == "pending"
+    pod_a = main._openevidence_sidecar_tasks[openevidence.sidecar_cache_key("ALK", None, None)]
+    assert len(_live_heartbeats()) == 1
+
+    await fake_redis.delete(_inflight_key("ALK"))
+    await asyncio.sleep(0.25)  # A's heartbeat (every 0.1s) notices the loss...
+    assert _live_heartbeats() == [], "...and stops rather than leaking"
+
+    pod_b, b_token = await _lose_lease_to_another_pod(fake_redis, per_call_upstream)
+    await _assert_stale_failure_discarded(fake_redis, per_call_upstream, pod_a, pod_b, b_token)
+
+
+async def test_failure_publication_checks_ownership_on_real_redis():
+    client = cache_module._get_client()
+    try:
+        await client.ping()
+    except Exception as exc:
+        pytest.skip(f"Redis not reachable: {exc}")
+    key = "publish-test"
+    owner = await openevidence.claim_inflight_marker(key, 600)
+    assert await openevidence.publish_failure_and_release(key, "someone-else", "boom", 300) is False
+    assert await client.get("openevidence_failed:" + key) is None
+    assert await client.get(_INFLIGHT_PREFIX + key) == owner.encode()
+
+    assert await openevidence.publish_failure_and_release(key, owner, "boom", 300) is True
+    assert await client.get("openevidence_failed:" + key) == b"boom"
+    assert 0 < await client.pttl("openevidence_failed:" + key) <= 300_000
+    assert await client.get(_INFLIGHT_PREFIX + key) is None

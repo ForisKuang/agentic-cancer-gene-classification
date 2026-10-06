@@ -102,7 +102,7 @@ from src.pipeline.openevidence import (
     distilled_openevidence_has_additive_content,
     get_cached_gene_analysis,
     get_failed_marker,
-    record_failed_marker,
+    publish_failure_and_release,
     release_inflight_marker,
     renew_inflight_marker,
     sidecar_cache_key,
@@ -474,15 +474,16 @@ def _live_openevidence_sidecar_task(key: str) -> "Optional[asyncio.Task[Optional
     return task
 
 
-async def _keep_openevidence_lease_alive(key: str, token: str) -> None:
+async def _keep_openevidence_lease_alive(key: str, token: str, lost: asyncio.Event) -> None:
     """Renew this owner's in-flight lease every third of its TTL for as
     long as the lookup lives (queued or calling upstream), so queue time
-    behind the concurrency cap can't let it lapse. Stops once the lease is
-    lost; the lookup re-checks ownership itself before the paid call."""
+    behind the concurrency cap can't let it lapse. On losing the lease it
+    sets `lost` — the lookup then discards its outcome — and stops."""
     ttl = float(settings.openevidence_sidecar_inflight_ttl_seconds)
     while True:
         await asyncio.sleep(max(0.01, ttl / 3))
         if not await renew_inflight_marker(key, token, ttl):
+            lost.set()
             return
 
 
@@ -493,11 +494,21 @@ async def _run_openevidence_sidecar_lookup(
     in-flight lease `token`. Returns None on success (the analysis is then
     in the normal cache and the result memo) or the error string on failure
     (recorded as a short-lived failed marker — the failed answer itself is
-    never cached). Also returns None, with nothing memoized, if the lease
-    was lost before the paid call (another pod owns the lookup now; polls
-    answer "pending" until its result lands in the shared cache). Never
-    raises for a lookup failure."""
-    heartbeat = asyncio.create_task(_keep_openevidence_lease_alive(key, token))
+    never cached). Never raises for a lookup failure.
+
+    Losing the lease (to expiry or a Redis that dropped the key, after
+    which another pod may own the lookup) means this lookup no longer
+    speaks for the key: if lost before the paid call, the lookup is
+    abandoned; if lost mid-call, a failure is discarded rather than
+    published (publication is also atomically ownership-checked in Redis,
+    see publish_failure_and_release), and the call returns None with
+    nothing memoized, so polls answer "pending" until the new owner's
+    outcome lands. A *successful* analysis is still kept even then: it is
+    genuine data for this cache key (get_gene_analysis has already written
+    it to the shared cache by the time we know), equivalent to what the new
+    owner will write, and serving it sooner is strictly better."""
+    lease_lost = asyncio.Event()
+    heartbeat = asyncio.create_task(_keep_openevidence_lease_alive(key, token, lease_lost))
     try:
         async with _openevidence_sidecar_semaphore():
             # Last ownership check right before the paid call: if the lease
@@ -518,10 +529,12 @@ async def _run_openevidence_sidecar_lookup(
                 raise TimeoutError(f"OpenEvidence lookup timed out after {lookup_timeout:g}s") from None
     except Exception as exc:
         error = str(exc) or exc.__class__.__name__
-        logger.warning("OpenEvidence sidecar lookup failed for %s: %s", gene, error)
         failed_ttl = settings.openevidence_sidecar_failed_ttl_seconds
+        if lease_lost.is_set() or not await publish_failure_and_release(key, token, error, failed_ttl):
+            logger.info("OpenEvidence sidecar lookup for %s failed after losing its lease (%s); discarded", gene, error)
+            return None
+        logger.warning("OpenEvidence sidecar lookup failed for %s: %s", gene, error)
         _openevidence_memo_put(_openevidence_sidecar_failures, key, failed_ttl, error)
-        await record_failed_marker(key, error, failed_ttl)
         return error
     else:
         _openevidence_memo_put(
@@ -530,7 +543,7 @@ async def _run_openevidence_sidecar_lookup(
         return None
     finally:
         heartbeat.cancel()
-        await release_inflight_marker(key, token)
+        await release_inflight_marker(key, token)  # no-op unless this token still owns it
 
 
 def _start_openevidence_sidecar_lookup(

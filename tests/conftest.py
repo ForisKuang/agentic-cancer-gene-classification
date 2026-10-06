@@ -125,19 +125,24 @@ class FakeRedis:
         return sum(1 for key in keys if self._store.pop(key, None) is not None)
 
     async def eval(self, script: str, numkeys: int, *keys_and_args):
-        """The sidecar's compare-and-renew / compare-and-delete lease
-        scripts (src.pipeline.openevidence), with the same semantics."""
+        """The sidecar's lease scripts (src.pipeline.openevidence: renew,
+        release, publish-failure-and-release), with the same semantics."""
         from src.pipeline import openevidence
 
-        key, token, *rest = keys_and_args
-        current = self._live(key)
+        keys, args = keys_and_args[:numkeys], keys_and_args[numkeys:]
+        lease_key, token = keys[0], args[0]
+        current = self._live(lease_key)
         if current is None or current.decode() != str(token):
             return 0
         if script == openevidence._RENEW_LEASE_SCRIPT:
-            self._store[key] = (current, self.now + int(rest[0]) / 1000)
+            self._store[lease_key] = (current, self.now + int(args[1]) / 1000)
             return 1
         if script == openevidence._RELEASE_LEASE_SCRIPT:
-            del self._store[key]
+            del self._store[lease_key]
+            return 1
+        if script == openevidence._PUBLISH_FAILURE_SCRIPT:
+            self._store[keys[1]] = (str(args[1]).encode(), self.now + int(args[2]) / 1000)
+            del self._store[lease_key]
             return 1
         raise NotImplementedError("FakeRedis.eval only knows the sidecar lease scripts")
 

@@ -923,14 +923,38 @@ async def release_inflight_marker(cache_key: str, token: str) -> None:
         logger.warning("OpenEvidence in-flight marker release failed for %r: %s", cache_key, exc)
 
 
-async def record_failed_marker(cache_key: str, error: str, ttl_seconds: int) -> None:
-    """Remember a failed lookup for a few minutes so polling clients get
-    "failed" and stop, instead of each poll re-triggering a paid call. The
-    failed ANSWER itself is still never cached."""
+_PUBLISH_FAILURE_SCRIPT = """
+if redis.call("GET", KEYS[1]) == ARGV[1] then
+  redis.call("SET", KEYS[2], ARGV[2], "PX", ARGV[3])
+  redis.call("DEL", KEYS[1])
+  return 1
+end
+return 0
+"""
+
+
+async def publish_failure_and_release(cache_key: str, token: str, error: str, ttl_seconds: float) -> bool:
+    """Atomically, iff `token` still owns the in-flight lease: record the
+    failed marker (so polling clients get "failed" and stop, instead of each
+    poll re-triggering a paid call) and release the lease. Returns False —
+    publishing nothing — when another owner holds the lease or it is gone:
+    a stale owner must never report a failure for the newer owner's lookup.
+    Fails open (True, nothing written) when Redis is unreachable. The failed
+    ANSWER itself is still never cached."""
     try:
-        await _get_client().set(_FAILED_MARKER_PREFIX + cache_key, error, ex=max(1, int(ttl_seconds)))
+        published = await _get_client().eval(
+            _PUBLISH_FAILURE_SCRIPT,
+            2,
+            _INFLIGHT_MARKER_PREFIX + cache_key,
+            _FAILED_MARKER_PREFIX + cache_key,
+            token,
+            error,
+            _lease_ms(ttl_seconds),
+        )
     except Exception as exc:
-        logger.warning("OpenEvidence failed-marker write failed for %r: %s", cache_key, exc)
+        logger.warning("OpenEvidence failed-marker publish failed for %r: %s", cache_key, exc)
+        return True
+    return bool(published)
 
 
 async def get_failed_marker(cache_key: str) -> Optional[str]:
