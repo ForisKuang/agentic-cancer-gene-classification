@@ -2248,6 +2248,11 @@ function syncOpenEvidenceRun(runId) {
   if (runId === openEvidenceTerminal.runId) return;
   openEvidenceTerminal.runId = runId;
   openEvidenceTerminal.byKey.clear();
+  // A genuinely new run must not inherit an old run's lifecycle (and with
+  // it the rest of that run's deadline): cancel them so its cards start
+  // fresh ones. (A job's job_id -> run_id switch is adopted beforehand,
+  // so it never gets here.)
+  cancelOpenEvidenceCardLoads();
 }
 
 // Renames the current run from a job's progress id to its final run_id —

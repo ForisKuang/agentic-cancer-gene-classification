@@ -435,6 +435,26 @@ async function test_repeated_rerenders_do_not_extend_or_restart_the_deadline() {
   assert.ok(notices.length > 1 && notices.every((notice) => notice.kind === "timeout"), "the timeout note persists");
 }
 
+async function test_a_new_run_does_not_inherit_an_old_runs_deadline() {
+  const { sandbox, callsFor, notices, aborted } = await setup(
+    { ALK: () => new Promise(() => {}) },
+    { poll: { totalCapMs: 80 } }
+  );
+  const runA = result("ALK");
+  renderRun(sandbox, runA);
+  await sleep(50); // 50ms into run A's 80ms deadline
+
+  const runBStartedAt = Date.now();
+  renderRun(sandbox, { ...runA, run_id: "run-B" });
+  assert.strictEqual(aborted.length, 1, "run A's request is cancelled");
+  await waitFor(() => callsFor("ALK").length === 2, "run B to make its own request");
+  await sleep(45); // past run A's deadline, well inside run B's
+  assert.strictEqual(notices.length, 0, "run B must not time out on run A's deadline");
+
+  await waitFor(() => notices.length === 1, "run B's own deadline to expire");
+  assert.ok(Date.now() - runBStartedAt >= 75, `run B timed out after ${Date.now() - runBStartedAt}ms`);
+}
+
 async function test_job_completion_switching_to_the_final_run_id_is_the_same_run() {
   // Drives the real pollAnnotationJob: one "running" status (rendered with
   // run_id = job_id) during which ALK times out, then "complete" with the
@@ -536,6 +556,7 @@ const TESTS = [
   test_repeated_rerenders_do_not_extend_or_restart_the_deadline,
   test_a_new_run_retries_a_key_that_timed_out,
   test_job_completion_switching_to_the_final_run_id_is_the_same_run,
+  test_a_new_run_does_not_inherit_an_old_runs_deadline,
   test_queued_card_removed_before_its_turn_makes_no_request,
   test_stalled_request_times_out_frees_its_slot_and_ignores_late_answers,
 ];
