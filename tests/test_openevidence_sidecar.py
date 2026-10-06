@@ -34,12 +34,14 @@ from src.pipeline.openevidence import (
 )
 
 @pytest.fixture(autouse=True)
-def _reset_openevidence_sidecar_state():
-    """The sidecar's in-process task registry and result/failure memos are
-    module-level — clear them so one test's lookup can't answer another's."""
-    main._reset_openevidence_sidecar_state()
-    yield
-    main._reset_openevidence_sidecar_state()
+def _isolated_sidecar_redis(fake_redis):
+    """The sidecar endpoint peeks the OpenEvidence cache and claims Redis
+    in-flight/failed markers. These tests drive it through TestClient, whose
+    request runs on its own event loop — keep it off the shared real Redis
+    client (bound to the test's loop, and flushed by other runs) by using
+    conftest's in-memory FakeRedis. conftest's _reset_openevidence_sidecar
+    clears the sidecar's module state between tests."""
+    return fake_redis
 
 
 # Real, live-captured citation shapes (see tests/test_openevidence.py) reused

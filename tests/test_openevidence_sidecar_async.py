@@ -5,8 +5,8 @@ A cold OpenEvidence call takes ~90-290s — longer than the prod ingress's 300s
 request timeout reliably allows — so a cache miss must start the lookup in
 the background and answer "pending" right away instead of holding the
 request open. These tests run the real OpenEvidenceClient.get_gene_analysis
-(and its real cached_call cache write) against an in-memory fake Redis with a
-controllable clock, replacing only the upstream HTTP call
+(and its real cached_call cache write) against conftest's in-memory FakeRedis
+with a controllable clock, replacing only the upstream HTTP call
 (_post_streaming_analysis), so "exactly one upstream call" means exactly one
 paid OpenEvidence request.
 """
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import httpx
 import pytest
@@ -41,48 +41,6 @@ _SSE_STREAM = (
 )
 
 
-class FakeRedis:
-    """Just enough of redis.asyncio.Redis (get/set with ex+nx/delete) for the
-    sidecar's cache and marker keys, with a manually advanced clock so TTL
-    expiry is deterministic."""
-
-    def __init__(self) -> None:
-        self.now = 0.0
-        self._store: Dict[str, Tuple[bytes, Optional[float]]] = {}
-
-    def advance(self, seconds: float) -> None:
-        self.now += seconds
-
-    def _live(self, key: str) -> Optional[bytes]:
-        entry = self._store.get(key)
-        if entry is None:
-            return None
-        value, expires_at = entry
-        if expires_at is not None and expires_at <= self.now:
-            del self._store[key]
-            return None
-        return value
-
-    def keys_with_prefix(self, prefix: str) -> List[str]:
-        return [key for key in list(self._store) if key.startswith(prefix) and self._live(key) is not None]
-
-    async def get(self, key: str) -> Optional[bytes]:
-        return self._live(key)
-
-    async def set(self, key: str, value, ex: Optional[int] = None, nx: bool = False):
-        if nx and self._live(key) is not None:
-            return None
-        data = value.encode() if isinstance(value, str) else value
-        self._store[key] = (data, self.now + ex if ex else None)
-        return True
-
-    async def delete(self, *keys: str) -> int:
-        return sum(1 for key in keys if self._store.pop(key, None) is not None)
-
-    async def flushdb(self) -> None:
-        self._store.clear()
-
-
 class FakeUpstream:
     """Stands in for the paid OpenEvidence HTTP call. Blocks until
     `release()` (so a lookup can be held "in flight"), then returns a real
@@ -105,13 +63,6 @@ class FakeUpstream:
 
 
 @pytest.fixture
-def fake_redis(monkeypatch):
-    redis = FakeRedis()
-    monkeypatch.setattr(cache_module, "_client", redis)
-    return redis
-
-
-@pytest.fixture
 def upstream(monkeypatch):
     fake = FakeUpstream()
     monkeypatch.setattr(openevidence, "_post_streaming_analysis", fake)
@@ -126,10 +77,9 @@ def _sidecar_settings(monkeypatch):
     monkeypatch.setattr(main.settings, "openevidence_sidecar_retry_after_seconds", 10)
     monkeypatch.setattr(main.settings, "openevidence_sidecar_inflight_ttl_seconds", 600)
     monkeypatch.setattr(main.settings, "openevidence_sidecar_failed_ttl_seconds", 300)
-    main._openevidence_sidecar_semaphores.clear()
-    main._reset_openevidence_sidecar_state()
+    # conftest's _reset_openevidence_sidecar cancels leftover lookups and
+    # clears the registry/memos/semaphores around every test.
     yield
-    main._reset_openevidence_sidecar_state()
 
 
 async def _request(gene: str = "ALK", **params) -> Tuple[main.OpenEvidenceSidecarResponse, Response]:

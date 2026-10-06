@@ -1,5 +1,8 @@
 """Shared test fixtures."""
 
+import sys
+from typing import Dict, List, Optional, Tuple
+
 import pytest
 
 from src.pipeline import cache as cache_module
@@ -58,3 +61,78 @@ def _default_auth_disabled(monkeypatch):
     """Ensure tests run with auth_enabled=False by default (individual auth tests monkeypatch it to True)."""
     from src.config import settings
     monkeypatch.setattr(settings, "auth_enabled", False)
+
+
+@pytest.fixture(autouse=True)
+async def _reset_openevidence_sidecar(monkeypatch):
+    """Cancel any OpenEvidence sidecar lookup a test left running and clear
+    the sidecar's module-level state (task registry, result/failure memos,
+    per-limit semaphores) after every test.
+
+    The sidecar's background lookups outlive the request that started them
+    by design, so a test that returns "pending" leaves a live task behind; a
+    lookup stranded on a closed event loop (e.g. a TestClient portal loop)
+    can also hold a semaphore slot forever. Requesting `monkeypatch` makes
+    this teardown run before the test's monkeypatches (fake Redis, fake
+    upstream) are undone, so cancelled lookups clean up against the fakes.
+    Only touches src.main if a test already imported it.
+    """
+    yield
+    main = sys.modules.get("src.main")
+    if main is not None:
+        await main._cancel_openevidence_sidecar_lookups()
+        main._reset_openevidence_sidecar_state()
+
+
+class FakeRedis:
+    """Just enough of redis.asyncio.Redis (get/set with ex+nx/delete) for the
+    sidecar's cache and marker keys, with a manually advanced clock so TTL
+    expiry is deterministic."""
+
+    def __init__(self) -> None:
+        self.now = 0.0
+        self._store: Dict[str, Tuple[bytes, Optional[float]]] = {}
+
+    def advance(self, seconds: float) -> None:
+        self.now += seconds
+
+    def _live(self, key: str) -> Optional[bytes]:
+        entry = self._store.get(key)
+        if entry is None:
+            return None
+        value, expires_at = entry
+        if expires_at is not None and expires_at <= self.now:
+            del self._store[key]
+            return None
+        return value
+
+    def keys_with_prefix(self, prefix: str) -> List[str]:
+        return [key for key in list(self._store) if key.startswith(prefix) and self._live(key) is not None]
+
+    async def get(self, key: str) -> Optional[bytes]:
+        return self._live(key)
+
+    async def set(self, key: str, value, ex: Optional[int] = None, nx: bool = False):
+        if nx and self._live(key) is not None:
+            return None
+        data = value.encode() if isinstance(value, str) else value
+        self._store[key] = (data, self.now + ex if ex else None)
+        return True
+
+    async def delete(self, *keys: str) -> int:
+        return sum(1 for key in keys if self._store.pop(key, None) is not None)
+
+    async def flushdb(self) -> None:
+        self._store.clear()
+
+
+@pytest.fixture
+def fake_redis(monkeypatch):
+    """Install an in-memory FakeRedis as the cache module's client, so a test
+    never touches the shared real Redis (which other test runs may be
+    flushing) or uses a client bound to another event loop."""
+    from src.pipeline import cache as cache_module
+
+    redis = FakeRedis()
+    monkeypatch.setattr(cache_module, "_client", redis)
+    return redis

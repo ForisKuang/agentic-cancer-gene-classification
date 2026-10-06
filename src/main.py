@@ -427,10 +427,13 @@ _OPENEVIDENCE_SIDECAR_MEMO_MAX = 256
 
 
 def _reset_openevidence_sidecar_state() -> None:
-    """Forget all in-process sidecar lookup state (for tests)."""
+    """Forget all in-process sidecar lookup state, including the per-limit
+    semaphores (a lookup stranded on a closed event loop could otherwise
+    hold a slot forever). For tests."""
     _openevidence_sidecar_tasks.clear()
     _openevidence_sidecar_failures.clear()
     _openevidence_sidecar_results.clear()
+    _openevidence_sidecar_semaphores.clear()
 
 
 def _openevidence_memo_get(memo: Dict[str, Tuple[float, Any]], key: str) -> Any:
@@ -532,7 +535,10 @@ async def _cancel_openevidence_sidecar_lookups() -> None:
     """Cancel in-flight sidecar lookups at shutdown so no task outlives the
     app (each one's `finally` still clears its Redis in-flight marker, so
     another pod can pick the key up straight away)."""
-    tasks = [task for task in _openevidence_sidecar_tasks.values() if not task.done()]
+    loop = asyncio.get_running_loop()
+    # Only this loop's tasks can be awaited here (in prod there is one loop
+    # per worker; in tests a lookup may be stranded on a closed loop).
+    tasks = [task for task in _openevidence_sidecar_tasks.values() if not task.done() and task.get_loop() is loop]
     for task in tasks:
         task.cancel()
     if tasks:
