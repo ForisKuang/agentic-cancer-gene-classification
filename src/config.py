@@ -210,11 +210,16 @@ class Settings(BaseSettings):
     # How long a failed lookup answers "failed" (without re-calling the paid
     # API) before a new request may retry it. Failed answers are never cached.
     openevidence_sidecar_failed_ttl_seconds: int = 300
-    # Hard cap on one background lookup's upstream call (queue time behind
-    # openevidence_sidecar_concurrency excluded). Kept below the in-flight
-    # TTL so a hung call fails ("failed") before its marker could expire and
-    # let another pod start a duplicate.
-    openevidence_sidecar_lookup_timeout_seconds: float = 540.0
+    # Overall wall-clock budget for one background lookup's upstream call
+    # (queue time behind openevidence_sidecar_concurrency excluded); a lookup
+    # past it answers "failed". openevidence_timeout_seconds is only a
+    # per-read inactivity timeout, so a trickling stream needs this cap. It
+    # is never applied below openevidence_timeout_seconds x 1.25 (see main.py's
+    # _openevidence_sidecar_lookup_budget_seconds), and the in-flight lease is
+    # heartbeat-renewed throughout, so it may exceed the lease TTL. Keep it
+    # below the UI's 20-minute polling deadline (OPENEVIDENCE_POLL.totalCapMs
+    # in app.js), or the card gives up before the lookup does.
+    openevidence_sidecar_lookup_timeout_seconds: float = 900.0
 
     # Authentication & SSO Settings
     auth_enabled: bool = False

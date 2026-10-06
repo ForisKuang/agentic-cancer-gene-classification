@@ -2175,8 +2175,9 @@ function enqueueOpenEvidenceFetch(job) {
 
 // "Pending + poll": on a cache miss the server starts the (90-290s)
 // OpenEvidence lookup in the background and answers status "pending" (HTTP
-// 503 + retry_after_seconds) instead of holding the request open past the
-// ingress timeout — see GET /v1/genes/{gene}/openevidence in main.py. The
+// 202 + retry_after_seconds, because we send OPENEVIDENCE_POLL_HEADERS)
+// instead of holding the request open past the ingress timeout — see
+// GET /v1/genes/{gene}/openevidence in main.py. The
 // card keeps its loading state and re-polls the same URL with backoff: the
 // first delay is the server's retry_after hint, then x1.5 per poll, capped
 // at maxDelayMs, and the card gives up after totalCapMs. Each poll is its
@@ -2187,8 +2188,16 @@ const OPENEVIDENCE_POLL = {
   minDelayMs: 1000,
   maxDelayMs: 20000,
   backoff: 1.5,
-  totalCapMs: 12 * 60 * 1000,
+  // Must exceed the server's per-lookup budget
+  // (OPENEVIDENCE_SIDECAR_LOOKUP_TIMEOUT_SECONDS, 900s by default) plus some
+  // queue time, so the card never gives up on a lookup that can still finish.
+  totalCapMs: 20 * 60 * 1000,
 };
+
+// Tells the server this client understands status "pending", so it answers
+// pending with 202 rather than the 503 it keeps for old cached frontends
+// that don't (see get_gene_openevidence's docstring in main.py).
+const OPENEVIDENCE_POLL_HEADERS = { "X-OpenEvidence-Poll": "1" };
 
 function nextOpenEvidencePollDelayMs(response, previousDelayMs) {
   const hintSeconds = Number(response?.retry_after_seconds);
@@ -2463,11 +2472,14 @@ function fetchGeneOpenEvidence(
     if (state.openEvidenceByGene[key] === promise) delete state.openEvidenceByGene[key];
   };
   const url = `/v1/genes/${encodeURIComponent(gene)}/openevidence${query ? `?${query}` : ""}`;
-  const promise = (signal ? fetch(url, { signal }) : fetch(url))
+  const init = { headers: OPENEVIDENCE_POLL_HEADERS };
+  if (signal) init.signal = signal;
+  const promise = fetch(url, init)
     .then(async (response) => {
-      // A "pending" answer arrives as HTTP 503 with a JSON body (so older
-      // clients treat it as a transient error) — any other non-2xx, or a
-      // 503 that isn't our pending body (e.g. from the ingress), is an error.
+      // "Pending" arrives as HTTP 202 for us. A 503 with a pending body is
+      // still accepted (a server pod that predates the poll header, e.g.
+      // mid rolling deploy); any other non-2xx, or a 503 that isn't our
+      // pending body (e.g. from the ingress), is an error.
       if (!response.ok && response.status !== 503) throw new Error(response.statusText || "Request failed");
       const payload = await response.json();
       if (payload?.status === "pending" || payload?.status === "failed") {

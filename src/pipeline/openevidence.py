@@ -914,9 +914,14 @@ def _text(value) -> str:
 async def claim_lookup(cache_key: str, ttl_seconds: float) -> LeaseClaim:
     """Atomically: if a failed marker is on record for `cache_key`, return
     it; otherwise SET NX the short-TTL "lookup in flight" lease with a
-    unique owner token. If Redis is unreachable a token is still returned
-    (only the in-process registry can dedupe then). The TTL bounds how long
-    a pod that died mid-call can wedge the key."""
+    unique owner token. The TTL bounds how long a pod that died mid-call
+    can wedge the key.
+
+    Best-effort across pods by design: if Redis is unreachable a token is
+    still returned, so the lookup proceeds with only the in-process registry
+    deduping (exactly one call per key per worker) and another pod may make
+    a duplicate paid call. That is logged as a WARNING — failing closed
+    instead would hide every card whenever Redis blips."""
     token = uuid.uuid4().hex
     try:
         outcome, value = await _get_client().eval(
@@ -928,7 +933,12 @@ async def claim_lookup(cache_key: str, ttl_seconds: float) -> LeaseClaim:
             _lease_ms(ttl_seconds),
         )
     except Exception as exc:
-        logger.warning("OpenEvidence in-flight lease claim failed for %r: %s", cache_key, exc)
+        logger.warning(
+            "OpenEvidence sidecar lease claim hit a Redis error for %r (%s); proceeding WITHOUT a "
+            "cross-pod lease, so another pod may make a duplicate upstream call",
+            cache_key,
+            exc,
+        )
         return LeaseClaim(token=token)
     outcome = _text(outcome)
     if outcome == "claimed":
@@ -947,13 +957,19 @@ async def claim_inflight_marker(cache_key: str, ttl_seconds: float) -> Optional[
 async def renew_inflight_marker(cache_key: str, token: str, ttl_seconds: float) -> bool:
     """Restart the lease's TTL iff `token` still owns it. False means the
     lease expired or another owner holds it — the caller must not start the
-    paid call. Fails open (True) when Redis is unreachable."""
+    paid call. Fails open (True) when Redis is unreachable — best-effort,
+    like claim_lookup, and logged as a WARNING."""
     try:
         renewed = await _get_client().eval(
             _RENEW_LEASE_SCRIPT, 1, _INFLIGHT_MARKER_PREFIX + cache_key, token, _lease_ms(ttl_seconds)
         )
     except Exception as exc:
-        logger.warning("OpenEvidence in-flight marker renew failed for %r: %s", cache_key, exc)
+        logger.warning(
+            "OpenEvidence sidecar lease renewal hit a Redis error for %r (%s); continuing WITHOUT a "
+            "confirmed cross-pod lease, so another pod may make a duplicate upstream call",
+            cache_key,
+            exc,
+        )
         return True
     return bool(renewed)
 

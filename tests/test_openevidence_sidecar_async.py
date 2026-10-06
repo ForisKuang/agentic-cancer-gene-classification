@@ -23,6 +23,7 @@ import pytest
 from fastapi import Response
 
 from src import main
+from src.config import Settings
 from src.pipeline import cache as cache_module
 from src.pipeline import openevidence
 from src.pipeline.openevidence import OpenEvidenceClient, distill_additive_openevidence
@@ -120,10 +121,12 @@ async def test_cache_miss_returns_pending_fast_even_when_upstream_is_slow(fake_r
     elapsed = time.monotonic() - start
 
     assert elapsed < 1.5
-    # HTTP 503 + Retry-After is deliberate (old cached frontends treat it as
-    # a transient, non-memoized fetch error); the body carries the contract.
+    # No X-OpenEvidence-Poll header = an old cached frontend: HTTP 503 +
+    # Retry-After is deliberate (it treats that as a transient, non-memoized
+    # fetch error); the body carries the contract.
     assert http.status_code == 503
     assert http.headers["retry-after"] == "10"
+    assert "X-OpenEvidence-Poll" in http.headers["vary"]
     assert http.json() == {
         "available": False,
         "distilled": None,
@@ -189,6 +192,39 @@ async def test_completed_lookup_is_ready_and_matches_get_gene_analysis(fake_redi
     other, _ = await _request("ALK", tumor_type="NSCLC")
     assert other.status == "ready"
     assert len(upstream.calls) == 2
+
+
+async def test_poll_capable_client_gets_202_pending_and_old_client_gets_503(fake_redis, upstream):
+    pending_body = {
+        "available": False,
+        "distilled": None,
+        "error": None,
+        "status": "pending",
+        "retry_after_seconds": 10,
+    }
+    async with _asgi_client() as client:
+        new_client = await client.get("/v1/genes/ALK/openevidence", headers={"X-OpenEvidence-Poll": "1"})
+        old_client = await client.get("/v1/genes/ALK/openevidence")
+        other_value = await client.get("/v1/genes/ALK/openevidence", headers={"X-OpenEvidence-Poll": "yes"})
+        upstream.release()
+        await _wait_for_background_lookups()
+        ready_new = await client.get("/v1/genes/ALK/openevidence", headers={"X-OpenEvidence-Poll": "1"})
+        ready_old = await client.get("/v1/genes/ALK/openevidence")
+
+    # Normal progress for a client that understands "pending": 202, not a 5xx.
+    assert new_client.status_code == 202
+    assert new_client.headers["retry-after"] == "10"
+    assert "X-OpenEvidence-Poll" in new_client.headers["vary"]
+    assert new_client.json() == pending_body
+    # Clients without the signal keep the old-frontend-safe 503, same body.
+    assert old_client.status_code == 503
+    assert old_client.json() == pending_body
+    assert other_value.status_code == 503
+    # Non-pending answers are unaffected by the header.
+    assert ready_new.status_code == ready_old.status_code == 200
+    assert ready_new.json() == ready_old.json()
+    assert ready_new.json()["status"] == "ready"
+    assert len(upstream.calls) == 1
 
 
 async def test_ready_after_completion_even_when_redis_is_down(monkeypatch, upstream):
@@ -348,6 +384,7 @@ async def test_flag_off_starts_no_task_touches_no_client_or_redis(monkeypatch, u
 
 
 async def test_hung_lookup_times_out_as_failed_and_clears_its_marker(monkeypatch, fake_redis, upstream):
+    monkeypatch.setattr(main.settings, "openevidence_timeout_seconds", 0.01)
     monkeypatch.setattr(main.settings, "openevidence_sidecar_lookup_timeout_seconds", 0.05)
     first, _ = await _request("ALK")  # upstream is never released: the call hangs
     assert first.status == "pending"
@@ -361,6 +398,38 @@ async def test_hung_lookup_times_out_as_failed_and_clears_its_marker(monkeypatch
     assert fake_redis.keys_with_prefix("openevidence:") == []
     assert fake_redis.keys_with_prefix("openevidence_inflight:") == []
     assert len(fake_redis.keys_with_prefix("openevidence_failed:")) == 1
+
+
+def test_lookup_budget_default_is_900s_and_never_below_the_read_timeout(monkeypatch):
+    assert Settings.model_fields["openevidence_sidecar_lookup_timeout_seconds"].default == 900.0
+    monkeypatch.setattr(main.settings, "openevidence_sidecar_lookup_timeout_seconds", 900.0)
+    monkeypatch.setattr(main.settings, "openevidence_timeout_seconds", 600.0)  # prod's per-read timeout
+    assert main._openevidence_sidecar_lookup_budget_seconds() == 900.0
+    # A budget configured below the read timeout is raised to read timeout x 1.25.
+    monkeypatch.setattr(main.settings, "openevidence_sidecar_lookup_timeout_seconds", 540.0)
+    assert main._openevidence_sidecar_lookup_budget_seconds() == 750.0
+    monkeypatch.setattr(main.settings, "openevidence_timeout_seconds", 1000.0)
+    monkeypatch.setattr(main.settings, "openevidence_sidecar_lookup_timeout_seconds", 900.0)
+    assert main._openevidence_sidecar_lookup_budget_seconds() == 1250.0
+
+
+async def test_lookup_slower_than_a_budget_set_below_the_read_timeout_still_succeeds(
+    monkeypatch, fake_redis, upstream
+):
+    """Scaled-down prod shape: read timeout 600s, budget misconfigured at
+    540s, call finishing at 550s. The budget is floored at the read timeout
+    x 1.25, so the lookup is ready rather than failed."""
+    monkeypatch.setattr(main.settings, "openevidence_timeout_seconds", 0.6)
+    monkeypatch.setattr(main.settings, "openevidence_sidecar_lookup_timeout_seconds", 0.54)
+    first, _ = await _request("ALK")
+    assert first.status == "pending"
+    await asyncio.sleep(0.55)  # past the configured 0.54s budget, within the read timeout
+    upstream.release()
+    await _wait_for_background_lookups()
+
+    result, _ = await _request("ALK")
+    assert result.status == "ready"
+    assert len(upstream.calls) == 1
 
 
 async def test_lookup_is_tracked_with_the_shared_background_tasks(fake_redis, upstream):
@@ -627,7 +696,15 @@ def _live_heartbeats() -> List[asyncio.Task]:
     ]
 
 
-async def _lose_lease_to_another_pod(fake_redis, upstream) -> Tuple[asyncio.Task, bytes]:
+async def _another_pod_takes_the_lost_lease_and_duplicates_the_call(
+    fake_redis, upstream
+) -> Tuple[asyncio.Task, bytes]:
+    """Accepted best-effort behavior, not a guarantee: once pod A has lost
+    its lease mid-call, pod B can claim the key and make a SECOND paid call
+    while A's is still running (cross-pod dedupe is best-effort; only
+    one-call-per-key-per-worker is exact — see main.py's sidecar state
+    comment). What IS guaranteed is checked by the callers: A's stale
+    outcome can't clobber B's lease or publish a failure for B's lookup."""
     key = openevidence.sidecar_cache_key("ALK", None, None)
     with _as_other_pod():
         result, _ = await _request("ALK")  # pod B claims the (now free) lease and calls upstream
@@ -664,17 +741,19 @@ async def _assert_stale_failure_discarded(fake_redis, upstream, pod_a, pod_b, b_
     assert len(upstream.calls) == 2
 
 
-async def test_lookup_that_lost_its_lease_mid_call_publishes_no_failure(fake_redis, per_call_upstream):
+async def test_best_effort_lease_lost_mid_call_allows_a_duplicate_but_publishes_no_stale_failure(
+    fake_redis, per_call_upstream
+):
     result, _ = await _request("ALK")
     assert result.status == "pending"
     pod_a = main._openevidence_sidecar_tasks[openevidence.sidecar_cache_key("ALK", None, None)]
     await fake_redis.delete(_inflight_key("ALK"))  # Redis lost A's lease mid-call
 
-    pod_b, b_token = await _lose_lease_to_another_pod(fake_redis, per_call_upstream)
+    pod_b, b_token = await _another_pod_takes_the_lost_lease_and_duplicates_the_call(fake_redis, per_call_upstream)
     await _assert_stale_failure_discarded(fake_redis, per_call_upstream, pod_a, pod_b, b_token)
 
 
-async def test_heartbeat_noticing_lease_loss_discards_the_outcome_and_stops(
+async def test_best_effort_heartbeat_noticing_lease_loss_allows_a_duplicate_but_discards_the_outcome(
     monkeypatch, fake_redis, per_call_upstream
 ):
     monkeypatch.setattr(main.settings, "openevidence_sidecar_inflight_ttl_seconds", 0.3)
@@ -687,7 +766,7 @@ async def test_heartbeat_noticing_lease_loss_discards_the_outcome_and_stops(
     await asyncio.sleep(0.25)  # A's heartbeat (every 0.1s) notices the loss...
     assert _live_heartbeats() == [], "...and stops rather than leaking"
 
-    pod_b, b_token = await _lose_lease_to_another_pod(fake_redis, per_call_upstream)
+    pod_b, b_token = await _another_pod_takes_the_lost_lease_and_duplicates_the_call(fake_redis, per_call_upstream)
     await _assert_stale_failure_discarded(fake_redis, per_call_upstream, pod_a, pod_b, b_token)
 
 
@@ -747,3 +826,48 @@ async def test_claim_script_answers_a_recorded_failure_on_real_redis():
     assert await openevidence.publish_failure_and_release(key, owner.token, "boom", 300) is True
     assert await openevidence.claim_lookup(key, 600) == openevidence.LeaseClaim(failed="boom")
     assert await client.get(_INFLIGHT_PREFIX + key) is None, "a recorded failure blocks the claim"
+
+
+async def test_best_effort_redis_outage_lets_each_pod_call_once_and_warns(monkeypatch, upstream, caplog):
+    """Accepted best-effort behavior, not a guarantee: with Redis down,
+    cross-pod dedupe is off (failing closed would hide every card during a
+    Redis blip), so two pods each make one paid call for the same key. Each
+    pod still makes exactly one (the in-process registry), and every lease
+    claim that proceeds without Redis is logged as a WARNING."""
+
+    class DownRedis:
+        async def get(self, *args, **kwargs):
+            raise ConnectionError("redis down")
+
+        set = delete = eval = get
+
+    monkeypatch.setattr(cache_module, "_client", DownRedis())
+    caplog.set_level("WARNING", logger="src.pipeline.openevidence")
+
+    for _ in range(3):  # pod A: repeated polls, one call
+        result, _ = await _request("ALK")
+        assert result.status == "pending"
+    with _as_other_pod():
+        for _ in range(3):  # pod B: repeated polls, one more call
+            result, _ = await _request("ALK")
+            assert result.status == "pending"
+        pod_b = list(main._openevidence_sidecar_tasks.values())
+    assert len(upstream.calls) == 2
+
+    warnings = [r.getMessage() for r in caplog.records if r.levelname == "WARNING"]
+    assert sum("proceeding WITHOUT a cross-pod lease" in w for w in warnings) == 2
+    upstream.release()
+    await asyncio.wait_for(asyncio.gather(*pod_b), timeout=2.0)
+    await _wait_for_background_lookups()
+
+
+async def test_lease_renewal_redis_error_is_logged_as_a_warning(monkeypatch, fake_redis, caplog):
+    async def broken_eval(*args, **kwargs):
+        raise ConnectionError("redis blip")
+
+    monkeypatch.setattr(fake_redis, "eval", broken_eval)
+    caplog.set_level("WARNING", logger="src.pipeline.openevidence")
+    assert await openevidence.renew_inflight_marker("k", "token", 600) is True  # best-effort: keep going
+    assert any(
+        "WITHOUT a confirmed cross-pod lease" in r.getMessage() for r in caplog.records if r.levelname == "WARNING"
+    )

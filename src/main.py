@@ -23,7 +23,7 @@ from urllib.parse import parse_qs
 
 import httpx
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -409,9 +409,17 @@ def _track_background_task(coro: Coroutine[Any, Any, Any]) -> asyncio.Task:
 
 # In-process state for the sidecar's background ("pending + poll") lookups,
 # all keyed by the OpenEvidence cache key (sidecar_cache_key — the same slot
-# OpenEvidenceClient.get_gene_analysis reads/writes). The task registry is
-# what guarantees one upstream (paid) call per key per worker; the Redis
-# in-flight lease (claim_lookup) extends that across workers/pods.
+# OpenEvidenceClient.get_gene_analysis reads/writes).
+#
+# Dedupe semantics: EXACTLY one upstream (paid) call per key per worker —
+# guaranteed by the task registry below. ACROSS workers/pods it is
+# best-effort, via the Redis in-flight lease (claim_lookup): duplicates are
+# possible while Redis is unreachable (the claim and renewals fail open, with
+# a WARNING) or after a lookup loses its lease mid-call (the lease expired or
+# Redis dropped it, and another pod claimed it). That is a deliberate trade:
+# failing closed would hide every card whenever Redis blips, and prod runs a
+# single worker per pod and one replica, so cross-pod overlap is limited to
+# brief windows such as rolling restarts.
 # The two memos hold a finished lookup's outcome for polling clients: the
 # failure memo so polls answer "failed" instead of re-calling upstream for
 # openevidence_sidecar_failed_ttl_seconds, the result memo so a poll still
@@ -423,6 +431,21 @@ _openevidence_sidecar_tasks: Dict[str, "asyncio.Task[Optional[str]]"] = {}
 _openevidence_sidecar_failures: Dict[str, Tuple[float, str]] = {}
 _openevidence_sidecar_results: Dict[str, Tuple[float, OpenEvidenceAnalysis]] = {}
 _OPENEVIDENCE_SIDECAR_MEMO_MAX = 256
+# The overall per-lookup budget never drops below the per-read httpx timeout
+# (openevidence_timeout_seconds, an inactivity timeout) plus this margin, so a
+# call the HTTP client would still let finish is never cut short by the budget.
+_OPENEVIDENCE_LOOKUP_BUDGET_READ_TIMEOUT_FACTOR = 1.25
+
+
+def _openevidence_sidecar_lookup_budget_seconds() -> float:
+    """Overall wall-clock cap on one background lookup's upstream call:
+    settings.openevidence_sidecar_lookup_timeout_seconds, raised if needed
+    to openevidence_timeout_seconds x 1.25 (e.g. 600s read timeout -> at
+    least 750s)."""
+    return max(
+        float(settings.openevidence_sidecar_lookup_timeout_seconds),
+        float(settings.openevidence_timeout_seconds) * _OPENEVIDENCE_LOOKUP_BUDGET_READ_TIMEOUT_FACTOR,
+    )
 
 
 def _reset_openevidence_sidecar_state() -> None:
@@ -518,7 +541,7 @@ async def _run_openevidence_sidecar_lookup(
                 return None
             # httpx's timeout is per read, so a slowly trickling stream could
             # otherwise run forever; cap the whole call (not the queue time).
-            lookup_timeout = settings.openevidence_sidecar_lookup_timeout_seconds
+            lookup_timeout = _openevidence_sidecar_lookup_budget_seconds()
             try:
                 analysis = await asyncio.wait_for(
                     OpenEvidenceClient().get_gene_analysis(gene, tumor_type=tumor_type, fusion=fusion),
@@ -1669,6 +1692,11 @@ async def fusion_context(
     return FusionContextResponse(available=True, context=FusionPositionContext(**cached))
 
 
+# Sent by a sidecar client that understands status "pending" (the current
+# app.js) — see get_gene_openevidence's docstring for the 202/503 split.
+OPENEVIDENCE_POLL_HEADER = "X-OpenEvidence-Poll"
+
+
 @app.get("/v1/genes/{gene}/openevidence", response_model=OpenEvidenceSidecarResponse)
 async def get_gene_openevidence(
     gene: str,
@@ -1679,6 +1707,7 @@ async def get_gene_openevidence(
     insufficient_evidence: bool = False,
     core_pmids: List[str] = Query(default=[]),
     core_titles: List[str] = Query(default=[]),
+    x_openevidence_poll: Optional[str] = Header(default=None, alias=OPENEVIDENCE_POLL_HEADER),
     current_user: AuthenticatedUser = Depends(require_auth),
 ) -> Union[OpenEvidenceSidecarResponse, JSONResponse]:
     """
@@ -1706,13 +1735,19 @@ async def get_gene_openevidence(
     settings.openevidence_sidecar_failed_ttl_seconds instead of re-calling
     the paid API every poll.
 
-    A "pending" answer is sent as HTTP 503 with a Retry-After header (body
-    still the JSON below, available=false). That is deliberate for old
-    cached frontends (<= v0.3.12 app.js), which don't know "status": they
-    treat any non-2xx as a transient fetch error — dropping the card for
-    now but NOT memoizing the answer, so their next render re-fetches —
-    whereas a 200 available=false would be memoized as a definitive "nothing
-    here" for the life of the page.
+    A "pending" answer's HTTP status is negotiated (the JSON body, with
+    available=false, is the same either way, plus a Retry-After header):
+    - A client that sends `X-OpenEvidence-Poll: 1` (the current app.js)
+      understands "pending" and gets HTTP 202 Accepted — normal progress,
+      not a 5xx in ALB/Datadog error metrics, and not something an ingress
+      error-page middleware would rewrite.
+    - Any other client — notably old cached frontends (<= v0.3.12 app.js),
+      which don't know "status" — gets HTTP 503. They treat any non-2xx as a
+      transient fetch error, dropping the card for now but NOT memoizing
+      the answer, so their next render re-fetches; a 2xx available=false
+      would instead be memoized as a definitive "nothing here" for the life
+      of the page.
+    Responses carry `Vary: X-OpenEvidence-Poll` so no cache conflates them.
 
     `cancer_associated`/`insufficient_evidence` are the caller's already-
     computed GeneAnnotation fields (the normal UI flow — see
@@ -1784,8 +1819,10 @@ async def get_gene_openevidence(
     def pending() -> OpenEvidenceSidecarResponse:
         retry_after = max(1, int(settings.openevidence_sidecar_retry_after_seconds))
         if response is not None:
-            response.status_code = 503
+            understands_pending = isinstance(x_openevidence_poll, str) and x_openevidence_poll.strip() == "1"
+            response.status_code = 202 if understands_pending else 503
             response.headers["Retry-After"] = str(retry_after)
+            response.headers["Vary"] = OPENEVIDENCE_POLL_HEADER
         return OpenEvidenceSidecarResponse(
             available=False, status="pending", retry_after_seconds=retry_after
         )

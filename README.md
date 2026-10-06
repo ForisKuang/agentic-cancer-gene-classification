@@ -122,11 +122,11 @@ Turning on OpenEvidence also needs these (see `.env.example`):
 | `OPENEVIDENCE_TIMEOUT_SECONDS` | `60` | Per-call timeout; a timeout is not retried and just hides the card. |
 | `OPENEVIDENCE_CACHE_TTL_SECONDS` | `604800` | Redis TTL for cached analyses (one week). |
 | `OPENEVIDENCE_SIDECAR_CONCURRENCY` | `3` | Max concurrent live OpenEvidence calls across all sidecar requests. |
-| `OPENEVIDENCE_SIDECAR_PENDING_WAIT_SECONDS` | `2` | On a cache miss the lookup runs in the background; the request waits this long before answering `status: "pending"` (HTTP 503 + `Retry-After`) and the card polls. |
+| `OPENEVIDENCE_SIDECAR_PENDING_WAIT_SECONDS` | `2` | On a cache miss the lookup runs in the background; the request waits this long before answering `status: "pending"` with `Retry-After` and the card polls. Pending is HTTP 202 for clients that send `X-OpenEvidence-Poll: 1` (the current UI) and HTTP 503 for clients that don't (old cached UIs, which then retry instead of hiding the card for good). |
 | `OPENEVIDENCE_SIDECAR_RETRY_AFTER_SECONDS` | `10` | Poll hint (`retry_after_seconds` / `Retry-After`) sent with a pending answer. |
-| `OPENEVIDENCE_SIDECAR_INFLIGHT_TTL_SECONDS` | `600` | TTL of the Redis in-flight lease that dedupes a lookup across workers/pods; bounds how long a pod that died mid-call can block a key. |
+| `OPENEVIDENCE_SIDECAR_INFLIGHT_TTL_SECONDS` | `600` | TTL of the Redis in-flight lease (heartbeat-renewed) that dedupes a lookup across workers/pods; bounds how long a pod that died mid-call can block a key. Dedupe is exact per worker and best-effort across pods: duplicates are possible during a Redis outage (logged as a warning) or after a lost lease. |
 | `OPENEVIDENCE_SIDECAR_FAILED_TTL_SECONDS` | `300` | How long a failed lookup answers `status: "failed"` instead of re-calling the paid API. Failures are never cached. |
-| `OPENEVIDENCE_SIDECAR_LOOKUP_TIMEOUT_SECONDS` | `540` | Hard cap on one background lookup, excluding queue time. Keep it below the in-flight TTL. |
+| `OPENEVIDENCE_SIDECAR_LOOKUP_TIMEOUT_SECONDS` | `900` | Overall budget for one background lookup, excluding queue time. It is never applied below `OPENEVIDENCE_TIMEOUT_SECONDS` × 1.25 (that setting is only a per-read inactivity timeout). Keep it under the UI's 20-minute polling deadline. |
 | `OPENEVIDENCE_WARMUP_CONCURRENCY` | `5` | Concurrency for the offline `benchmarks/warm_openevidence_cache.py` warmup. |
 
 ## Run With Anthropic SDK

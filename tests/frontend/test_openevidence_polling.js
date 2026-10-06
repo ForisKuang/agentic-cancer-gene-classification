@@ -43,12 +43,23 @@ function result(...genes) {
   };
 }
 
-function httpResponse(payload) {
+function sendsPollHeader(options) {
+  const headers = options?.headers || {};
+  return Object.keys(headers).some((name) => name.toLowerCase() === "x-openevidence-poll" && headers[name] === "1");
+}
+
+// Mirrors the server's negotiation (get_gene_openevidence in main.py): a
+// pending answer is HTTP 202 for a client that sends X-OpenEvidence-Poll: 1
+// and HTTP 503 for one that doesn't (old cached frontends). `legacyServer`
+// models a server pod that predates the header and always sends 503.
+function httpResponse(payload, options, { legacyServer = false } = {}) {
   const pending = payload?.status === "pending";
+  const accepted = pending && !legacyServer && sendsPollHeader(options);
+  const unavailable = pending && !accepted;
   return {
-    ok: !pending,
-    status: pending ? 503 : 200,
-    statusText: pending ? "Service Unavailable" : "OK",
+    ok: !unavailable,
+    status: accepted ? 202 : unavailable ? 503 : 200,
+    statusText: accepted ? "Accepted" : unavailable ? "Service Unavailable" : "OK",
     json: async () => payload,
   };
 }
@@ -60,8 +71,10 @@ function geneOf(url) {
 
 // `answers` maps gene -> function(callIndex) returning the JSON payload the
 // server answers with on that gene's Nth request (0-based).
-async function setup(answers, { poll, routes = {} } = {}) {
+async function setup(answers, { poll, routes = {}, legacyServer = false } = {}) {
   const calls = [];
+  const statuses = [];
+  const headerFlags = [];
   const aborted = [];
   const fetchImpl = async (url, options) => {
     url = String(url);
@@ -70,12 +83,15 @@ async function setup(answers, { poll, routes = {} } = {}) {
     }
     if (routes[url]) return routes[url]();
     calls.push(url);
+    headerFlags.push(sendsPollHeader(options));
     options?.signal?.addEventListener("abort", () => aborted.push(url));
     const gene = geneOf(url);
     const index = calls.filter((u) => geneOf(u) === gene).length - 1;
     // An answer may be a promise (e.g. one that never settles, to model a
     // stalled request — which, like a real server, ignores the abort).
-    return httpResponse(await answers[gene](index));
+    const answer = httpResponse(await answers[gene](index), options, { legacyServer });
+    statuses.push(answer.status);
+    return answer;
   };
   const sandbox = loadApp({ fetchImpl });
   Object.assign(sandbox.OPENEVIDENCE_POLL, {
@@ -108,7 +124,7 @@ async function setup(answers, { poll, routes = {} } = {}) {
     return originalRenderLoading(message);
   };
   const callsFor = (gene) => calls.filter((url) => geneOf(url) === gene);
-  return { sandbox, calls, callsFor, rendered, notices, loadingMessages, aborted };
+  return { sandbox, calls, callsFor, rendered, notices, loadingMessages, aborted, statuses, headerFlags };
 }
 
 // Attaches a card to the (document-owned) results window, the way
@@ -536,7 +552,47 @@ async function test_stalled_request_times_out_frees_its_slot_and_ignores_late_an
   assert.strictEqual(notices.length, 3);
 }
 
+async function test_every_sidecar_request_sends_the_poll_header_and_gets_202_pending() {
+  const { sandbox, callsFor, rendered, statuses, headerFlags } = await setup({ ALK: (i) => (i < 2 ? PENDING : READY) });
+  mountCard(sandbox, "ALK");
+  await waitFor(() => rendered.length === 1, "the ready answer to render");
+
+  assert.strictEqual(callsFor("ALK").length, 3);
+  assert.deepStrictEqual(headerFlags, [true, true, true], "every request (first and polls) must send X-OpenEvidence-Poll: 1");
+  assert.deepStrictEqual(statuses, [202, 202, 200], "pending is answered 202 to a client that sends the header");
+  assert.strictEqual(rendered[0].response.status, "ready");
+}
+
+async function test_503_pending_from_a_server_without_header_support_still_polls() {
+  // A backend pod that predates the header (e.g. mid rolling deploy)
+  // answers pending with 503; the client must keep polling, not drop the card.
+  const { sandbox, callsFor, rendered, statuses } = await setup(
+    { ALK: (i) => (i < 2 ? PENDING : READY) },
+    { legacyServer: true }
+  );
+  const card = mountCard(sandbox, "ALK");
+  await waitFor(() => rendered.length === 1, "the ready answer to render");
+  assert.deepStrictEqual(statuses, [503, 503, 200]);
+  assert.strictEqual(callsFor("ALK").length, 3);
+  assert.strictEqual(card._removed, undefined);
+}
+
+async function test_polling_deadline_outlasts_the_backend_lookup_budget() {
+  // The backend's default per-lookup budget is 900s
+  // (OPENEVIDENCE_SIDECAR_LOOKUP_TIMEOUT_SECONDS) plus queue time; the card
+  // must not give up on a lookup the server can still finish.
+  const sandbox = loadApp({ fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({}) }) });
+  const BACKEND_DEFAULT_LOOKUP_BUDGET_MS = 900 * 1000;
+  assert.ok(
+    sandbox.OPENEVIDENCE_POLL.totalCapMs >= BACKEND_DEFAULT_LOOKUP_BUDGET_MS + 5 * 60 * 1000,
+    `totalCapMs (${sandbox.OPENEVIDENCE_POLL.totalCapMs}) must exceed the 900s backend budget with queue-time headroom`
+  );
+}
+
 const TESTS = [
+  test_every_sidecar_request_sends_the_poll_header_and_gets_202_pending,
+  test_503_pending_from_a_server_without_header_support_still_polls,
+  test_polling_deadline_outlasts_the_backend_lookup_budget,
   test_pending_polls_until_ready_then_renders,
   test_pending_shows_still_checking_state_once,
   test_failed_after_pending_shows_failed_state_and_stops,
