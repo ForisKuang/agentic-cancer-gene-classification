@@ -1516,7 +1516,7 @@ function renderAnnotationResult(result) {
 }
 
 function applyResultsViewMode(visibleAnnotations, hiddenAnnotations, fusionEvidence) {
-  cancelOpenEvidenceCardLoads({ abort: false }); // the results list is about to be replaced
+  cancelOpenEvidenceCardLoads({ abort: false }); // the results list is about to be replaced; cards re-subscribe
   if (state.resultsViewMode === "noresult") {
     renderNoResultView(hiddenAnnotations);
     return;
@@ -2207,120 +2207,177 @@ function renderOpenEvidenceCardNotice(body, message, kind) {
   body.replaceChildren(note);
 }
 
-// Every card load still running (queued, fetching, or waiting to re-poll).
-// Leaving the results view or replacing the results list stops them all —
-// see cancelOpenEvidenceCardLoads' callers. `abort: false` (a re-render of
-// the results list, which happens on every annotation/fusion-evidence job
-// poll) leaves an in-flight request running in its slot: it stays memoized
-// in state.openEvidenceByGene, so the re-rendered card reuses it instead of
-// re-requesting. Leaving the results view aborts in-flight requests too.
-const openEvidenceCardLoads = new Set();
+// One request lifecycle per sidecar key (gene|tumor type|fusion — see
+// openEvidenceKey). The lifecycle, not any one card, owns everything about
+// the request: its fetch-queue slot, its AbortController, its poll loop and
+// a single overall deadline (totalCapMs from when the lifecycle started,
+// covering queue wait and stalled requests; never reset). Cards only
+// subscribe to it to be told what to show.
+//
+// - Re-rendering the results list (which happens on every annotation /
+//   fusion-evidence job poll) detaches every card; the replacement cards
+//   re-subscribe to the still-running lifecycle during the same render, so
+//   the in-flight request, its slot and its deadline carry over untouched.
+//   A lifecycle no card re-subscribed to by the end of that render (e.g. a
+//   new run without that gene) is cancelled.
+// - Leaving the results view cancels every lifecycle.
+// - Cancelling (or the deadline expiring) aborts the request, frees its
+//   slot, stops polling and drops its in-flight memo entry; on expiry the
+//   subscribed cards show the timed-out note. Late answers are ignored.
+// - A card that has been mounted and then leaves the page (removed, or its
+//   results list replaced) is unsubscribed at the lifecycle's next step
+//   (when its queued job runs, when an answer arrives, or before a re-poll);
+//   a lifecycle left with no cards is cancelled before making its request.
+const openEvidenceLifecycles = new Map();
 
-function cancelOpenEvidenceCardLoads({ abort = true } = {}) {
-  [...openEvidenceCardLoads].forEach((load) => load.stop({ abort }));
+function openEvidenceKey(gene, tumorType, fusion) {
+  return `${gene}|${tumorType || ""}|${fusion || ""}`;
 }
 
-// Loads (and, while "pending", keeps re-polling) one sidecar card. While
-// pending the card shows a "still checking" spinner; a server-reported
-// "failed" leaves an explicit failed note. An overall deadline
-// (totalCapMs from the first request, covering queue wait and stalled
-// requests too) aborts whatever is in flight, frees its fetch-queue slot
-// and leaves a timed-out note; late responses are ignored. The load is
-// stopped (timers cleared, in-flight fetch aborted, queued request
-// skipped) and the card dropped once the card leaves the page or the flag
-// turns off, and stopped when the results view is left or replaced. A
-// transport error still just drops the card (as before), and the next
-// render retries.
-function loadOpenEvidenceCard(card, body, request) {
+function cancelOpenEvidenceCardLoads({ abort = true } = {}) {
+  if (abort) {
+    [...openEvidenceLifecycles.values()].forEach((lifecycle) => lifecycle.cancel());
+    return;
+  }
+  openEvidenceLifecycles.forEach((lifecycle) => lifecycle.subscribers.clear());
+  Promise.resolve().then(() => {
+    [...openEvidenceLifecycles.values()].forEach((lifecycle) => {
+      if (lifecycle.subscribers.size === 0) lifecycle.cancel();
+    });
+  });
+}
+
+function createOpenEvidenceLifecycle(key, request) {
   let delayMs = null;
   let pollTimer = null;
   let deadlineTimer = null;
   let controller = null;
-  let releaseSlot = null; // settles the fetch-queue job holding a slot
-  const load = {
+  let inflight = null;
+  let releaseSlot = null; // settles the fetch-queue job holding the slot
+  const lifecycle = {
+    key,
+    subscribers: new Set(),
+    pending: false,
     finished: false,
-    wasConnected: false,
-    stop({ abort = true } = {}) {
-      if (load.finished) return;
-      load.finished = true;
-      openEvidenceCardLoads.delete(load);
-      clearTimeout(pollTimer);
-      clearTimeout(deadlineTimer);
-      if (!abort) return; // an in-flight request keeps its slot until it settles
-      if (controller) controller.abort();
-      if (releaseSlot) releaseSlot();
-    },
+    cancel: () => stop({ interrupt: true }),
   };
-  openEvidenceCardLoads.add(load);
-  // The caller mounts the card right after rendering it; from then on, a
-  // card that is no longer connected has been removed or replaced.
-  const removed = () => {
-    if (card.isConnected) load.wasConnected = true;
-    return load.wasConnected && card.isConnected === false;
+
+  // interrupt: the request didn't settle on its own (cancel/deadline) —
+  // abort it, free its slot and forget its in-flight memo entry.
+  const stop = ({ interrupt }) => {
+    if (lifecycle.finished) return;
+    lifecycle.finished = true;
+    if (openEvidenceLifecycles.get(key) === lifecycle) openEvidenceLifecycles.delete(key);
+    clearTimeout(pollTimer);
+    clearTimeout(deadlineTimer);
+    if (!interrupt) return;
+    if (controller) controller.abort();
+    if (inflight && state.openEvidenceByGene[key] === inflight) delete state.openEvidenceByGene[key];
+    if (releaseSlot) releaseSlot();
   };
-  Promise.resolve().then(removed);
-  const drop = () => {
-    load.stop();
-    card.remove();
+  const finish = (render, { interrupt = false } = {}) => {
+    if (lifecycle.finished) return;
+    const subscribers = [...lifecycle.subscribers];
+    stop({ interrupt });
+    subscribers.forEach(render);
   };
-  const finish = (render) => {
-    if (load.finished) return;
-    load.stop();
-    render();
+  // Unsubscribes cards that were mounted and have since left the page.
+  // False when no card is left, after cancelling the lifecycle.
+  const stillWanted = () => {
+    lifecycle.subscribers.forEach((subscriber) => {
+      if (subscriber.card.isConnected) subscriber.wasConnected = true;
+      else if (subscriber.wasConnected) lifecycle.subscribers.delete(subscriber);
+    });
+    if (lifecycle.subscribers.size > 0) return true;
+    lifecycle.cancel();
+    return false;
   };
+  const timeOut = () =>
+    finish((subscriber) => renderOpenEvidenceCardNotice(subscriber.body, OPENEVIDENCE_MESSAGES.timeout, "timeout"), {
+      interrupt: true,
+    });
   const handle = (response) => {
-    if (load.finished) return; // stopped or timed out: ignore late answers
-    if (removed()) {
-      drop();
-      return;
-    }
+    if (lifecycle.finished || !stillWanted()) return; // late answer, or nobody left to show it
     if (response?.status === "failed") {
-      finish(() => renderOpenEvidenceCardNotice(body, OPENEVIDENCE_MESSAGES.failed, "failed"));
+      finish((subscriber) => renderOpenEvidenceCardNotice(subscriber.body, OPENEVIDENCE_MESSAGES.failed, "failed"));
       return;
     }
     if (response?.status !== "pending") {
-      finish(() => renderOpenEvidenceCardBody(card, body, response));
+      finish((subscriber) => renderOpenEvidenceCardBody(subscriber.card, subscriber.body, response));
       return;
     }
-    if (delayMs === null) body.replaceChildren(renderLoadingState(OPENEVIDENCE_MESSAGES.pending));
+    if (!lifecycle.pending) {
+      lifecycle.pending = true;
+      lifecycle.subscribers.forEach(showOpenEvidencePending);
+    }
     delayMs = nextOpenEvidencePollDelayMs(response, delayMs);
     if (Date.now() - startedAt + delayMs > OPENEVIDENCE_POLL.totalCapMs) {
       timeOut();
       return;
     }
     pollTimer = setTimeout(() => {
-      if (load.finished) return;
-      if (!state.openevidenceEnabled || card.isConnected === false) {
-        drop();
+      if (lifecycle.finished) return;
+      if (!state.openevidenceEnabled) {
+        finish((subscriber) => subscriber.card.remove(), { interrupt: true });
         return;
       }
-      poll();
+      lifecycle.subscribers.forEach((subscriber) => {
+        if (subscriber.card.isConnected === false) {
+          lifecycle.subscribers.delete(subscriber);
+          subscriber.card.remove();
+        }
+      });
+      if (stillWanted()) poll();
     }, delayMs);
   };
   const job = () => {
     // Checked when the queued job actually runs, not when it was queued.
-    if (load.finished) return Promise.resolve();
-    if (removed()) {
-      drop();
-      return Promise.resolve();
-    }
+    if (lifecycle.finished || !stillWanted()) return Promise.resolve();
     controller = typeof AbortController === "function" ? new AbortController() : null;
     const slotReleased = new Promise((resolve) => {
       releaseSlot = resolve;
     });
-    const settled = request(controller ? controller.signal : undefined).then(handle, () => {
-      if (!load.finished) drop();
+    inflight = request(controller ? controller.signal : undefined);
+    const settled = inflight.then(handle, () => {
+      if (!lifecycle.finished) finish((subscriber) => subscriber.card.remove());
     });
     return Promise.race([settled, slotReleased]).finally(() => {
       releaseSlot = null;
       controller = null;
+      inflight = null;
     });
   };
   const poll = () => enqueueOpenEvidenceFetch(job);
-  const timeOut = () => finish(() => renderOpenEvidenceCardNotice(body, OPENEVIDENCE_MESSAGES.timeout, "timeout"));
   const startedAt = Date.now();
-  deadlineTimer = setTimeout(timeOut, OPENEVIDENCE_POLL.totalCapMs);
-  poll();
+  lifecycle.start = () => {
+    deadlineTimer = setTimeout(timeOut, OPENEVIDENCE_POLL.totalCapMs);
+    poll();
+  };
+  return lifecycle;
+}
+
+function showOpenEvidencePending(subscriber) {
+  subscriber.body.replaceChildren(renderLoadingState(OPENEVIDENCE_MESSAGES.pending));
+}
+
+// Subscribes one card to its key's lifecycle, starting one if none is
+// running. `request(signal)` is only used when a new lifecycle starts.
+function loadOpenEvidenceCard(card, body, key, request) {
+  let lifecycle = openEvidenceLifecycles.get(key);
+  const isNew = !lifecycle;
+  if (isNew) {
+    lifecycle = createOpenEvidenceLifecycle(key, request);
+    openEvidenceLifecycles.set(key, lifecycle);
+  }
+  const subscriber = { card, body, wasConnected: false };
+  lifecycle.subscribers.add(subscriber);
+  // The caller mounts the card right after rendering it; from then on, a
+  // card that is no longer connected has been removed or replaced.
+  Promise.resolve().then(() => {
+    if (card.isConnected) subscriber.wasConnected = true;
+  });
+  if (lifecycle.pending) showOpenEvidencePending(subscriber);
+  if (isNew) lifecycle.start();
 }
 
 function fetchGeneOpenEvidence(
@@ -2339,7 +2396,7 @@ function fetchGeneOpenEvidence(
   // fusion-specific question when it's present — see _cache_key in
   // src/pipeline/openevidence.py — so a fusion and a plain-gene lookup for
   // the same gene are different answers and must not share a promise.
-  const key = `${gene}|${tumorType || ""}|${fusion || ""}`;
+  const key = openEvidenceKey(gene, tumorType, fusion);
   if (state.openEvidenceByGene[key]) {
     return state.openEvidenceByGene[key];
   }
@@ -2517,8 +2574,10 @@ function renderOpenEvidenceCard(annotation) {
   const body = card.querySelector(".openevidence-card-body");
   body.appendChild(renderLoadingState("Checking OpenEvidence…"));
 
-  loadOpenEvidenceCard(card, body, (signal) =>
-    fetchGeneOpenEvidence(annotation.gene, tumorTypeForAnnotation(annotation), {
+  const tumorType = tumorTypeForAnnotation(annotation);
+  const fusion = annotation.fusions?.[0];
+  loadOpenEvidenceCard(card, body, openEvidenceKey(annotation.gene, tumorType, fusion), (signal) =>
+    fetchGeneOpenEvidence(annotation.gene, tumorType, {
       signal,
       cancerAssociated: annotation.cancer_associated,
       insufficientEvidence: annotation.insufficient_evidence,
@@ -2529,7 +2588,7 @@ function renderOpenEvidenceCard(annotation) {
       // The first one is the same fusion the offline warmup passes to
       // get_gene_analysis (openevidence_warmup.py's warm_one), so this
       // request hits the cache slot warmup filled.
-      fusion: annotation.fusions?.[0],
+      fusion,
     })
   );
 

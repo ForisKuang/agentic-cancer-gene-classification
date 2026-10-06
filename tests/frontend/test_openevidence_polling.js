@@ -350,6 +350,72 @@ async function test_rerendering_results_reuses_an_in_flight_request() {
   assert.ok(findById(sandbox.elements.resultsWindow, "openevidence-ALK"), "the current card is on the page");
 }
 
+function renderRun(sandbox, run) {
+  sandbox.state.currentResult = run;
+  sandbox.renderAnnotationResult(run);
+}
+
+async function setupThreeStalled(poll) {
+  const gates = [];
+  const stalled = () => new Promise((resolve) => gates.push(() => resolve(READY)));
+  const env = await setup({ ALK: stalled, BRAF: stalled, EGFR: stalled, KRAS: () => READY }, { poll });
+  const run = result("ALK", "BRAF", "EGFR");
+  renderRun(env.sandbox, run);
+  await waitFor(
+    () => ["ALK", "BRAF", "EGFR"].every((gene) => env.callsFor(gene).length === 1),
+    "three stalled requests to fill every fetch slot"
+  );
+  renderRun(env.sandbox, run); // a job-progress re-render while they're in flight
+  return { ...env, gates, run };
+}
+
+async function test_rerendered_requests_still_time_out_abort_and_free_their_slots() {
+  const { sandbox, callsFor, notices, aborted, rendered, gates } = await setupThreeStalled({ totalCapMs: 60 });
+
+  await waitFor(() => notices.length === 3, "the re-rendered cards to show the timeout state");
+  assert.ok(notices.every((notice) => notice.kind === "timeout"));
+  assert.strictEqual(aborted.length, 3, "the original (kept) requests are aborted at the deadline");
+  assert.ok(["ALK", "BRAF", "EGFR"].every((gene) => callsFor(gene).length === 1), "the re-render re-requested nothing");
+
+  sandbox.OPENEVIDENCE_POLL.totalCapMs = 60 * 1000;
+  renderRun(sandbox, result("KRAS"));
+  await waitFor(() => rendered.length === 1, "KRAS to get a freed slot and render");
+  assert.strictEqual(callsFor("KRAS").length, 1);
+  gates.forEach((open) => open());
+  await sleep(10);
+  assert.strictEqual(rendered.length, 1, "late answers are ignored");
+}
+
+async function test_navigation_after_a_rerender_aborts_kept_requests_and_frees_their_slots() {
+  const { sandbox, callsFor, aborted, rendered } = await setupThreeStalled();
+
+  sandbox.switchView("benchmark");
+  assert.strictEqual(aborted.length, 3, "navigation aborts the requests the re-render kept");
+
+  sandbox.state.currentResult = result("KRAS");
+  sandbox.switchView("annotate");
+  await waitFor(() => rendered.length === 1, "coming back, KRAS gets a freed slot and renders");
+  assert.strictEqual(callsFor("KRAS").length, 1);
+}
+
+async function test_repeated_rerenders_do_not_extend_the_deadline() {
+  const gates = [];
+  const { sandbox, callsFor, notices } = await setup(
+    { ALK: () => new Promise((resolve) => gates.push(() => resolve(READY))) },
+    { poll: { totalCapMs: 30 } }
+  );
+  const run = result("ALK");
+  const startedAt = Date.now();
+  while (notices.length === 0 && Date.now() - startedAt < 300) {
+    renderRun(sandbox, run); // re-render every ~10ms, well inside the 30ms cap
+    await sleep(10);
+  }
+  assert.strictEqual(notices.length, 1, "the deadline must expire despite continuous re-renders");
+  assert.strictEqual(notices[0].kind, "timeout");
+  assert.ok(Date.now() - startedAt < 150, `timed out after ${Date.now() - startedAt}ms`);
+  assert.strictEqual(callsFor("ALK").length, 1, "re-renders reused the one request");
+}
+
 async function test_queued_card_removed_before_its_turn_makes_no_request() {
   const gates = [];
   const stalled = () => new Promise((resolve) => gates.push(() => resolve(READY)));
@@ -406,6 +472,9 @@ const TESTS = [
   test_failed_answer_is_not_memoized_so_a_rerun_recovers,
   test_leaving_the_results_view_stops_polling_and_aborts_in_flight_requests,
   test_rerendering_results_reuses_an_in_flight_request,
+  test_rerendered_requests_still_time_out_abort_and_free_their_slots,
+  test_navigation_after_a_rerender_aborts_kept_requests_and_frees_their_slots,
+  test_repeated_rerenders_do_not_extend_the_deadline,
   test_queued_card_removed_before_its_turn_makes_no_request,
   test_stalled_request_times_out_frees_its_slot_and_ignores_late_answers,
 ];
