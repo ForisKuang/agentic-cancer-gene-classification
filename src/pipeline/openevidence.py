@@ -946,12 +946,20 @@ class OpenEvidenceClient:
             # missing-API-key cache miss) is never cached.
             logger.error("OpenEvidence lookup failed for %s: %s", gene, exc)
             raise
-        analysis = OpenEvidenceAnalysis(**payload)
-        # Re-clean on every read, not just at _build_analysis time: entries
-        # cached before the widget fix still hold widget metadata (a headless
-        # leading widget tail and any mid-answer widgets), and this is the only
-        # read path for both the sidecar and warmup. Idempotent on clean text.
-        return analysis.model_copy(update={"text": _strip_generation_step_widgets(analysis.text)})
+        return _analysis_from_cached_payload(payload)
+
+
+def _analysis_from_cached_payload(payload: dict) -> OpenEvidenceAnalysis:
+    """Build an analysis from a cached payload, re-cleaning its text.
+
+    Re-clean on every read, not just at _build_analysis time: entries cached
+    before the widget fix still hold widget metadata (a headless leading
+    widget tail and any mid-answer widgets). Every read of a cached analysis
+    goes through here — get_gene_analysis (sidecar background lookups and
+    warmup) and the sidecar's cache-only peek, get_cached_gene_analysis — so
+    no path can serve a stale dirty entry. Idempotent on clean text."""
+    analysis = OpenEvidenceAnalysis(**payload)
+    return analysis.model_copy(update={"text": _strip_generation_step_widgets(analysis.text)})
 
 
 # ---------------------------------------------------------------------------
@@ -981,8 +989,9 @@ async def get_cached_gene_analysis(
     gene: str, tumor_type: Optional[str] = None, fusion: Optional[str] = None
 ) -> Optional[OpenEvidenceAnalysis]:
     """Cache-only read of get_gene_analysis's slot: never makes a live call
-    and never needs an API key. Returns None on a miss, an unreadable entry,
-    or Redis being unreachable."""
+    and never needs an API key. Cleaned exactly like get_gene_analysis's
+    reads (see _analysis_from_cached_payload). Returns None on a miss, an
+    unreadable entry, or Redis being unreachable."""
     key = _cache_key(gene, tumor_type, fusion=fusion)
     try:
         cached = await _get_client().get(key)
@@ -992,7 +1001,7 @@ async def get_cached_gene_analysis(
     if cached is None:
         return None
     try:
-        return OpenEvidenceAnalysis(**json.loads(cached))
+        return _analysis_from_cached_payload(json.loads(cached))
     except Exception as exc:
         logger.warning("Ignoring unreadable OpenEvidence cache entry %r: %s", key, exc)
         return None

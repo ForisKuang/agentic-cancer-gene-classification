@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import json
 import time
 from typing import Dict, List, Optional, Tuple
 
@@ -24,9 +25,11 @@ from fastapi import Response
 
 from src import main
 from src.config import Settings
+from src.models.schema import OpenEvidenceAnalysis
 from src.pipeline import cache as cache_module
 from src.pipeline import openevidence
 from src.pipeline.openevidence import OpenEvidenceClient, distill_additive_openevidence
+from tests.test_openevidence import _REAL_STREAMS, _WIDGET_MARKER, _leading_only_strip_text, _real_stream
 
 _NCCN_CITATION_EVENT = (
     '{"text": "[[1]]", "reference": {"citation_key": 1, '
@@ -871,3 +874,80 @@ async def test_lease_renewal_redis_error_is_logged_as_a_warning(monkeypatch, fak
     assert any(
         "WITHOUT a confirmed cross-pod lease" in r.getMessage() for r in caplog.records if r.levelname == "WARNING"
     )
+
+
+# ---------------------------------------------------------------------------
+# #104 widget cleaning on the sidecar's cache-hit path, and #105's osler key
+# ---------------------------------------------------------------------------
+
+
+def _dirty_pre_104_entry(gene: str) -> Tuple[dict, OpenEvidenceAnalysis]:
+    """A real osler capture (#104's fixtures) as it sits in prod Redis from
+    before #104: text produced by the old leading-only widget strip — a
+    headless widget tail (with "callid") up front, and for ALK also full
+    REACTCOMPONENT widgets mid-answer — with its real citations. Returns the
+    cached payload and the analysis a fresh, cleaned build yields."""
+    raw = _real_stream(gene)
+    fresh = openevidence._build_analysis("q", openevidence._parse_sse_events(raw))
+    dirty_text = _leading_only_strip_text(raw)
+    assert "callid" in dirty_text
+    assert (_WIDGET_MARKER in dirty_text) == (gene == "ALK")
+    return {**fresh.model_dump(), "text": dirty_text}, fresh
+
+
+@pytest.mark.parametrize("gene", ["ALK", "EGFR"])
+async def test_cache_peek_cleans_a_pre_104_dirty_entry_like_get_gene_analysis(gene, fake_redis, upstream):
+    payload, fresh = _dirty_pre_104_entry(gene)
+    await fake_redis.set(openevidence.sidecar_cache_key(gene, None, None), json.dumps(payload))
+
+    peeked = await openevidence.get_cached_gene_analysis(gene)
+    via_client = await OpenEvidenceClient(api_key="").get_gene_analysis(gene)
+
+    assert peeked.text == via_client.text == fresh.text
+    assert upstream.calls == []
+
+
+@pytest.mark.parametrize("gene", ["ALK", "EGFR"])
+async def test_sidecar_ready_card_from_a_pre_104_dirty_cache_entry_is_clean(gene, fake_redis, upstream):
+    payload, _ = _dirty_pre_104_entry(gene)
+    await fake_redis.set(openevidence.sidecar_cache_key(gene, None, None), json.dumps(payload))
+
+    async with _asgi_client() as client:
+        http = await client.get(f"/v1/genes/{gene}/openevidence", headers={"X-OpenEvidence-Poll": "1"})
+
+    assert http.status_code == 200
+    body = http.json()
+    assert body["status"] == "ready"
+    assert body["available"] is True
+    card = json.dumps(body["distilled"])
+    assert "REACTCOMPONENT" not in card
+    assert "callid" not in card
+    assert body["distilled"]["consensus_role"].startswith(_REAL_STREAMS[gene][1])
+    assert upstream.calls == []  # served from the cache, no paid call
+
+
+def test_default_model_is_osler_and_sidecar_keys_follow_it(monkeypatch):
+    assert Settings.model_fields["openevidence_model"].default == "osler"
+    monkeypatch.setattr(main.settings, "openevidence_model", Settings.model_fields["openevidence_model"].default)
+    key = openevidence.sidecar_cache_key("ALK", "NSCLC", "EML4::ALK")
+    assert key == openevidence._cache_key("ALK", "NSCLC", fusion="EML4::ALK")
+    assert json.loads(key.split(":", 1)[1])["model"] == "osler"
+
+
+async def test_sidecar_leases_and_failed_markers_use_the_osler_cache_key(monkeypatch, fake_redis, upstream):
+    monkeypatch.setattr(main.settings, "openevidence_model", "osler")
+    upstream.fail_with = RuntimeError("upstream down")
+    first, _ = await _request("ALK", tumor_type="NSCLC", fusion="EML4::ALK")
+    assert first.status == "pending"
+    osler_key = openevidence._cache_key("ALK", "NSCLC", fusion="EML4::ALK")
+    assert fake_redis.keys_with_prefix("openevidence_inflight:") == ["openevidence_inflight:" + osler_key]
+
+    upstream.release()
+    await _wait_for_background_lookups()
+    assert fake_redis.keys_with_prefix("openevidence_failed:") == ["openevidence_failed:" + osler_key]
+    # A darwin-keyed lookup for the same gene is a different slot entirely:
+    # the osler failed marker doesn't answer it, so it makes its own call.
+    monkeypatch.setattr(main.settings, "openevidence_model", "darwin")
+    await _request("ALK", tumor_type="NSCLC", fusion="EML4::ALK")
+    await _wait_for_background_lookups()
+    assert len(upstream.calls) == 2
