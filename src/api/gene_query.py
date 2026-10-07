@@ -21,6 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from src.auth import AuthenticatedUser, record_user_annotation_activity, require_auth
+from src.api.run_persistence import GENERIC_FAILURE, save_run_or_raise
 from src.config import settings
 from src.models.schema import AnnotateRequest, AnnotationResult, CacheStatus, FusionInput, GeneAnnotation
 from src.observability import record_user_action, record_user_seen, tag_current_span
@@ -44,22 +45,12 @@ _UNRESOLVABLE_ERROR = "Gene symbol could not be resolved."
 _LOOKUP_FAILED_ERROR = "Gene symbol lookup is temporarily unavailable; please retry."
 _GENE_NOT_FOUND = "Gene symbol not found."
 _GENERIC_GENE_ERROR = "Annotation failed for this gene; open view_url for details."
-_GENERIC_FAILURE = "Gene query failed. Please retry; contact the ACGC team if this persists."
 
 
 def _app() -> "ModuleType":
     from src import main
 
     return main
-
-
-async def _save_run_or_raise(http_request: Request, request_payload: dict, result: AnnotationResult) -> None:
-    """Only return a run link after persistence succeeds; hide storage errors."""
-    try:
-        await _app()._save_run_result(http_request, request_payload, result)
-    except Exception as exc:
-        logger.exception("Gene query failed to save run %s", result.run_id)
-        raise HTTPException(status_code=500, detail=_GENERIC_FAILURE) from exc
 
 
 # ---------------------------------------------------------------------------
@@ -350,9 +341,9 @@ async def _run_gene_query(
         )
     except Exception as exc:
         logger.exception("Gene query pipeline error")
-        raise HTTPException(status_code=500, detail=_GENERIC_FAILURE) from exc
+        raise HTTPException(status_code=500, detail=GENERIC_FAILURE) from exc
 
-    await _save_run_or_raise(http_request, annotate_request.model_dump(), result)
+    await save_run_or_raise(http_request, annotate_request.model_dump(), result)
     if current_user and current_user.email:
         await record_user_annotation_activity(current_user.email, count=result.genes_annotated)
     record_user_action(
@@ -446,7 +437,7 @@ async def get_gene_query_job(
         run_id=run_id,
         view_url=app._run_view_url(http_request, run_id) if run_id else None,
         results=[to_gene_rationale(annotation) for annotation in job.annotations],
-        error=_GENERIC_FAILURE if job.status == "failed" else None,
+        error=GENERIC_FAILURE if job.status == "failed" else None,
     )
 
 

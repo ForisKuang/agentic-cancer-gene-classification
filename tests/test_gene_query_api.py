@@ -608,7 +608,10 @@ def hgnc_transport(client, real_pipeline, monkeypatch):
             request = httpx.Request("GET", url)
             if symbol == "ALK":
                 return httpx.Response(200, request=request, json={"response": {"docs": [{"symbol": "ALK"}]}})
-            mode = state["mode"]
+            endpoint = "search" if "/search/" in url else "fetch"
+            mode = state.get(f"{endpoint}_mode", state["mode"])
+            if mode == "found":
+                return httpx.Response(200, request=request, json={"response": {"docs": [{"symbol": symbol}]}})
             if mode == "timeout":
                 raise httpx.ReadTimeout("HGNC timeout", request=request)
             if mode == "connect":
@@ -631,7 +634,7 @@ def hgnc_transport(client, real_pipeline, monkeypatch):
     return state, real_pipeline
 
 
-@pytest.mark.parametrize("mode", ["timeout", "connect", 503, 500, 429])
+@pytest.mark.parametrize("mode", ["timeout", "connect", 503, 500, 429, 404])
 def test_get_hgnc_failure_retries_and_does_not_reuse_cached_classification(hgnc_transport, client, mode):
     state, pipeline = hgnc_transport
     state["mode"] = mode
@@ -646,31 +649,36 @@ def test_get_hgnc_failure_retries_and_does_not_reuse_cached_classification(hgnc_
     assert state["cache"] == {}
 
 
-@pytest.mark.parametrize("mode", ["missing", 404])
-def test_get_hgnc_confirmed_missing_returns_404(hgnc_transport, client, mode):
+def test_get_hgnc_confirmed_missing_returns_404(hgnc_transport, client):
     state, pipeline = hgnc_transport
-    state["mode"] = mode
+    state["mode"] = "missing"
 
     response = client.get("/v1/genes/ZZNOTREAL")
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Gene symbol not found."}
     assert pipeline["store"].saved_runs
-    assert state["cache"] == {}
+    assert state["cache"] == {
+        "hgnc:fetch:ZZNOTREAL": [],
+        "hgnc:search:ZZNOTREAL": [],
+    }
+    request_count = state["requests"]
+    assert client.get("/v1/genes/ZZNOTREAL").status_code == 404
+    assert state["requests"] == request_count
 
 
-@pytest.mark.parametrize("mode", ["timeout", "connect", 503, 429, "missing", 404])
+@pytest.mark.parametrize("mode", ["timeout", "connect", 503, 429, 404, "missing"])
 def test_batch_hgnc_failure_or_absence_is_per_gene(hgnc_transport, client, mode):
     state, pipeline = hgnc_transport
     state["mode"] = mode
-    symbol = "ZZNOTREAL" if mode in ("missing", 404) else "TP53"
+    symbol = "ZZNOTREAL" if mode == "missing" else "TP53"
 
     response = client.post("/v1/genes/query", json={"genes": [symbol, "ALK"]})
 
     assert response.status_code == 200
     expected = (
         "Gene symbol could not be resolved."
-        if mode in ("missing", 404)
+        if mode == "missing"
         else "Gene symbol lookup is temporarily unavailable; please retry."
     )
     assert {item["gene"]: item["error"] for item in response.json()["results"]} == {
@@ -678,7 +686,11 @@ def test_batch_hgnc_failure_or_absence_is_per_gene(hgnc_transport, client, mode)
         "ALK": None,
     }
     assert pipeline["store"].saved_runs
-    assert all(symbol not in key for key in state["cache"])
+    if mode == "missing":
+        assert state["cache"][f"hgnc:fetch:{symbol}"] == []
+        assert state["cache"][f"hgnc:search:{symbol}"] == []
+    else:
+        assert all(symbol not in key for key in state["cache"])
 
 
 def test_hgnc_failure_is_not_cached_as_absence_across_requests(hgnc_transport, client):
@@ -691,7 +703,7 @@ def test_hgnc_failure_is_not_cached_as_absence_across_requests(hgnc_transport, c
 
     assert response.status_code == 404
     assert state["requests"] > first_requests
-    assert state["cache"] == {}
+    assert state["cache"] == {"hgnc:fetch:TP53": [], "hgnc:search:TP53": []}
     assert pipeline["store"].gene_cache_lookups == []
 
 
@@ -710,6 +722,64 @@ def test_gene_query_job_reports_hgnc_lookup_failure(hgnc_transport, client):
     }
     assert pipeline["store"].saved_runs
     assert all("TP53" not in key for key in state["cache"])
+
+
+def test_positive_hgnc_result_is_cached(hgnc_transport, client):
+    state, _ = hgnc_transport
+    first = client.get("/v1/genes/ALK")
+    request_count = state["requests"]
+
+    second = client.get("/v1/genes/ALK")
+
+    assert first.status_code == second.status_code == 200
+    assert state["cache"]["hgnc:fetch:ALK"] == [{"symbol": "ALK"}]
+    assert state["requests"] == request_count
+
+
+@pytest.mark.parametrize("route", ["/v1/annotate", "/v1/annotate/gene"])
+@pytest.mark.parametrize("mode", ["timeout", 429, 503, 404, "missing"])
+def test_non_strict_annotate_preserves_hgnc_fallback(hgnc_transport, client, route, mode):
+    state, pipeline = hgnc_transport
+    state["mode"] = mode
+    payload = {"gene": "TP53"} if route.endswith("/gene") else {"fusions": ["TP53"]}
+
+    response = client.post(route, json=payload)
+
+    assert response.status_code == 200
+    annotation = response.json() if route.endswith("/gene") else response.json()["annotations"][0]
+    assert annotation["gene"] == "TP53"
+    assert annotation["error"] == ("Unresolvable gene symbol — bare Ensembl ID or unannotated locus" if mode == "missing" else None)
+    assert annotation["cache_status"] == ("bypassed" if mode == "missing" else "refreshed")
+    assert annotation["cancer_associated"] == (None if mode == "missing" else True)
+    assert "symbol_lookup_failed" not in annotation
+    assert pipeline["store"].saved_runs
+    if route.endswith("/gene"):
+        assert response.json()["view_url"] == f"https://acgc.example.org/?run={response.json()['run_id']}"
+
+
+@pytest.mark.parametrize(
+    "fetch_mode,search_mode,status",
+    [("timeout", "found", 200), ("missing", "found", 200), ("missing", "timeout", 503)],
+)
+def test_hgnc_fetch_search_mixed_outcomes(hgnc_transport, client, fetch_mode, search_mode, status):
+    state, pipeline = hgnc_transport
+    state["fetch_mode"] = fetch_mode
+    state["search_mode"] = search_mode
+
+    response = client.get("/v1/genes/TP53")
+
+    assert response.status_code == status
+    assert pipeline["store"].saved_runs
+    if status == 200:
+        assert response.json()["results"][0]["gene"] == "TP53"
+        assert state["cache"]["hgnc:search:TP53"] == [{"symbol": "TP53"}]
+    else:
+        assert response.json() == {"detail": "Gene symbol lookup is temporarily unavailable; please retry."}
+        assert "hgnc:search:TP53" not in state["cache"]
+    if fetch_mode == "missing":
+        assert state["cache"]["hgnc:fetch:TP53"] == []
+    else:
+        assert "hgnc:fetch:TP53" not in state["cache"]
 
 
 # --- jobs -----------------------------------------------------------------------

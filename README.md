@@ -415,11 +415,12 @@ with, or `null` if none. When several inputs resolve to the same gene (an alias
 and its symbol, or an Ensembl ID and its symbol) with different tumor types,
 the pipeline picks one and the response reports that one.
 
-A symbol that HGNC/Ensembl confirm doesn't exist comes back in the batch
-`POST` with `error: "Gene symbol could not be resolved."`; `GET
-/v1/genes/{symbol}` returns 404 (`"Gene symbol not found."`) instead. If the
-lookup itself fails (e.g. an HGNC or Ensembl timeout, 429, 5xx, or connection
-error), the batch `POST` reports
+A symbol with a successful HGNC lookup returning no match, or one that Ensembl
+confirms doesn't exist, comes back in the batch `POST` with
+`error: "Gene symbol could not be resolved."`; `GET /v1/genes/{symbol}` returns
+404 (`"Gene symbol not found."`) instead. If the
+lookup itself fails (e.g. an HGNC non-2xx response, timeout, or connection
+error, or an Ensembl timeout or 5xx), the batch `POST` reports
 `error: "Gene symbol lookup is temporarily unavailable; please retry."` and the
 `GET` returns 503 with that message, so a temporary outage is never reported
 as "not found". The run is saved in every case.

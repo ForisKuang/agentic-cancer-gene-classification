@@ -30,6 +30,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from benchmarks.run_benchmark import DEFAULT_HOLDOUT, run_benchmark
+from src.api.run_persistence import save_run_or_raise
 from src.api_keys_routes import router as api_keys_router
 from src.auth import (
     AuthenticatedUser,
@@ -1455,9 +1456,7 @@ async def annotate_gene(
         logger.exception("Gene annotation pipeline error")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-    from src.api.gene_query import _save_run_or_raise
-
-    await _save_run_or_raise(http_request, request.model_dump(), result)
+    await save_run_or_raise(http_request, request.model_dump(), result)
 
     if not result.annotations:
         raise HTTPException(status_code=500, detail="No gene annotation was returned")
