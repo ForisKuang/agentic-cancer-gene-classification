@@ -1,0 +1,238 @@
+{
+  "attempts": [
+    {
+      "status": "rejected",
+      "http_status": 400,
+      "message": "prompt is too long: 253989 tokens > 200000 maximum",
+      "billing": "Unknown; no inference output",
+      "sdk_retries": 0
+    },
+    {
+      "status": "completed",
+      "http_status": 200,
+      "judge_model": "claude-haiku-4-5-20251001",
+      "sdk_retries": 0,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "not_available",
+        "input_tokens": 150240,
+        "output_tokens": 11613,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "http_status": 200,
+      "group": "EGFR",
+      "genes": [
+        "EGFR"
+      ],
+      "judge_model": "claude-haiku-4-5-20251001",
+      "sdk_retries": 0,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "not_available",
+        "input_tokens": 12600,
+        "output_tokens": 964,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "http_status": 200,
+      "group": "TP53",
+      "genes": [
+        "TP53"
+      ],
+      "judge_model": "claude-haiku-4-5-20251001",
+      "sdk_retries": 0,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "not_available",
+        "input_tokens": 11465,
+        "output_tokens": 3148,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "http_status": 200,
+      "group": "KRAS",
+      "genes": [
+        "KRAS"
+      ],
+      "judge_model": "claude-haiku-4-5-20251001",
+      "sdk_retries": 0,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "not_available",
+        "input_tokens": 15977,
+        "output_tokens": 950,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "http_status": 200,
+      "group": "BRAF",
+      "genes": [
+        "BRAF"
+      ],
+      "judge_model": "claude-haiku-4-5-20251001",
+      "sdk_retries": 0,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "not_available",
+        "input_tokens": 17947,
+        "output_tokens": 1432,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "http_status": 200,
+      "group": "BRCA1",
+      "genes": [
+        "BRCA1"
+      ],
+      "judge_model": "claude-haiku-4-5-20251001",
+      "sdk_retries": 0,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "not_available",
+        "input_tokens": 16709,
+        "output_tokens": 1888,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "http_status": 200,
+      "group": "ALK",
+      "genes": [
+        "ALK"
+      ],
+      "judge_model": "claude-haiku-4-5-20251001",
+      "sdk_retries": 0,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "not_available",
+        "input_tokens": 15399,
+        "output_tokens": 1494,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "http_status": 200,
+      "group": "EML4_ALK",
+      "genes": [
+        "EML4::ALK"
+      ],
+      "judge_model": "claude-haiku-4-5-20251001",
+      "sdk_retries": 0,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "not_available",
+        "input_tokens": 11565,
+        "output_tokens": 1495,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "http_status": 200,
+      "group": "negative_controls",
+      "genes": [
+        "ACACB",
+        "AIRE",
+        "ANKRD13A",
+        "CRACD",
+        "DENND2C",
+        "FAM117A",
+        "RFX7",
+        "RP1",
+        "TRARG1",
+        "CLCN3P1"
+      ],
+      "judge_model": "claude-haiku-4-5-20251001",
+      "sdk_retries": 0,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "not_available",
+        "input_tokens": 66253,
+        "output_tokens": 6986,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard"
+      }
+    }
+  ],
+  "planned_retry": "Full prose plus concise bibliography; source_texts retained in models.json",
+  "total_judge_attempts": 10,
+  "total_benchmark_api_attempts": 44,
+  "excluded_completed_assessments": [
+    "blinded_judge.json"
+  ]
+}

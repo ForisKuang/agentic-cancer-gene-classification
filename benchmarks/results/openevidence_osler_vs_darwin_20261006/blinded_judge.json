@@ -1,0 +1,346 @@
+{
+  "judge_model": "claude-haiku-4-5-20251001",
+  "paid_judge_calls": 1,
+  "usage": {
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "inference_geo": "not_available",
+    "input_tokens": 150240,
+    "output_tokens": 11613,
+    "output_tokens_details": null,
+    "server_tool_use": null,
+    "service_tier": "standard"
+  },
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "mapping": {
+    "EGFR": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "TP53": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "KRAS": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "BRAF": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "BRCA1": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "ALK": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "ACACB": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "AIRE": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "ANKRD13A": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "CRACD": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "DENND2C": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "FAM117A": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "RFX7": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "RP1": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "TRARG1": {
+      "A": "osler",
+      "B": "darwin"
+    },
+    "CLCN3P1": {
+      "A": "darwin",
+      "B": "osler"
+    },
+    "EML4::ALK": {
+      "A": "darwin",
+      "B": "osler"
+    }
+  },
+  "per_gene": [
+    {
+      "gene": "EGFR",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B provide comprehensive, well-organized summaries of EGFR-targeted therapy across NSCLC, colorectal cancer, glioblastoma, and pancreatic cancer. A structures information by disease setting and mutation class; B similarly covers first-line metastatic, post-progression, adjuvant, and stage III consolidation settings. Both cite FLAURA, ALEX, ADAURA, LAURA, PAPILLON, and WU-KONG trials with consistent hazard ratios and OS data. Both correctly identify osimertinib as category 1 preferred first-line, discuss exon 20 insertion mutations separately, and note tumor-agnostic context (glioblastoma failures, colorectal cancer anti-EGFR biology). A includes dacomitinib permanent discontinuation in the US; B similarly notes this. Both correctly state pembrolizumab is less effective in EGFR-mutant NSCLC. Minor differences: A quotes trial-specific ORRs and PFS more densely; B includes network meta-analysis framing and the 2025 BREAKWATER trial for colorectal cancer. Trial citations and numeric endpoints (median PFS 25.5 vs 16.7 in FLAURA2, HR 0.62; PFS 30.2 months in PHAROS) align between responses. Neither contains factual errors or unsupported claims.",
+      "spot_check_flags": "Both responses cite NCCN/ASCO guidelines accurately. Trial names (FLAURA, ALEX, ADAURA, LAURA, PAPILLON, WU-KONG28, BREAKWATER, BREAKWATER Cohort 3, MARIPOSA-2) and numeric outcomes should be independently verified as precise trial reporting, not full claim validation. Citation references [1]\u2013[18] in each response link to appropriate source types (NCCN PDFs, JCO, NEJM) without apparent fabrication. No red-flag trial IDs or invented NCT numbers detected."
+    },
+    {
+      "gene": "TP53",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 4,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B correctly state that no targeted agent is guideline-approved or guideline-recommended for TP53 alterations, and that TP53 functions as a risk-stratification/prognostic biomarker rather than a therapeutic target. Both identify myeloid neoplasms (AML, MDS) as the disease setting where NCCN most explicitly recommends trial enrollment for TP53-mutant patients. A mentions eprenetapopt (APR-246) with phase Ib/II ORR 71%, CR 44%, and phase 3 failure (CR 33.3% vs 22.4%, P\u22640.13) in TP53-mutant MDS. B provides nearly identical reporting of the same eprenetapopt data. Both discuss rezatapopt (PC14586) Y220C-selective activity in PYNNACLE phase 1 (ORR 20%, DOR 7.0 months, OS 11.4 months) with KRAS co-mutation abolishing activity. B includes additional detail: Y220C accounts for ~1.8% of TP53 mutations; acquired resistance shows secondary TP53 alterations in cis. Both cover magrolimab anti-CD47 failures (ENHANCE-2, ENHANCE) and WEE1 inhibition (FOCUS4-C) with consistent trial data. A also covers ARIEL4 and additional resistance mechanisms. Specificity edge to B for explaining Y220C prevalence and on-target resistance mechanisms explicitly.",
+      "spot_check_flags": "Trial names (PYNNACLE, ENHANCE-2, FOCUS4-C, ARIEL4, WEE-related trials) and trial outcomes should be verified. The PYNNACLE phase 1 ORR of 20% and KRAS co-mutation finding are notable; Y220C frequency ~1.8% should be spot-checked. FOCUS4-C PFS 3.61 vs 1.87 months (HR 0.35) with no OS benefit is accurately reported in B. No invented NCT IDs or trial fabrications detected; all citations map to appropriate source types."
+    },
+    {
+      "gene": "KRAS",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B provide accurate, detailed summaries of KRAS G12C inhibition and pan-RAS targeting across NSCLC, colorectal cancer, and pancreatic adenocarcinoma. A and B both state sotorasib and adagrasib are second-line/subsequent therapy options in NSCLC (not first-line), with category 2A status per NCCN and moderate/strong evidence per ASCO. Trial outcomes: CodeBreaK 100 (ORR ~37%, PFS 6.8, OS 12.5), CodeBreaK 200 (PFS 5.6 vs 4.5, HR 0.66, no OS benefit), KRYSTAL-1 (ORR 42.9%, PFS 6.5, OS 12.6), KRYSTAL-12 (PFS 5.5 vs 3.8, HR 0.58) are cited identically by both. Colorectal cancer: CodeBreaK 300 (PFS HR 0.48\u20130.49, ORR 26\u201330%, OS HR 0.70 not significant) and KRYSTAL-1 adagrasib+cetuximab (ORR ~46%, PFS 6.9 vs 19% monotherapy) cited consistently. Pancreatic: RASolute 302 OS 13.2 vs 6.7 months for daraxonrasib cited by both. A emphasizes dacomitinib discontinuation and NCCN category listings more explicitly; B includes additional safety details (hepatotoxicity, QT prolongation, drug interactions) and emerging evidence on first-line combinations (KRYSTAL-7, olomorasib). Both note ESMO guidelines acknowledge KRAS G12C inhibitors + anti-EGFR in CRC but flag that specific ESMO wording cannot be verified. No factual errors in either response.",
+      "spot_check_flags": "CodeBreaK 100, CodeBreaK 200, CodeBreaK 300, KRYSTAL-1, KRYSTAL-12, FOCUS4-C, WU-KONG28, WU-KONG6, CHRYSALIS, RASolute 302 trial names and outcomes should be independently verified. NCCN category assignments (2A for G12C inhibitors in NSCLC second-line; category 1 for daraxonrasib in pancreatic cancer) require confirmation against current NCCN PDF. Safety profile details (hepatotoxicity 27% grade \u22653, QTc >60 ms in 11% with adagrasib) should be spot-checked. No fabricated trials or NCT IDs detected."
+    },
+    {
+      "gene": "BRAF",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B comprehensively address BRAF V600E/V600K targeted therapy across melanoma, NSCLC, thyroid cancer, colorectal cancer, and tumor-agnostic settings. Both correctly distinguish BRAF+MEK inhibition as standard in melanoma, NSCLC, and thyroid cancer versus BRAF+EGFR blockade required in colorectal cancer due to adaptive EGFR resistance. Melanoma: both cite DREAMseq and SECOMBIT establishing nivolumab/ipilimumab preference over BRAF/MEK first-line. COMBI-AD final analysis: 10-year RFS benefit, OS 20% lower death risk (~25% in V600E subgroup) reported by both. Colorectal cancer: BREAKWATER trials (mFOLFOX6 and FOLFIRI cohorts) establishing encorafenib+cetuximab\u00b1chemotherapy cited by both with consistent ORR/PFS/OS. BEACON trial (OS HR 0.61, PFS HR 0.44 for encorafenib+cetuximab in R/R disease) cited by both. NSCLC: PHAROS (ORR 75%, mOS 47.6 months) and phase 2 dabrafenib/trametinib data (ORR 64%, mPFS ~10.8) cited consistently. A includes detailed safety/toxicity monitoring (pyrexia ~55%, SCC risk, cardiac effects per 2022 ESC guidelines); B similarly covers these. A explicitly excludes CRC from tumor-agnostic dabrafenib/trametinib approval; B also does. Non-V600 BRAF alterations correctly treated as non-actionable by standard V600E inhibitors in both. No significant factual discrepancies.",
+      "spot_check_flags": "Trial names COMBI-AD, COMBI-d, COMBI-v, coBRIM, COLUMBUS, DREAMseq, SECOMBIT, BRF113928, PHAROS, BREAKWATER, BREAKWATER Cohort 3, ROAR, NCI-MATCH subprotocol H should be verified for precision. Numeric outcomes (COMBI-AD 10-year sustained benefit; PHAROS mOS 47.6 months; BREAKWATER mFOLFOX6 OS HR 0.49) require spot-checking. Colorectal cancer-specific exclusion from histology-agnostic approval is correctly stated by both but should be independently confirmed. No fabricated trials or suspicious NCT IDs detected."
+    },
+    {
+      "gene": "BRCA1",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B accurately present PARP inhibition as the established targeted therapy for BRCA1 (and BRCA2) alterations across four tumor types: breast cancer (adjuvant and metastatic), ovarian cancer (maintenance), pancreatic cancer (maintenance), and prostate cancer (mCRPC). Both correctly note that BRCA1 and BRCA2 are treated equivalently in breast and ovarian indications, while prostate cancer shows weaker BRCA1 efficacy than BRCA2 in subgroup analyses. Breast cancer (OlympiA): 72% BRCA1 carriers in trial; DFS HR 0.58 (3-year invasive DFS 85.9% vs 77.1%), OS benefit at later follow-up cited by both. Ovarian cancer (SOLO1): HR 0.30 for BRCA1/2 with 7-year OS 67% vs 46.5%; SOLO2 PFS 19.1 vs 5.5 months (HR 0.30) with 8% vs 4% MDS/AML cited by both. Pancreatic cancer (POLO): PFS 7.4 vs 3.8 months (HR 0.53), no OS benefit (19.0 vs 19.2 months, HR 0.83) cited identically. Prostate cancer (PROfound, TRITON-3, TALAPRO-2, MAGNITUDE): A and B both note BRCA1 subgroup shows lower ORR than BRCA2 (rucaparib PSA50 15% BRCA1 vs 60% BRCA2). Both emphasize germline vs somatic distinction affecting label approval (breast/pancreatic require germline; ovarian/prostate accept both). Both stress confirmation with germline testing for tumor-detected pathogenic variants. A meta-analysis of 11 RCTs (1544 BRCA1, 1191 BRCA2) showing no significant interaction cited by A; B similarly acknowledges this. No factual errors.",
+      "spot_check_flags": "OlympiA (72% BRCA1 enrollment; DFS HR 0.58; 3-year invasive DFS 85.9% vs 77.1%; OS HR 0.49 at later follow-up), SOLO1 (HR 0.30; OS 67% vs 46.5% at 7 years), SOLO2 (PFS HR 0.30; MDS/AML 8% vs 4%), POLO (PFS HR 0.53; OS HR 0.83 without benefit), PROfound (OS HR 0.63 in BRCA1/2), TRITON-3 (rucaparib PSA50 15% BRCA1 vs 60% BRCA2; ORR 33% vs 45%), and related trials should be independently verified. Germline vs somatic indications per FDA label are critical distinctions and warrant verification. No invented NCT IDs or trial fabrications detected."
+    },
+    {
+      "gene": "ALK",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B provide thorough, accurate coverage of ALK-directed therapy across NSCLC, inflammatory myofibroblastic tumor, anaplastic large cell lymphoma, and neuroblastoma. Both correctly identify alectinib, brigatinib, ensartinib, and lorlatinib as preferred category 1 first-line options for ALK-positive NSCLC, with ceritinib and crizotinib as \"useful in certain circumstances.\" CROWN trial (lorlatinib vs crizotinib): 7-year PFS not reached vs 9.1 months (HR 0.19); 7-year PFS 55% vs 3%; intracranial progression HR 0.06 cited by both identically. ALEX final OS: median 81.1 vs 57.2 months (HR 0.78); 7-year OS 48.6% vs 38.2% cited by both. ALTA-1L (brigatinib): median PFS 30.8 vs 9.2 months (HR 0.43) cited by both. eXalt3 (ensartinib): PFS 25.8 months cited by A; B references eXalt3 implicitly. ALINA adjuvant (alectinib 600 mg BID vs chemotherapy): DFS HR 0.24, CNS DFS HR 0.22, 4-year DFS 75.5% vs 47% cited by both. IMT and ALCL settings: ADVL0912 (crizotinib ORR 86% in IMT, 83-90% in pediatric ALCL) cited by both. Both note that lorlatinib toxicity includes hypertriglyceridemia (26%), weight gain (24%), hypercholesterolemia (22%), cognitive effects (3%). Both caution against switching between TKIs at progression and emphasize repeat NGS for resistance mutations. No significant factual differences.",
+      "spot_check_flags": "CROWN 7-year update (median PFS not reached vs 9.1 months; 7-year PFS 55% vs 3%; intracranial PFS HR 0.06; OS remains immature per A, with later updates per B), ALEX (median OS 81.1 vs 57.2; 7-year OS 48.6% vs 38.2%), ALTA-1L (median PFS 30.8 vs 9.2; HR 0.43), eXalt3 (PFS 25.8 months), ALINA (DFS HR 0.24; 4-year DFS 75.5% vs 47%), ADVL0912 (ORR 86% IMT, 83-90% ALCL), EORTC CREATE (ORR 66.7%, median PFS 18 months in ALK+), and AcS\u00e9-crizotinib (median DOR 40+ months) should be independently verified. Lorlatinib dosing restrictions with CYP3A inducers/inhibitors are accurately described. Emerging fourth-generation agents (neladalkib/NVL-655, TPX-0131/zotizalkib) mentioned; TPX-0131 program termination per B requires verification. No fabricated trials or suspicious NCT IDs detected."
+    },
+    {
+      "gene": "ACACB",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B correctly and comprehensively state that no NCCN, ASCO, or ESMO guideline recommends targeted therapy for ACACB alterations, and no clinical trial has validated ACACB as a therapeutic biomarker. Both explain the key conceptual distinction: ACC is a metabolic drug target, not a genomic biomarker, and the correct oncology target is ACC1 (ACACA), not ACC2 (ACACB). A explains that ACC1 is the cytoplasmic isoform driving de novo lipogenesis, while ACC2 is mitochondrial and restrains fatty acid oxidation via CPT1 inhibition by malonyl-CoA. B provides similar mechanistic clarity. Both correctly state that ACACB truncation or loss makes pharmacologic ACC2 inhibition mechanistically implausible; amplification does not establish enzyme activity or dependency. Both note that ACC inhibitor preclinical work (ND-646, ND-630, firsocostat, PF-05175157) tests pharmacologic ACC inhibition in genotype-unselected models, not ACACB-selected cohorts. A emphasizes that ACC1, not ACC2, is the dominant lipogenic driver and had the broadest cancer-dominant expression pattern in systematic screens. Both discuss context-dependent off-target effects (EMT promotion, ferroptosis resistance, proliferation) that add uncertainty. Both advise treating ACACB as non-actionable and directing therapy to established biomarkers; B references ASCO PCO guidance on patients with actionable alterations lacking approved matched therapy. No factual errors; both responses appropriately caution against clinical extrapolation.",
+      "spot_check_flags": "Preclinical studies cited (ND-646, ND-630, firsocostat, PF-05175157, denifanstat/TVB-2640) should be verified for accuracy of isoform selectivity and endpoints. Claim that denifanstat (FASN inhibitor) is in phase 3 while ACC inhibitors remain preclinical should be verified. TCGA and pan-cancer biomarker expression data underpinning isoform prevalence should be spot-checked. No invented trials or fabricated NCT numbers detected; appropriate caution against off-label use."
+    },
+    {
+      "gene": "AIRE",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B correctly and thoroughly explain that no NCCN, ASCO, or ESMO guideline recommends AIRE-directed targeted therapy, and AIRE is not an actionable oncology biomarker. Both explain AIRE's role as a transcriptional regulator of promiscuous tissue-restricted antigen expression in medullary thymic epithelium, promoting central tolerance. Both distinguish AIRE expression (prognostic/immune-predictive in some contexts) from AIRE sequence alteration (no therapeutic target). A and B both address the two clinical contexts where AIRE does affect management: (1) germline biallelic loss-of-function AIRE causing APECED/APS-1 with chronic oral/esophageal candidiasis predisposing to squamous cell carcinoma (~5% of long-standing APS-1 patients), where management is supportive (dental partnership, screening) not AIRE-targeted; (2) thymoma AIRE loss (~95% of thymomas) causing paraneoplastic autoimmunity (MG, PRCA, Good syndrome), where the actionable guideline point is avoidance of PD-1/PD-L1 inhibitors and careful histologic diagnosis (thymoma vs thymic carcinoma) to avoid irAEs. Both correctly caution against confusing AIRE (the autoimmune regulator gene) with adenosine-to-inosine RNA editing (ADAR1-mediated), which uses \"AIRE\" as an acronym in some papers. Both recommend germline referral only if a biallelic P/LP AIRE variant is found with compatible phenotype, not for somatic findings. No factual errors; both appropriately emphasize absence of therapeutic actionability.",
+      "spot_check_flags": "Norwegian long-term APS-1 cohort data (10/49 patients with neoplasms; 27% of deaths from cancer; 3 esophageal cancer deaths at mean age 48) cited by A should be verified. Meta-analysis of six ICI trials showing 58.3% grade 3-5 irAEs in thymoma vs 17.1% in thymic carcinoma (A) and single-center series with irAEs in all thymoma patients (B) should be spot-checked. Thymic epithelial tumor NCCN guidance on PD-1/PD-L1 avoidance in thymoma is correctly cited. No fabricated trials or invented data detected."
+    },
+    {
+      "gene": "ANKRD13A",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B accurately state that no NCCN, ASCO, or ESMO guideline recommends targeted therapy for ANKRD13A alterations, and ANKRD13A is not an actionable oncology biomarker. Both explain ANKRD13A's role as a ubiquitin-binding endocytic adaptor protein regulating EGFR trafficking, not a druggable oncogenic driver. Both note the important caveat that confusion with ANKRD1 (a different ankyrin-repeat protein) is possible; ANKRD1 has been associated with acquired resistance to afatinib/osimertinib in EGFR-mutant NSCLC (preclinical only) and shows alterations across pan-cancer datasets, yet carries no guideline or trial-backed targeted therapy. Both correctly classify an ANKRD13A finding as a variant of uncertain clinical significance (tier III per AMP/ASCO/CAP framework) and advise against altering management based on it alone. A and B both explain ANKRD13A's roles in EGFR degradation (with E3 ligases ITCH and RNF11), CYYR1-mediated WWP1 degradation (associated with favorable breast cancer prognosis in preclinical work), and mitophagy (recruiting VCP during PINK1/Parkin-mediated mitochondrial rupture). A advises confirmation of gene symbol and verification of any fusion partner; B similarly notes pseudogenes and structural rearrangements require partner inspection. Neither response contains factual errors.",
+      "spot_check_flags": "Preclinical data on ANKRD13A-EGFR degradation interaction (Tanno et al., Mattioni et al.) and CYYR1-mediated WWP1 regulation (Perron et al.) cited by both should be verified. Claim about ANKRD1 (not ANKRD13A) and afatinib/osimertinib resistance (Takahashi et al. 2018) and pan-cancer ANKRD1 alterations should be spot-checked. No fabricated trials or NCT IDs detected; appropriate emphasis on lack of clinical actionability."
+    },
+    {
+      "gene": "CRACD",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B accurately state that no NCCN, ASCO, or ESMO guideline recommends targeted therapy for CRACD alterations, and CRACD is not an established actionable driver. Both explain CRACD (Capping protein inhibiting Regulator of Actin Dynamics / CRAD / KIAA1211) as a tumor suppressor promoting actin polymerization by inhibiting capping proteins CAPZA/CAPZB. Both correctly frame therapeutic interest as exploiting downstream vulnerabilities of CRACD loss (not restoring CRACD itself). A and B both describe the gastric cancer preclinical model (Cracd loss + Kras mutation + Trp53 loss in organoids/syngeneic models) showing actin dysregulation \u2192 NF-\u03baB/COX2 \u2192 ROS \u2192 HIF1\u03b1 stabilization \u2192 PD-L1 transactivation, with HIF1\u03b1 inhibition (PX-478) or PD-L1 blockade restoring immune surveillance. Both note this is entirely preclinical and the authors explicitly call for validation before clinical use. Both discuss SCLC (CRACD mutated in 11-16%) showing neuroendocrine plasticity via NOTCH downregulation and EZH2-mediated MHC-I suppression. Both correctly advise against off-label EZH2 or HIF1\u03b1 inhibition outside a clinical trial and note FDA alert/voluntary withdrawal of tazemetostat (EZH2 inhibitor) due to blood cancer risk. Both emphasize distinction between functional CRACD inactivation (biallelic/truncating or demonstrated protein loss by IHC) versus arbitrary missense variants or monoallelic loss. No factual errors.",
+      "spot_check_flags": "Gastric cancer preclinical study (Seo et al., Nature Commun 2026) showing Cracd loss \u2192 NF-\u03baB/COX2/ROS \u2192 HIF1\u03b1 \u2192 PD-L1 and therapeutic benefit of HIF1\u03b1 or PD-L1 inhibition should be verified. SCLC study (Seo et al., Nat Commun 2025) describing CRACD mutation frequency (11-16%) and EZH2-mediated mechanisms should be spot-checked. NCCN SCLC guideline statement on biomarker testing restrictions and absence of EZH2 inhibitor recommendations should be verified. FDA tazemetostat withdrawal and blood cancer risk alert should be confirmed. No fabricated trials or invented data detected."
+    },
+    {
+      "gene": "DENND2C",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B accurately and comprehensively state that no NCCN, ASCO, or ESMO guideline recommends targeted therapy for DENND2C alterations, and no clinical trial has validated DENND2C as a therapeutic target. Both explain DENND2C encodes a DENN-domain Rab-specific guanine nucleotide exchange factor involved in Rab9-dependent trafficking and lysosomal targeting. Both correctly note that DENND2C is not listed in NCCN biomarker tables and does not appear in ESMO Precision Medicine Working Group NGS recommendations. A emphasizes the risk of confusing DENND2C with better-studied paralogs (DENND2B, DENND2D), which occasionally appear in cancer literature as prognostic or candidate therapeutic targets. B provides additional detail on DENND2D's role as a candidate tumor suppressor silenced by promoter methylation in hepatocellular, esophageal, gastric, and NSCLC with prognostic significance. Both correctly apply AMP/ASCO/CAP tier III classification (variants of unknown clinical significance) and ESCAT tier X (lack of evidence). Both advise against off-label therapy and recommend clinical trial enrollment per ASCO guidelines. A and B both caution that pseudogenes share homology with parent genes, so read mismapping should be verified. No factual errors in either response.",
+      "spot_check_flags": "DENN-domain family characterization (Yoshimura et al. 2010; Marat et al. 2011; Wu et al. 2011) establishing Rab GEF function should be verified. DENND2D preclinical tumor suppressor data (promoter hypermethylation in HCC, ESCC, gastric cancer, NSCLC; prognostic significance) cited by B should be spot-checked. Antisense DENN expression studies showing apoptosis induction (Lim et al. 2002, 2004) should be verified. No fabricated trials or NCT IDs detected; appropriate emphasis on lack of therapeutic actionability."
+    },
+    {
+      "gene": "FAM117A",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B accurately state that no NCCN, ASCO, or ESMO guideline recommends targeted therapy for FAM117A alterations, and FAM117A is not an actionable oncology biomarker. Both explain FAM117A is absent from OncoKB, AMP/ASCO/CAP actionable gene lists, and ESCAT tiering frameworks. Both cite preclinical work: A 2022 TCGA-based bioinformatics study (Wu et al., eCAM 2022) finding low FAM117A expression associated with poor lung adenocarcinoma survival and FAM117A depletion promoting G1\u2192S progression, with palbociclib (PD0332991) blocking FAM117A-driven growth in cell lines and xenografts. A 2025 gastric cancer study (Chen et al., CSBJ 2025) proposing FAM117A as a regulator of p53 signaling and E-/N-cadherin, labeled a \"potential therapeutic target\" on mechanistic grounds only. Both correctly emphasize this is preclinical/hypothesis-generating work with no drug-target pair validation. Both advise against extrapolating palbociclib preclinical data to off-label CDK4/6 inhibition. Both counsel treating FAM117A as having no established therapy-predictive significance and emphasize ASCO PCO guidance that not all variants affecting gene function are therapeutically actionable. No factual errors.",
+      "spot_check_flags": "Wu et al. 2022 TCGA bioinformatics study (FAM117A expression correlation with lung adenocarcinoma survival; palbociclib efficacy in cell lines/xenografts) should be independently verified for accuracy of ORR and PFS claims. Chen et al. 2025 gastric cancer study (FAM117A and PIGU as p53-pathway regulators) should be spot-checked. ProTarget (NCT04341181) and TAPUR basket trial references should be confirmed. No fabricated trials or invented data detected."
+    },
+    {
+      "gene": "RFX7",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B accurately and thoroughly state that no NCCN, ASCO, or ESMO guideline recommends RFX7-directed targeted therapy, and RFX7 is not an actionable biomarker. Both explain RFX7 as a winged-helix transcription factor and tumor suppressor restricting MYC activity and cellular metabolism. Both correctly note RFX7 mutations/loss occur in 3-5% of DLBCL and 13-15% of EBV-negative Burkitt lymphoma, with prognostic weight in CLL (IGHV-unmutated subset). Both correctly identify the mechanism as loss-of-function, not a druggable gain-of-function, with truncated RFX7 proteins showing dominant-negative effects. Both cite recent Nature Immunology 2026 papers (Fischer et al. and unnamed peer paper) establishing RFX7's role in restraining MYC activity during B cell activation and suppressing MYC-dependent lymphomagenesis. Both discuss preclinical hypotheses: MYC-pathway inhibition as a candidate strategy because RFX7 loss de-represses MYC, and advanced MYC inhibitors (e.g., BI-894999) are under development but not RFX7-selected. Both note that TP53 co-mutation occurs in 30-70% of RFX7-mutant BL/DLBCL cases. Both correctly classify RFX7 as pathogenic but not clinically actionable and advise interpreting it as a prognostic/biologic finding rather than a treatment biomarker. No factual errors.",
+      "spot_check_flags": "Nature Immunology 2026 publications (Fischer et al. on RFX7 limiting MYC activity during B cell activation; unnamed second paper on RFX7 as tumor suppressor) should be verified for correct authorship, volume, and page numbers. RFX7 mutation frequencies in DLBCL (3-5%) and EBV-negative Burkitt lymphoma (13-15%) should be spot-checked. Co-mutation frequency with TP53 (30-70%) requires verification. MYC-pathway inhibitors and trial landscape cited should be independently confirmed. No fabricated trials or invented data detected."
+    },
+    {
+      "gene": "RP1",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B correctly address the ambiguity in \"RP1\" and resolve it accurately. Both note RP1 gene (retinitis pigmentosa 1, a photoreceptor/ciliary protein on 18q21) is not a cancer predisposition gene, not an oncogenic driver, and has no targeted therapy. Both mention the legacy \"RP1\" name for MAPRE2/EB2 (an EB1-family microtubule protein), which shows preclinical association with perineural invasion in pancreatic cancer and immunosuppression in hepatocellular carcinoma but no approved target. Both note RP1-prefixed lncRNAs (e.g., RP1-59D14.5 in prostate cancer) are clone-based names, not druggable. Critically, both distinguish RP1 the drug (vusolimogene oderparepvec, development code RP1 for an oncolytic HSV-1 expressing GM-CSF and GALV-GP-R\u2212) from RP1 sequence variants. Both correctly explain that vusolimogene oderparepvec eligibility depends on injectable lesions and prior anti-PD-1 failure, not RP1 genotype. A references IGNYTE trial data (ORR 24.2%, median DOR 14.1 months in efficacy-evaluable population vs published 32.9%/33.7 months); B cites IGNYTE published efficacy-evaluable data and provides label dosing details (10^6 PFU/mL first dose then 10^7 PFU/mL thereafter, intratumoral injection q2w for 8 doses). Both note the product's exclusions and herpetic/transmission risks. No factual errors; both appropriately distinguish the drug from sequence biomarkers.",
+      "spot_check_flags": "IGNYTE trial efficacy data (ORR 24.2%, median DOR 14.1 months in submitted vs 32.9%/33.7 months in published efficacy-evaluable populations) should be independently verified; discrepancy noted by both warrants source confirmation. Label dosing and administration (intratumoral lesion-size-dependent dosing to maximum 10 mL/dose, q2w for 8 doses, nivolumab timing) should be verified against FDA label. Photoreceptor RP1 gene biology (doublecortin domain; retinitis pigmentosa pathogenesis; 18q21 localization) and MAPRE2 preclinical cancer associations should be spot-checked. NCCN melanoma guideline recommendation for vusolimogene oderparepvec in anti-PD-1\u2013refractory disease should be confirmed. No fabricated trials or invented data detected."
+    },
+    {
+      "gene": "TRARG1",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B accurately state that no NCCN, ASCO, or ESMO guideline recommends targeted therapy for TRARG1 alterations, and TRARG1 is not an oncology biomarker. Both explain TRARG1 (trafficking regulator of GLUT4-1) as a metabolic protein regulating insulin-stimulated GLUT4 trafficking and insulin sensitivity in adipocytes, with literature focused on glucose metabolism and insulin resistance, not cancer. Both flag the potential for confusion with TARG1 (a distinct gene involved in toxic ADP-ribosylation resistance), which has preclinical but no clinical cancer data. Both note TARG1 is involved in PARP inhibition biology (PARG and TARG1 protect against DNA ADP-ribosylation toxicity), yet PARG and TARG1 status do not guide therapy selection; instead, HRD/BRCA status and replication-stress phenotypes guide PARG inhibitor enrollment. Both distinguish TRARG1 from TRG (T-cell receptor gamma) fusions, which are oncogenic rearrangements in T-ALL/B-ALL but do not carry guideline-backed targeted therapy recommendations either. Both appropriately advise confirming exact gene identity and clarify that off-label PARG or metabolic inhibition is not supported. No factual errors.",
+      "spot_check_flags": "TRARG1/GLUT4 trafficking biology (Duan et al. 2022 Biochem J; Fazakerley et al. 2015; Beaton et al. 2015) should be verified. TARG1 ADP-ribosylation protection and nucleolar/nucleoplasmic shuttling (Tromans-Coia et al. 2021; B\u00fcttepage et al. 2018) should be spot-checked. PARG inhibitor development (IDE161, ETX-19477, XNW29016) fast-track designations and trial landscapes should be verified. Claim that TARG1 affects EGFR signaling through RNA metabolism (M\u00e9rey et al. 2025) should be confirmed. No fabricated trials or invented data detected."
+    },
+    {
+      "gene": "CLCN3P1",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B accurately state that no NCCN, ASCO, or ESMO guideline recommends targeted therapy for CLCN3P1 alterations. Both correctly identify CLCN3P1 as a processed pseudogene of CLCN3 (chloride voltage-gated channel 3), encoding no functional protein. Both advise verification with the reporting laboratory to exclude read mismapping, a recognized source of spurious pseudogene calls. Both note that the parent gene CLCN3 has only preclinical cancer literature and no guideline or trial-backed targeted therapy. A and B both review CLCN3 preclinical data: ClC-3 overexpression associated with multidrug resistance via upregulation of P-glycoprotein/MDR1 through NF-\u03baB signaling; invasion/metastasis via membrane ruffling and correlation with poor prognosis; cell-cycle regulation by upregulation of cyclin D1-CDK4/6; and effects on lymphoid malignancies. Both note these are laboratory hypotheses with no targeted agent or guideline endorsement. Both appropriately caution against therapeutic interpretation and counsel adherence to validated NCCN algorithms based on histology and established biomarkers. No factual errors.",
+      "spot_check_flags": "Pseudogene read mismapping as a source of artifact (acknowledged by both but not cited to specific examples) should be verified for frequency/likelihood. CLCN3 preclinical oncology data (Chen et al. 2019 on MDR1 upregulation; Xu et al. 2015 on membrane ruffling; Guan et al. 2019 on cervical carcinoma invasion; Ye et al. 2016 on nasopharyngeal carcinoma cell-cycle effects; Guan et al. 2019 on prognosis) should be spot-checked. Claims about EMT, resistance mechanisms, and chloride channel inhibitors (NPPB, tamoxifen, chlorotoxin) in these contexts should be verified. No fabricated trials or invented data detected."
+    },
+    {
+      "gene": "EML4::ALK",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both A and B provide comprehensive, accurate summaries of EML4::ALK as the defining fusion in ALK-positive NSCLC. Both correctly note that guidelines treat \"ALK gene fusion/ALK-positive\" disease generically\u2014EML4::ALK (83% of ALK-rearranged NSCLC) is not treated as a separate indication, and no guideline recommends different agents by fusion partner or EML4-ALK variant. First-line NSCLC: both cite NCCN category 1 preferred options (alectinib, brigatinib, ensartinib, lorlatinib) and ASCO strong recommendations (high-quality evidence). CROWN 7-year data: median PFS not reached vs 9.1 months (HR 0.19), 7-year PFS 55% vs 3%, intracranial progression HR 0.06 cited identically. ALEX final OS: 81.1 vs 57.2 months (HR 0.78); 7-year OS 48.6% vs 38.2% cited by both. ALTA-1L (brigatinib): 30.8 vs 9.2 months (HR 0.43); ensartinib PFS 25.8 months cited by both. Adjuvant (ALINA): DFS HR 0.24, CNS DFS HR 0.22, 4-year DFS 75.5% vs 47%, OS immature cited by both. Both note lack of head-to-head trials among next-generation agents and that 2026 ASCO panel narrative names lorlatinib as agent of choice when available. Both correctly emphasize toxicity differences driving selection and repeat NGS at progression for resistance mutations. IMT/ALCL: ADVL0912 (86% ORR in IMT, 83-90% in pediatric ALCL) cited by both. Both caution against PD-1/PD-L1 monotherapy efficacy in ALK+ NSCLC. No factual errors.",
+      "spot_check_flags": "CROWN 7-year update (median PFS NR vs 9.1; 7-year PFS 55% vs 3%; intracranial progression HR 0.06; OS remains immature per A) should be verified for consistency. ALEX final OS (median 81.1 vs 57.2; 7-year OS 48.6% vs 38.2%) should be spot-checked. ALINA (DFS HR 0.24; 4-year DFS 75.5% vs 47%; OS immature) should be verified. ADVL0912 (86% ORR IMT; 83-90% pediatric ALCL) and French AcS\u00e9-crizotinib (67% 8-week response; median DOR 43.3 months, frequent relapse after discontinuation) should be independently confirmed. NCI-MATCH subprotocol F (crizotinib ORR 50% in rare ALK-rearranged tumors; n=5) should be verified. CROWN toxicity profile (77% vs 57% grade \u22653; hypertriglyceridemia 26%, weight gain 24%, cognitive 3%) should be spot-checked. No fabricated trials or invented NCT IDs detected."
+    }
+  ]
+}

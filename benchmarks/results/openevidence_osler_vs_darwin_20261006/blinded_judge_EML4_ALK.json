@@ -1,0 +1,42 @@
+{
+  "judge_model": "claude-haiku-4-5-20251001",
+  "paid_judge_calls": 1,
+  "usage": {
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "inference_geo": "not_available",
+    "input_tokens": 11565,
+    "output_tokens": 1495,
+    "output_tokens_details": null,
+    "server_tool_use": null,
+    "service_tier": "standard"
+  },
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "mapping": {
+    "EML4::ALK": {
+      "A": "darwin",
+      "B": "osler"
+    }
+  },
+  "per_gene": [
+    {
+      "gene": "EML4::ALK",
+      "A": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "B": {
+        "factual_correctness": 5,
+        "specificity": 5,
+        "hallucination_safety": 5
+      },
+      "comparison": "Both answers provide comprehensive, well-cited guideline and trial evidence for EML4::ALK-driven NSCLC. Both cite NCCN v2026, ASCO 2026 Living Guideline (JCO 10.1200/JCO-26-00843), and key registrational trials (ALEX, CROWN, ALTA-1L). Both correctly identify alectinib, brigatinib, ensartinib, and lorlatinib as preferred category 1 first-line options, with ceritinib and crizotinib as category 1 \"useful in certain circumstances.\" Both appropriately note that EML4 is the predominant partner (~83% in lung ALK+) and that guidelines do not differentiate fusion partner as a treatment determinant. Both discuss toxicity profiles differentially (lorlatinib's grade \u22653 rate 77% vs alectinib 48\u201358% vs brigatinib 78%), CNS efficacy, and sequential therapy pathways post-progression. Answer A provides additional detailed context on ALINA adjuvant evidence (DFS HR 0.24, 4-year DFS 75.5% vs 47%), crizotinib adjuvant failure (E4512, HR 1.06), and cautionary CHEST 2025 guidance on alectinib adjuvant therapy. Answer A also discusses ALK-driven non-lung tumors (IMT, ALCL) with specific epidemiology and trial data (COG ADVL0912, CREATE trial for IMT; French AcS\u00e9 for ALCL). Answer B explicitly notes the CROWN 7-year update showing no new intracranial progression after 30 months and frames ALK+ disease as potentially chronic. Answer B includes an emerging 2026 ASCO network meta-analysis (15 trials, 4,392 patients) showing lorlatinib ranks highest for first-line PFS (HR 0.19 vs crizotinib) and intracranial PFS (HR 0.07), which provides quantitative head-to-head ranking evidence not explicitly in Answer A. Answer A addresses resistance mutations (G1202R, L1196M, compound mutations) and plasma vs tissue rebiopsy guidance more explicitly. Answer A mentions histologic transformation detection. Answer B cites Cochrane (2022) confirming superiority of next-gen inhibitors but notes no optimal sequencing conclusion. Answer A notes direct ESMO guideline was not retrieved but references a 2021 secondary characterization (alectinib/brigatinib grade A, ceritinib/crizotinib grade B), predating CROWN long-term data and ensartinib approval\u2014appropriately flagged as requiring verification. Answer B does not address ESMO separately. Primary-source fact verification: ALEX final OS (alectinib 81.1 mo, crizotinib 54.2 mo, HR 0.78) aligns with both answers' characterization of alectinib efficacy. Answer B mentions \"ALEX final overall survival analysis (2025) confirmed sustained long-term systemic and intracranial efficacy\" which is consistent with the verified OS data. Answer A also correctly frames ALINA DFS findings and acknowledges OS remains immature. Both answers correctly restrict single-agent PD-1/PD-L1 inhibitors in ALK-positive disease and note trials of emerging compounds (NVL-655, TPX-0131). Citation verification: Both cite NCCN NSCLC v2026 (2026-09-22), ASCO JCO 2026 update (10.1200/JCO-26-00843). Answer A cites 21 sources including ALEX, CROWN, ALINA, EORTC CREATE, COG ADVL0912, ECOG-ACRIN E4512, and NCI-MATCH. Answer B cites 14 sources, omitting some non-NSCLC and adjuvant detail but capturing core NSCLC trials. Answer B's citation #5 references ASCO algorithm (2026-05-26) with the same DOI 10.1200/JCO-26-00843. Neither answer exhibits hallucination: both appropriately qualify claims, acknowledge absence of head-to-head comparisons, and note ongoing uncertainty in optimal sequencing.",
+      "spot_check_flags": "Both answers correctly frame the EML4::ALK fusion as representative of ALK-positive NSCLC treated generically per guidelines. Answer A's claim of EML4 as ~83% of ALK-rearranged NSCLC partners aligns with Adashek et al. citation (Nature Rev Drug Discovery 2025). Answer A's report of ALINA 4-year DFS 75.5% vs 47% (HR 0.35) and CNS DFS HR 0.22 is consistent with NEJM 2024 publication and ALINA phase 3 results. No suspicious NCT IDs detected. Answer A's citation of CROWN 7-year update (Annals Oncol 2026-09-01, 10.1016/j.annonc.2026.05.692) is the same as Answer B's. Answer A's toxicity percentages (lorlatinib 77% grade \u22653, alectinib 48\u201358%, brigatinib 78%) derive from trial publications cited. Answer B's network meta-analysis 2026 ASCO data (lorlatinib HR 0.19 [95% CrI 0.13\u20130.27], SUCRA 0.91 for PFS; HR 0.07 intracranial) requires independent verification but is attributed as 2026 ASCO meeting presentation (abstract, not peer-reviewed publication yet). No fabricated trial IDs or impossible outcomes detected. Both answers appropriately hedge on ESMO and note no direct head-to-head ALK TKI comparisons exist in first line."
+    }
+  ]
+}

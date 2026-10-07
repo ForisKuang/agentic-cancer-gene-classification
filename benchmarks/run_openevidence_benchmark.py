@@ -150,14 +150,23 @@ async def run(arm: str, output: Path, timeout: float) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--arm", choices=("disabled", "enabled"), required=True)
+    parser.add_argument("--arm", choices=("disabled", "enabled"))
+    parser.add_argument("--compare-models", nargs="+", choices=("osler", "darwin"),
+                        help="Benchmark the live production sidecar with these model arms")
+    parser.add_argument("--concurrency", type=int, default=3)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--timeout", type=float, default=900,
                         help="OpenEvidence read timeout in seconds (both arms record this setting)")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     install_secret_redaction_filter()
-    asyncio.run(run(args.arm, args.output, args.timeout))
+    if args.compare_models:
+        from benchmarks.openevidence_model_benchmark import run_models
+        asyncio.run(run_models(args.output, args.timeout, args.concurrency, args.compare_models))
+    elif args.arm:
+        asyncio.run(run(args.arm, args.output, args.timeout))
+    else:
+        parser.error("Specify --arm or --compare-models")
 
 
 if __name__ == "__main__":

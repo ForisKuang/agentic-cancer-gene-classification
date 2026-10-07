@@ -1,0 +1,447 @@
+{
+  "benchmark_date": "2026-10-06",
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "pairs": [
+    {
+      "gene": "EGFR",
+      "A": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for EGFR alterations in cancer? Cite the specific guideline or trial.",
+        "text": "1315\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nEGFR-targeted therapy is established primarily in non\u2013[small cell lung cancer](/rare-disease/small-cell-lung-cancer) (NSCLC), where NCCN, ASCO, and ESMO guidelines converge on EGFR tyrosine kinase inhibitors (TKIs)\u2014osimertinib above all\u2014across the metastatic, resected, and unresectable stage III settings, with mutation-specific regimens for exon 20 insertions and antibody-based combinations. The strongest guideline-shaping trials are FLAURA, FLAURA2, MARIPOSA, ADAURA, LAURA, and PAPILLON. The recommendation depends heavily on mutation subtype (classical exon 19 deletion/L858R vs. exon 20 insertion vs. uncommon mutations) and disease stage, so the evidence is organized below by those axes.\nFirst-line metastatic disease \u2014 classical mutations (exon 19 deletion / L858R)\nNCCN lists three preferred category 1 first-line options: osimertinib monotherapy, osimertinib plus carboplatin/cisplatin and pemetrexed (nonsquamous), and lazertinib plus amivantamab.[[1]] ASCO guidelines recommend offering osimertinib with platinum-pemetrexed or amivantamab plus lazertinib, with osimertinib monotherapy retained for patients declining combination therapy.[[2]] The supporting trials:\n- FLAURA established osimertinib over first-generation TKIs (gefitinib/erlotinib), with median PFS 18.9 vs. 10.2 months (HR 0.46) and median OS 38.6 vs. 31.8 months (HR 0.80, P=0.046).[[3]][[4]]\n- FLAURA2 showed osimertinib plus platinum-pemetrexed improved median PFS to 25.5 vs. 16.7 months (HR 0.62) and OS 47.5 vs. 37.6 months (HR 0.77, P=0.02), with a pronounced benefit in CNS-metastasis patients but higher grade \u22653 toxicity (64% vs. 27%).[[2]][[5]][[6]]\n- MARIPOSA showed amivantamab plus lazertinib improved median PFS vs. osimertinib (23.7\u201327.5 vs. 16.5\u201318.5 months; HR 0.68) at the cost of more infusion reactions, cutaneous toxicity, paronychia, and VTE.[[7]][[8]][[9]]\nThe ASCO first-line EGFR treatment algorithm summarizes these pathways:\n[[10]]\nHere is the NCCN first-line algorithm for exon 19 deletion / L858R disease:\n[[1]]\nUncommon mutations (S768I, L861Q, G719X)\nNCCN recommends afatinib, erlotinib, dacomitinib, gefitinib, or osimertinib first-line, with osimertinib or datopotamab deruxtecan as subsequent therapy.[[1]] These alterations (~10% of EGFR-mutant NSCLC) respond to certain TKIs such as osimertinib and afatinib on a mutation-specific basis.[[1]]\nExon 20 insertion mutations\nThese are generally resistant to classical EGFR TKIs and require dedicated agents.[[1]] NCCN lists carboplatin/pemetrexed plus amivantamab (nonsquamous, category 1, preferred) as the only first-line option, with amivantamab, sunvozertinib, or datopotamab deruxtecan as subsequent therapy.[[1]] ASCO guidelines recommend first-line sunvozertinib monotherapy or platinum doublet plus amivantamab.[[2]] Key trials:\n- PAPILLON \u2014 amivantamab added to carboplatin-pemetrexed improved PFS vs. chemotherapy alone (HR 0.40; ORR 73% vs. 47%).[[2]]\n- WU-KONG28 \u2014 first-line sunvozertinib improved median PFS vs. chemotherapy (10.3 vs. 7.5 months; HR 0.65).[[2]]\n- In the previously treated setting, ASCO guidelines offer amivantamab or sunvozertinib after platinum chemotherapy (CHRYSALIS ORR 40%; WU-KONG6/WU-KONG1B supporting sunvozertinib). Mobocertinib was withdrawn after failing its phase 3 endpoint.[[2]][[11]][[12]]\nThe NCCN exon 20 insertion algorithm:\n[[1]]\nSecond-line / resistance setting (classical mutations)\nAfter progression on osimertinib, NCCN and ASCO recommend amivantamab plus carboplatin/pemetrexed (MARIPOSA-2: median PFS 6.3 vs. 4.2 months, HR 0.48).[[1]][[2]][[7]] Datopotamab deruxtecan is an option after both an EGFR TKI and platinum chemotherapy (pooled TROPION-Lung-01/05 ORR 45%)[[2]].[[1]] For progression on first/second-generation TKIs with T790M, osimertinib is indicated.[[1]][[2]] The COMPEL study supports continuing osimertinib with chemotherapy in selected non-CNS progressors.[[2]]\nAdjuvant therapy (resected disease)\nNCCN recommends adjuvant osimertinib for resected stage IB\u2013IIIA (and IIIB T3\u2013T4, N2) EGFR exon 19 deletion/L858R NSCLC, category 1 when given after or instead of platinum chemotherapy.[[1]] ASCO (stage III guideline) recommends adjuvant osimertinib after platinum-based chemotherapy (evidence strength high).[[13]] This rests on ADAURA: disease-free survival HR 0.17\u20130.23 for stage II\u2013IIIA and a significant OS benefit (HR 0.49, 5-year OS 85% vs. 73%).[[13]][[14]][[15]] A Cochrane meta-analysis found a pooled OS HR of 0.54 for adjuvant EGFR TKIs, driven largely by ADAURA.[[16]][[17]]\nUnresectable stage III disease\nFor stage III EGFR exon 19 deletion/L858R NSCLC that has not progressed after definitive chemoradiation, NCCN recommends consolidation osimertinib (category 1), rather than durvalumab.[[1]][[11]] This is based on the LAURA trial, which showed a PFS benefit for consolidation osimertinib.[[4]][[18]]\nOther cancers\nThe retrieved evidence is overwhelmingly NSCLC-centric; no guideline recommendations for EGFR-activating-mutation\u2013directed TKI therapy in other solid tumors were identified in these results. (EGFR-targeting antibodies such as cetuximab/panitumumab in colorectal cancer act on wild-type EGFR pathway status rather than activating EGFR mutations and are a distinct topic.)\n\n\nWould you like to explore the mechanisms of acquired resistance to osimertinib and how they guide subsequent therapy selection?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "Non-Small Cell Lung Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-22",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110"
+          },
+          {
+            "citation_key": "2",
+            "title": "Therapy for Stage IV NSCLC with Driver Alterations",
+            "authors": "Reuss JE, Ismaila N, Ahluwalia A, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-06-20",
+            "doi": "10.1200/JCO-26-00843",
+            "url": "https://doi.org/10.1200/jco-26-00843"
+          },
+          {
+            "citation_key": "3",
+            "title": "Overall Survival with Osimertinib in Untreated, EGFR-Mutated Advanced NSCLC",
+            "authors": "Ramalingam SS, Vansteenkiste J, Planchard D, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2020-01-02",
+            "doi": "10.1056/NEJMoa1913662",
+            "url": "https://doi.org/10.1056/nejmoa1913662?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "4",
+            "title": "Updates in the Management of EGFR-Mutated Non-small Cell Lung Cancer (NSCLC)",
+            "authors": "Vyas A, Jeon WJ, Alhushki S, et al.",
+            "journal": "Current Oncology Reports",
+            "date": "2026-04-11",
+            "doi": "10.1007/s11912-026-01751-0",
+            "url": "https://doi.org/10.1007/s11912-026-01751-0"
+          },
+          {
+            "citation_key": "5",
+            "title": "Navigating the Evolving Landscape of EGFR-Mutated NSCLC",
+            "authors": "Herbst RS.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2026-01-01",
+            "doi": "10.1056/NEJMe2514042",
+            "url": "https://doi.org/10.1056/nejme2514042?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "6",
+            "title": "Survival with Osimertinib plus Chemotherapy in EGFR-Mutated Advanced NSCLC",
+            "authors": "J\u00e4nne PA, Planchard D, Kobayashi K, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2026-01-01",
+            "doi": "10.1056/NEJMoa2510308",
+            "url": "https://doi.org/10.1056/nejmoa2510308?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "7",
+            "title": "Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, Version 2024.1",
+            "authors": "Owen DH, Ismaila N, Freeman-Daily J, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2024-07-10",
+            "doi": "10.1200/JCO.24.00762",
+            "url": "https://doi.org/10.1200/JCO.24.00762"
+          },
+          {
+            "citation_key": "8",
+            "title": "Targeted Therapies in Advanced Non-Small-Cell Lung Cancer: New Biomarkers and Treatment Strategies",
+            "authors": "Hendriks LEL, Lin JJ, Tan DSW, et al.",
+            "journal": "The Lancet. Respiratory Medicine",
+            "date": "2026-09-06",
+            "doi": "10.1016/S2213-2600(26)00253-5",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42702211"
+          },
+          {
+            "citation_key": "9",
+            "title": "EGFR-Mutated Lung Cancer \u2014 Letting the Butterfly Out of the Cocoon",
+            "authors": "Dimou A, Mansfield A.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2025-10-30",
+            "doi": "10.1056/NEJMe2509843",
+            "url": "https://doi.org/10.1056/nejme2509843?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "10",
+            "title": "Therapy for Stage IV NSCLC with Driver Alterations",
+            "authors": "",
+            "journal": "",
+            "date": "2026-05-26",
+            "doi": "10.1200/JCO-26-00843",
+            "url": "https://ascopubs.org/doi/10.1200/JCO-26-00843"
+          },
+          {
+            "citation_key": "11",
+            "title": "FDA Orange Book",
+            "authors": "",
+            "journal": "FDA Orange Book",
+            "date": "2026-10-06",
+            "doi": "",
+            "url": "https://www.fda.gov/drugs/drug-approvals-and-databases/approved-drug-products-therapeutic-equivalence-evaluations-orange-book"
+          },
+          {
+            "citation_key": "12",
+            "title": "Poziotinib for EGFR exon 20-insertion NSCLC: Clinical efficacy of the phase 2 ZENITH trial and differential impact of EGFR exon 20 insertion location on sensitivity",
+            "authors": "Le X, Robichaux JP, Nilsson M, et al.",
+            "journal": "Nature Communications",
+            "date": "2025-09-24",
+            "doi": "10.1038/s41467-025-61817-8",
+            "url": "https://doi.org/10.1038/s41467-025-61817-8"
+          },
+          {
+            "citation_key": "13",
+            "title": "Management of Stage III Non\u2013Small Cell Lung Cancer: ASCO Guideline Rapid Recommendation Update",
+            "authors": "Daly ME, Singh N, Ismaila N, Management of Stage III NSCLC Guideline Expert Panel.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2024-09-01",
+            "doi": "10.1200/JCO-24-01324",
+            "url": "https://doi.org/10.1200/jco-24-01324"
+          },
+          {
+            "citation_key": "14",
+            "title": "Overall Survival with Osimertinib in Resected EGFR-Mutated NSCLC",
+            "authors": "Tsuboi M, Herbst RS, John T, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2023-07-13",
+            "doi": "10.1056/NEJMoa2304594",
+            "url": "https://doi.org/10.1056/nejmoa2304594?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "15",
+            "title": "The changing treatment landscape of EGFR-mutant non-small-cell lung cancer",
+            "authors": "Zhou F, Guo H, Xia Y, et al.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2025-02-01",
+            "doi": "10.1038/s41571-024-00971-2",
+            "url": "https://doi.org/10.1038/s41571-024-00971-2"
+          },
+          {
+            "citation_key": "16",
+            "title": "Adjuvant epidermal growth factor receptor (EGFR) tyrosine kinase inhibitors (TKIs) for the treatment of people with resected stage I to III non\u2010small\u2010cell lung cancer and EGFR mutation",
+            "authors": "Mario Occhipinti, Martina Imbimbo, Roberto Ferrara, et al.",
+            "journal": "Cochrane Database of Systematic Reviews",
+            "date": "2025-05-27",
+            "doi": "10.1002/14651858.cd015140.pub2",
+            "url": "https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.CD015140.pub2/full"
+          },
+          {
+            "citation_key": "17",
+            "title": "Management of Patients With Early-Stage Non-Small Cell Lung Cancer: An American College of Chest Physicians Clinical Practice Guideline",
+            "authors": "Howington J, Souter LH, Arenberg D, et al.",
+            "journal": "Chest",
+            "date": "2025-09-01",
+            "doi": "10.1016/j.chest.2025.06.023",
+            "url": "https://linkinghub.elsevier.com/retrieve/pii/S0012-3692(25)00737-8"
+          },
+          {
+            "citation_key": "18",
+            "title": "Targeting Common EGFR Mutations in Non-Small Cell Lung Cancer: A Review of Global Phase 3 Trials of Third-Generation Inhibitors",
+            "authors": "Melosky B, Juergens RA, Chu QSC, et al.",
+            "journal": "Journal of the National Cancer Institute",
+            "date": "2026-05-01",
+            "doi": "10.1093/jnci/djag008",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/41512290"
+          }
+        ]
+      },
+      "B": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for EGFR alterations in cancer? Cite the specific guideline or trial.",
+        "text": "6d32\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"728bb162-1484-4eeb-922e-c834bb3c0f17\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nEGFR-directed targeted therapy is guideline-established almost entirely in NSCLC harboring activating EGFR kinase-domain mutations, where NCCN and ASCO recommendations now span first-line metastatic, post-progression, adjuvant, and stage III consolidation settings.[[1]][[2]][[3]] Outside NSCLC, the anti-EGFR antibodies cetuximab and panitumumab are used in colorectal cancer based on RAS/BRAF status and primary tumor sidedness rather than on any EGFR alteration, and[[4]][[5]] EGFR amplification/EGFRvIII in glioblastoma has no guideline-recommended targeted therapy despite ~40 trials.[[6]][[7]]\nMetastatic NSCLC with exon 19 deletion or L858R \u2014 first line\nThe NCCN NSCLC guideline (NSCL-21) lists three preferred category 1 options: osimertinib, (carboplatin or cisplatin)/osimertinib/pemetrexed (nonsquamous), and lazertinib + amivantamab-vmjw. Afatinib, dacomitinib, erlotinib, erlotinib + bevacizumab, erlotinib + ramucirumab, gefitinib, and lazertinib are listed as useful in certain circumstances.[[2]] Note that dacomitinib has been permanently discontinued in the US by the manufacturer, with no safety or efficacy concern cited.[[8]]\nASCO guidelines recommend clinicians offer osimertinib with platinum-pemetrexed or amivantamab plus lazertinib (Recommendation 1.1; moderate evidence, strong recommendation), with osimertinib monotherapy for patients not pursuing combination therapy (Recommendation 1.2).[[1]]\n[[1]][[9]][[10]][[11]]\nNo head-to-head comparison of the two combinations exists; an indirect comparison found no significant PFS (HR 0.79) or OS (HR 0.95) difference, with toxicity profile driving selection.[[12]]\nAmivantamab-specific prophylaxis is mandatory and is written into the NCCN algorithm: prophylactic anticoagulation at initiation to prevent VTE; oral doxycycline or minocycline, clindamycin lotion to the scalp, chlorhexidine to nails, and a ceramide-based non-comedogenic moisturizer for dermatologic toxicity; and oral dexamethasone 8 mg for 2 days before the first dose to reduce infusion-related reactions.[[2]]\nProgression on osimertinib (classical mutations)\nNCCN NSCL-22 branches by pattern of progression: asymptomatic or oligoprogressive disease (trials included up to 3\u20135 sites) \u2192 definitive local therapy (SABR, surgery, or SRS for brain) with continuation of the TKI; multiple progressing lesions \u2192 carboplatin/pemetrexed + amivantamab-vmjw (category 1, preferred, nonsquamous, if not previously given), or lazertinib + amivantamab-vmjw (useful in certain circumstances, if not previously given), or other systemic therapy. Neither amivantamab-containing option applies to S768I, L861Q, or G719X tumors.[[2]] Biopsy at progression is advised to exclude small cell transformation (~6%) and to define resistance mechanisms.[[2]] Datopotamab deruxtecan-dlnk is listed as preferred subsequent therapy for EGFR-mutant disease, with FDA approval restricted to patients who have received prior EGFR-directed ther[[2]]apy and platinum chemotherapy.[[8]]\nASCO Recommendation 2.1 is platinum-based chemotherapy with amivantamab, based on MARIPOSA-2 (median PFS by BICR 6.3 vs 4.2 months, HR 0.48; ORR 64% vs 36%; intracranial PFS 12.5 vs 8.3 months), with substantially more toxicity \u2014 treatment interruption 65% vs 33%, discontinuation 18% vs 4%, VTE 10% vs 5%.[[1]] PD-1/PD-L1 monotherapy is less effective in EGFR-mutant NSCLC irrespective of PD-L1 expression.[[2]]\nFor patients progressing on a first- or second-generation TKI, repeat biomarker testing should be performed and T790M-positive disease treated with osimertinib (median PFS 10.1 vs 4.4 months versus platinum-pemetrexed, HR 0.30; ORR 71% vs 31%)[[1]].[[2]]\nExon 20 insertions\nNCCN NSCL-25 gives carboplatin/pemetrexed + amivantamab-vmjw (nonsquamous) as category 1 preferred first-line therapy, with amivantamab-vmjw or sunvozertinib as subsequent therapy (each only if not previously received).[[2]] ASCO Recommendation 1.6 is sunvozertinib monotherapy or platinum doublet plus amivantamab:[[1]]\n- PAPILLON: amivantamab + carboplatin-pemetrexed vs chemotherapy \u2014 PFS HR 0.40, ORR 73% vs 47%; neutropenia 59%, paronychia 56%, rash 54%.[[1]]\n- WU-KONG28 (phase III, first line): sunvozertinib median PFS 10.3 vs 7.5 months (HR 0.65), ORR 58.9% vs 31.1%; grade 3 CK elevation 20.9%, diarrhea 14.1%.[[1]][[13]]\n- After platinum, ASCO Recommendation 2.7 permits amivantamab (CHRYSALIS ORR 40%) or sunvozertinib (WU-KONG6 ORR 61%; WU-KONG1B ORR ~46\u201347% at 200 and 300 mg, with ILD reported as a serious AE in 5%).[[1]]\nMobocertinib was withdrawn after failing its phase III primary endpoint.[[8]] Testing caveat: PCR-based assays under-detect exon 20 insertions, so NGS is preferred, and the specific insertion matters \u2014 p.A763Y764insFQEA is TKI-sensitive and insLQEA may be sensitive to first- and third-generation TKIs.[[2]]\nAtypical mutations (G719X, S768I, L861Q)\nNCCN NSCL-24 lists afatinib or osimertinib as preferred, with dacomitinib, erlotinib, and gefitinib as other recommended first-line options.[[2]] ASCO offers afatinib (Recommendation 1.3; ACHILLES showed PFS HR 0.422 and ORR 61.4% vs 47.1% versus platinum doublet), amivantamab plus lazertinib (1.4; weak/weak \u2014 CHRYSALIS-2 cohort C ORR 52%, treatment-naive PFS 19.5 months), and osimertinib (1.5; UNICORN ORR 55%, PFS 9.4 months) \u2014 all excluding exon 20 insertions and T790M.[[1]] Structure-function classification increasingly guides selection: L861Q behaves as classical-like and favors osimertinib, whereas G719X and S768I are PACC mutations with more consistent afatinib activity.[[13]][[14]]\nResected and unresectable stage III disease\n- ADAURA: 3 years of adjuvant osimertinib 80 mg daily after complete resection of stage IB\u2013IIIA ex19del/L858R NSCLC \u2014 DFS HR 0.23 in stage II\u2013IIIA (4-year DFS 70% vs 29%), OS HR 0.49 (5-year OS 85% vs 73%), CNS DFS HR 0.24. An exploratory 8-year landmark update reported OS HR 0.52 for stage IB\u2013IIIA (8-year OS 79% vs 64%). ASCO guidelines recommend adjuvant osimertinib after platinum-[[3]][[15]][[16]][[17]]based chemotherapy in resected stage III disease (high evidence, strong recommendation) \u2014 osimertinib does not replace indicated chemotherapy.\n- LAURA: osimertinib after definitive chemoradiotherapy in unresectable stage III ex19del/L858R NSCLC \u2014 median PFS 39.1 vs 5.6 months (HR 0.16); grade \u22653 AEs 35% vs 12%, radiation pneumonitis 48% vs 38%; second interim OS HR 0.67 (31% maturity). NCCN makes osimertinib the category 1 consolidation choice in this population and explicitly excludes durvalumab for ex19del/L858R tumors, warning of toxicity when a TKI is given in temporal proximity to immunotherapy. POLESTAR showed a comparable result with aumolertinib (PFS 30.4 vs 3.8 months, HR 0.20).[[2]][[3]][[18]][[19]][[20]]\nOther tumor types\n- Colorectal cancer: ASCO guidelines recommend anti-EGFR therapy plus doublet chemotherapy first-line for MSS/pMMR left-sided <em>RAS</em> wild-type mCRC, explicitly not for right-sided or RAS-mutant disease, and not with triplet chemotherapy (left-sided OS HR 0.71 vs chemotherapy-bevacizumab; right-sided HR 1.35). NCCN mirrors this in COL-D[[4]][[5]]. BRAF V600E is not a blanket exclusion from anti-EGFR antibodies: encorafenib + cetuximab or panitumumab, with or without chemotherapy, is NCCN-preferred in that subgroup. Selection is driven by RAS/BRAF/MMR status and sidedness \u2014 not by an EGFR alteration.\n- Glioblastoma: EGFR alterations occur in up to 57% and EGFRvIII in ~11%, but TKIs, monoclonal antibodies, and the ADC depatuxizumab mafodotin have all failed to show benefit (randomized phase II depatux-m HR 1.04), attributed to limited BBB penetration, subclonal heterogeneity, and ecDNA dynamics. Brain-penetrant agents (silevertinib/BDTX-1535, ERAS-801) and intraventricular EGFRvIII CAR-T rem[[6]][[21]]ain investigational.\n\n\nWould you like to explore how to choose between osimertinib-chemotherapy and amivantamab-lazertinib based on CNS disease, TP53 status, and ctDNA?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "Therapy for Stage IV NSCLC with Driver Alterations",
+            "authors": "Reuss JE, Ismaila N, Ahluwalia A, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-06-20",
+            "doi": "10.1200/JCO-26-00843",
+            "url": "https://doi.org/10.1200/jco-26-00843"
+          },
+          {
+            "citation_key": "2",
+            "title": "Non-Small Cell Lung Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-22",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=48"
+          },
+          {
+            "citation_key": "3",
+            "title": "Management of Stage III Non\u2013Small Cell Lung Cancer: ASCO Guideline Rapid Recommendation Update",
+            "authors": "Daly ME, Singh N, Ismaila N, Management of Stage III NSCLC Guideline Expert Panel.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2024-09-01",
+            "doi": "10.1200/JCO-24-01324",
+            "url": "https://doi.org/10.1200/jco-24-01324"
+          },
+          {
+            "citation_key": "4",
+            "title": "Treatment of Metastatic Colorectal Cancer: ASCO Guideline",
+            "authors": "Morris VK, Kennedy EB, Baxter NN, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2023-01-20",
+            "doi": "10.1200/JCO.22.01690",
+            "url": "https://doi.org/10.1200/jco.22.01690"
+          },
+          {
+            "citation_key": "5",
+            "title": "Colon Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-07",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=46"
+          },
+          {
+            "citation_key": "6",
+            "title": "Exploring the landscape of targetable alterations in patients with glioblastoma",
+            "authors": "Aquilanti E, Touat M, French P, et al.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2026-08-19",
+            "doi": "10.1038/s41571-026-01190-7",
+            "url": "https://doi.org/10.1038/s41571-026-01190-7"
+          },
+          {
+            "citation_key": "7",
+            "title": "The functional imperative in high-grade glioma",
+            "authors": "Goh LSH, Thng DKH, Ang YLE, et al.",
+            "journal": "Experimental & Molecular Medicine",
+            "date": "2026-02-01",
+            "doi": "10.1038/s12276-025-01614-x",
+            "url": "https://doi.org/10.1038/s12276-025-01614-x"
+          },
+          {
+            "citation_key": "8",
+            "title": "FDA Orange Book",
+            "authors": "",
+            "journal": "FDA Orange Book",
+            "date": "2026-10-06",
+            "doi": "",
+            "url": "https://www.fda.gov/drugs/drug-approvals-and-databases/approved-drug-products-therapeutic-equivalence-evaluations-orange-book"
+          },
+          {
+            "citation_key": "9",
+            "title": "Updates in the Management of EGFR-Mutated Non-small Cell Lung Cancer (NSCLC)",
+            "authors": "Vyas A, Jeon WJ, Alhushki S, et al.",
+            "journal": "Current Oncology Reports",
+            "date": "2026-04-11",
+            "doi": "10.1007/s11912-026-01751-0",
+            "url": "https://doi.org/10.1007/s11912-026-01751-0"
+          },
+          {
+            "citation_key": "10",
+            "title": "Survival with Osimertinib plus Chemotherapy in EGFR-Mutated Advanced NSCLC",
+            "authors": "J\u00e4nne PA, Planchard D, Kobayashi K, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2026-01-01",
+            "doi": "10.1056/NEJMoa2510308",
+            "url": "https://doi.org/10.1056/nejmoa2510308?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "11",
+            "title": "Osimertinib with or without Chemotherapy in EGFR-Mutated Advanced NSCLC",
+            "authors": "Planchard D, J\u00e4nne PA, Cheng Y, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2023-11-23",
+            "doi": "10.1056/NEJMoa2306434",
+            "url": "https://doi.org/10.1056/nejmoa2306434?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "12",
+            "title": "Efficacy and Safety of First-Line Osimertinib Monotherapy Versus Osimertinib Plus Platinum-Based Chemotherapy or Amivantamab Plus Lazertinib in Metastatic EGFR-mutated NSCLC: An Indirect Comparison",
+            "authors": "Del Bono L, Ossato A, Gasperoni L, et al.",
+            "journal": "Frontiers in Oncology",
+            "date": "2026-02-02",
+            "doi": "10.3389/fonc.2026.1802008",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42180117"
+          },
+          {
+            "citation_key": "13",
+            "title": "P-Loop/\u03b1C-Helix Compressing Mutations and Exon 20 Insertions in EGFR-Mutant NSCLC: A Rapidly Evolving Therapeutic Landscape",
+            "authors": "Monaca F, Randulfe I, Heymach JV, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-09-14",
+            "doi": "10.1200/JCO-26-00556",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42735369"
+          },
+          {
+            "citation_key": "14",
+            "title": "Dr. Wade Iams, MD, MSCI",
+            "authors": "Director of Lung Cancer Research, Tennessee Oncology",
+            "journal": "",
+            "date": "2026-09-02",
+            "doi": "",
+            "url": "https://openevidence.com/bio/wade-iams"
+          },
+          {
+            "citation_key": "15",
+            "title": "Adjuvant Osimertinib for Resected EGFR-Mutated Stage IB-IIIA Non-Small-Cell Lung Cancer: Updated Results From the Phase III Randomized ADAURA Trial",
+            "authors": "Herbst RS, Wu YL, John T, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2023-04-01",
+            "doi": "10.1200/JCO.22.02186",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36720083"
+          },
+          {
+            "citation_key": "16",
+            "title": "Overall Survival with Osimertinib in Resected EGFR-Mutated NSCLC",
+            "authors": "Tsuboi M, Herbst RS, John T, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2023-07-13",
+            "doi": "10.1056/NEJMoa2304594",
+            "url": "https://doi.org/10.1056/nejmoa2304594?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "17",
+            "title": "Adjuvant Osimertinib in Resected EGFR-Mutated Stage IB-IIIA Non-Small Cell Lung Cancer: Exploratory 8-Year Overall Survival Landmark Update From the ADAURA Trial [161/175",
+            "authors": "Wu YL, Majem M, John T, et al.",
+            "journal": "Journal of Thoracic Oncology : Official Publication of the International Association for the Study of Lung Cancer",
+            "date": "2026-09-13",
+            "doi": "10.1016/j.jtho.2026.104179",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42732874"
+          },
+          {
+            "citation_key": "18",
+            "title": "Osimertinib after Chemoradiotherapy in Stage III EGFR-Mutated NSCLC",
+            "authors": "Lu S, Kato T, Dong X, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2024-08-15",
+            "doi": "10.1056/NEJMoa2402614",
+            "url": "https://doi.org/10.1056/nejmoa2402614?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "19",
+            "title": "Osimertinib After Definitive Chemoradiotherapy in Unresectable Stage III EGFR-Mutated NSCLC: Subsequent Treatments and PPO From the Phase III LAURA Study",
+            "authors": "\u00d6zg\u00fcro\u011flu M, Ahn MJ, Dong X, et al.",
+            "journal": "Clinical Cancer Research : An Official Journal of the American Association for Cancer Research",
+            "date": "2026-09-09",
+            "doi": "10.1158/1078-0432.CCR-25-4523",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42714840"
+          },
+          {
+            "citation_key": "20",
+            "title": "Unresectable stage III non-small-cell lung cancer: state of the art and challenges",
+            "authors": "Remon J, Levy A, Gille R, et al.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2026-01-01",
+            "doi": "10.1038/s41571-025-01080-4",
+            "url": "https://doi.org/10.1038/s41571-025-01080-4"
+          },
+          {
+            "citation_key": "21",
+            "title": "Emerging therapies for glioblastoma",
+            "authors": "Sarfraz Z, Ranjan T, Mustafayev FNA, et al.",
+            "journal": "Journal of Neuro-Oncology",
+            "date": "2025-12-10",
+            "doi": "10.1007/s11060-025-05248-x",
+            "url": "https://doi.org/10.1007/s11060-025-05248-x"
+          }
+        ]
+      }
+    }
+  ],
+  "primary_source_facts": [
+    {
+      "claim": "ALEX final median OS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/41110693/",
+      "verified_values": {
+        "alectinib_months": 81.1,
+        "crizotinib_months": 54.2,
+        "HR": 0.78
+      }
+    },
+    {
+      "claim": "WU-KONG28 first-line sunvozertinib",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42212913/",
+      "verified_values": {
+        "PFS_months": [
+          10.3,
+          7.5
+        ],
+        "HR": 0.65,
+        "NCT": "NCT05668988"
+      }
+    },
+    {
+      "claim": "ADAURA exploratory eight-year landmark",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42732874/",
+      "verified_values": {
+        "stage_IB_IIIA_OS_percent": [
+          79,
+          64
+        ],
+        "HR": 0.52
+      }
+    },
+    {
+      "claim": "LAURA PFS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/38828946/",
+      "verified_values": {
+        "PFS_months": [
+          39.1,
+          5.6
+        ],
+        "HR": 0.16
+      }
+    },
+    {
+      "claim": "Daraxonrasib FDA approval",
+      "source": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-daraxonrasib-metastatic-pancreatic-adenocarcinoma",
+      "verified_values": {
+        "approval_date": "2026-08-26",
+        "trial": "RASolute 302",
+        "NCT": "NCT06625320"
+      }
+    },
+    {
+      "claim": "Magrolimab ENHANCE-2 failure in TP53 AML",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/40009500/",
+      "verified_values": {
+        "nonintensive_OS_months": [
+          4.4,
+          6.6
+        ],
+        "HR": 1.132,
+        "NCT": "NCT04778397"
+      }
+    },
+    {
+      "claim": "Crizotinib ALCL approval population",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/35561013/",
+      "label_source": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2025/217581Orig1s000Lbl.pdf",
+      "verified_values": {
+        "population": "Pediatric patients >=1 year and young adults with relapsed/refractory systemic ALK-positive ALCL",
+        "limitation": "Safety and efficacy have not been established in older adults"
+      }
+    }
+  ]
+}

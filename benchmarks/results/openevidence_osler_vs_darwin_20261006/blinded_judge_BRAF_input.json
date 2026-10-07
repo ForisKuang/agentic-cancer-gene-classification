@@ -1,0 +1,744 @@
+{
+  "benchmark_date": "2026-10-06",
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "pairs": [
+    {
+      "gene": "BRAF",
+      "A": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for BRAF alterations in cancer? Cite the specific guideline or trial.",
+        "text": "7886\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"d11620eb-eabe-450e-9aae-b0a6b8c68a6d\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"66f28d60-a7fb-49b4-ab5f-7ac9c75358d6\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nBRAF V600E/V600K (class I) is the only BRAF alteration class with established guideline-endorsed targeted therapy, and the regimen depends entirely on tumor lineage: BRAF+MEK inhibition is standard in melanoma, NSCLC, anaplastic thyroid cancer, biliary tract cancer, and glioma, whereas colorectal cancer requires BRAF+EGFR blockade because of EGFR-mediated adaptive resistance.[[1]] The tumor-agnostic FDA accelerated approval of dabrafenib/trametinib (June 2022) for BRAF V600E solid tumors explicitly excludes colorectal cancer for this reason.[[1]][[2]] Non-V600 (class II/III) alterations and BRAF fusions are not targetable with the approved monomer-selective (type I) BRAF inhibitors \u2014 these agents are ineffective and can paradoxically activate MAPK signaling.[[3]][[4]][[5]]\n[[4]][[6]][[7]][[8]][[9]][[10]][[11]][[12]][[13]][[14]][[15]][[16]][[17]][[18]][[19]][[20]][[21]][[22]][[23]][[24]][[25]][[26]][[27]][[28]]\nMelanoma\nNCCN lists all three BRAF/MEK doublets as category 1 but places them under \"Other Recommended\" first-line, behind combination checkpoint blockade and anti-PD-1 monotherapy, citing DREAMseq.[[6]] An explicit NCCN footnote states that high-volume symptomatic BRAF V600+ disease may benefit from initial BRAF/MEK inhibition with transition to combination immunotherapy after 8\u201312 weeks or at progression, with nivolumab/ipilimumab otherwise preferred first-line for OS benefit.[[6]] NCCN relegates BRAF/MEK + PD-(L)1 triplets to second line despite FDA approval, because of excessive toxicity with minimal added benefit.[[6]] ASCO guidelines recommend ipilimumab plus nivolumab preferentially over BRAF/MEK combination therapy first-line (high quality, strong) and note that the three BRAF/MEK combinations cannot be differentiated on PFS or adverse events.[[7]]\nIn the adjuvant setting, NCCN lists dabrafenib/trametinib as preferred and category 1 for resected stage III with clinically positive nodes or resectable nodal recurrence; for resected oligometastatic stage IV, BRAF/MEK combinations are category 2B.[[6]] NCCN notes no good evidence basis for selecting BRAF/MEK versus checkpoint inhibitor adjuvantly, and that V600E tumors may derive greater benefit than V600K.[[6]] COMBI-AD final analysis at ~10 years confirmed sustained RFS and DMFS benefit; the OS difference (20% lower risk of death overall, ~25% in the V600E subgroup) did not reach significance.[[8]]\nColorectal cancer\nNCCN now lists FOLFIRI/encorafenib + (cetuximab or panitumumab) and FOLFOX/encorafenib + (cetuximab or panitumumab) as preferred initial therapy for KRAS/NRAS wild-type, BRAF V600E, pMMR/MSS disease; CAPEOX/encorafenib + anti-EGFR is \"Other Recommended,\" and the encorafenib + anti-EGFR doublet appears under less-intensive therapy.[[9]][[29]] Encorafenib is dosed 300 mg PO daily in all CRC regimens \u2014 distinct from the 450 mg daily used with binimetinib in melanoma.[[9]][[29]] Randomized evidence is specific to the doublet partners tested: BREAKWATER established encorafenib/cetuximab/mFOLFOX6 (ORR 65.7% vs 37.4%, mPFS 12.8 vs 7.1 mo, mOS 30.3 vs 15.1 mo, HR 0.49), and BREAKWATER Cohort 3 established encorafenib/cetuximab/FOLFIRI (ORR 64.4% vs 39.2%, mPFS 15.2 vs 8.3 mo, OS HR 0.56).[[11]][[30]][[31]] Grade 3\u20134 adverse events were higher with the triplet (81.5% vs 66.8%).[[30]] ASCO guidelines recommend encorafenib plus cetuximab for previously treated BRAF V600E mCRC based on BEACON (OS HR 0.61, PFS HR 0.44); adding binimetinib did not improve survival and increased grade \u22653 toxicity.[[10]][[32]]\nNSCLC\nNCCN lists dabrafenib/trametinib and encorafenib/binimetinib as co-preferred first-line for BRAF V600E, with single-agent dabrafenib or vemurafenib \"useful in certain circumstances\" if the combination is not tolerated; if the mutation is identified during first-line chemo/IO, either complete planned therapy or interrupt and switch.[[12]] ASCO guidelines recommend either combination first-line (rec 1.12) or second-line in BRAF-therapy-naive patients (rec 2.12), and specify that non-V600E BRAF alterations should be treated per the non-driver-alteration guideline (rec 2.13).[[13]] Efficacy: BRF113928 gave ORR 64%/68.4% with mPFS ~10.8/10.2 months; PHAROS gave treatment-naive ORR 75%, mPFS 30.2 months, mOS 47.6 months.[[13]][[14]][[33]] The IO-versus-targeted sequencing question remains unsettled \u2014 BRAF V600E NSCLC is enriched for smoking history and high PD-L1, and retrospective data show no OS difference by first-line strategy.[[13]][[34]]\nThyroid\nFor ATC, NCCN recommends dabrafenib/trametinib as neoadjuvant therapy for borderline-resectable stage IVA/IVB and lists both dabrafenib/trametinib and binimetinib/encorafenib as preferred for metastatic BRAF V600E disease.[[15]] ASCO guidelines recommend dabrafenib and trametinib first-line (moderate evidence, strong recommendation), may add pembrolizumab first-line (weak), and may add pembrolizumab at progression (weak).[[16]] Urgent BRAF testing at diagnosis is a consensus point across ATA, ESMO, and NCCN.[[35]][[36]] For RAI-refractory [differentiated thyroid cancer](/rare-disease/differentiated-thyroid-carcinoma), the 2025 ATA guidelines position lenvatinib as general first-line therapy, with dabrafenib/trametinib as a second-line option or first-line when lenvatinib is contraindicated; the same guideline states explicitly that dabrafenib and vemurafenib have no role in class II/III BRAF alterations.[[3]]\nTumor-agnostic and rare cancers\nThe histology-agnostic approval rests on ROAR (adult ORR 41% across 24 tumor types; range 33% in high-grade glioma to 89% in hairy cell leukemia), NCI-MATCH subprotocol H (updated ORR 36.1%, 6-month PFS 67.6%, mOS 28.6 months), and a pediatric cohort (ORR 25%)[[37]][[38]].[[2]] Duration of response was \u22656 months in 78% and \u226524 months in 44%.[[39]] NCCN also lists dabrafenib/trametinib for BRAF V600E ampullary adenocarcinoma under \"useful in certain circumstances\".[[40]]\nHematologic and histiocytic neoplasms\nBRAF V600E is present in essentially 100% of classic hairy cell leukemia.[[39]] NCCN positions vemurafenib \u00b1 anti-CD20 as initial therapy for patients who are not purine-analog candidates (frail, active infection), with dabrafenib/trametinib or vemurafenib \u00b1 rituximab preferred for refractory disease or relapse <2 years; patients without V600E are unlikely to benefit.[[24]] A prospective study of low-dose vemurafenib (240 mg BID \u00d78 weeks) plus rituximab reported ORR 87% with 53% MRD-negativity and no grade 3\u20134 toxicity.[[41]] For adult LCH, NCCN lists vemurafenib as preferred for BRAF V600E disease and cobimetinib as preferred for other MAPK/unknown mutation status; cobimetinib carries a 2022 FDA approval for adult histiocytic neoplasms irrespective of BRAF status.[[27]][[28]]\nNon-V600 (class II/III) alterations and BRAF fusions\nNo targeted therapy is guideline-recommended for these. NCI-MATCH trametinib in 32 patients with non-V600 BRAF alterations produced 1 response (3%) and missed its endpoint.[[42]] Encorafenib plus binimetinib produced no regressions in 8 patients with BRAF fusions.[[5]] Signals of activity exist but are not practice-defining: ulixertinib (ERK inhibitor) produced 5/27 responses, all in class II; a meta-analysis of 411 non-V600 patients found 29% responses, enriched in class II and melanoma; selumetinib produced PR in 7/18 pLGG patients with BRAF fusions.[[5]][[42]] NCCN melanoma lists trametinib as \"useful in certain circumstances\" for BRAF fusion-positive and non-V600 melanoma, and notes L597/K601 mutations respond to MEK \u00b1 BRAF inhibition.[[6]] In CRC, class III mutations without concurrent RAS mutation may retain anti-EGFR sensitivity, and an NCCN footnote permits considering anti-EGFR therapy for non-V600E BRAF mutations.[[9]][[43]]\nSafety and monitoring\n- Pyrexia (\u226538.5 \u00b0C) occurs in ~55% with BRAF/MEK combinations (~20% with BRAF monotherapy), is episodic with median duration 9 days and onset 2\u20134 weeks, and may be accompanied by chills, night sweats, dehydration, electrolyte abnormalities, and hypotension. NCCN advises holding the combination at onset and resuming at full dose once resolved; low-dose prednisone 10 mg/day for refractory cases. It is most prominent with dabrafenib/trametinib and is the leading cause of interruption.[[6]][[44]]\n- Cutaneous SCC, keratoacanthoma, hyperkeratosis, and photosensitivity are BRAF-inhibitor class effects substantially mitigated by adding a MEK inhibitor; photosensitivity is most pronounced with vemurafenib. Severe drug-induced hypersensitivity syndrome can occur when a BRAF inhibitor follows checkpoint blockade and warrants urgent dermatologic consultation.[[6]][[45]]\n- Cardiac: hypertension, decreased LVEF, and cardiomyopathy are driven principally by the MEK inhibitor, with the RAF inhibitor amplifying the effect; baseline risk stratification and echocardiography in moderate/high-risk patients are recommended. The 2022 ESC cardio-oncology guidelines attribute QTc prolongation specifically to cobimetinib plus vemurafenib and advise ECG at 2 and 4 weeks then every 3 months with that combination.[[46]]\n- Ocular: serous retinopathy and retinal detachment with MEK inhibitors; NCCN recommends monitoring by retinal exam with OCT.[[27]][[45]]\n- Hepatic/metabolic: transaminase elevation (most prominent with vemurafenib/cobimetinib), hyperglycemia, and electrolyte disturbance; monitor LFTs and electrolytes before and periodically during therapy.[[27]][[45]]\n- G6PD deficiency: dabrafenib can cause hemolytic anemia in G6PD-deficient patients; screening may be warranted.[[27]]\n- In histiocytic neoplasms, NCCN advises starting BRAF/MEK inhibitors at reduced dose (often half the melanoma dose) since most patients cannot tolerate full melanoma dosing.[[27]]\n\n\nWould you like to explore the sequencing data for BRAF/MEK inhibitors versus immunotherapy in BRAF V600E disease?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "BRAF \u2014 a tumour-agnostic drug target with lineage-specific dependencies",
+            "authors": "Hanrahan AJ, Chen Z, Rosen N, Solit DB.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2024-03-01",
+            "doi": "10.1038/s41571-023-00852-0",
+            "url": "https://doi.org/10.1038/s41571-023-00852-0"
+          },
+          {
+            "citation_key": "2",
+            "title": "Tissue-agnostic biomarkers in solid tumors: current approvals and emerging candidates",
+            "authors": "Kim J, Kim HS, Nam M, Chae YK.",
+            "journal": "Cancer Metastasis Reviews",
+            "date": "2025-06-27",
+            "doi": "10.1007/s10555-025-10274-2",
+            "url": "https://doi.org/10.1007/s10555-025-10274-2"
+          },
+          {
+            "citation_key": "3",
+            "title": "2025 American Thyroid Association Management Guidelines for Adult Patients With Differentiated Thyroid Cancer",
+            "authors": "Ringel MD, Sosa JA, Baloch Z, et al.",
+            "journal": "Thyroid : Official Journal of the American Thyroid Association",
+            "date": "2025-08-01",
+            "doi": "10.1177/10507256251363120",
+            "url": "https://www.liebertpub.com/doi/10.1177/10507256251363120?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed"
+          },
+          {
+            "citation_key": "4",
+            "title": "FDA Approval Summary: Tovorafenib for Relapsed or Refractory BRAF-altered Pediatric Low-Grade Glioma",
+            "authors": "Singh S, Bradford D, Chatterjee S, et al.",
+            "journal": "Clinical Cancer Research : An Official Journal of the American Association for Cancer Research",
+            "date": "2025-04-14",
+            "doi": "10.1158/1078-0432.CCR-24-3439",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11996598/"
+          },
+          {
+            "citation_key": "5",
+            "title": "Tumor-agnostic genomic and clinical analysis of BRAF fusions identify actionable targets",
+            "authors": "Chen MF, Yang SR, Tao JJ, et al.",
+            "journal": "Clinical Cancer Research : An Official Journal of the American Association for Cancer Research",
+            "date": "2024-09-03",
+            "doi": "10.1158/1078-0432.CCR-23-3981",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11371517/"
+          },
+          {
+            "citation_key": "6",
+            "title": "Melanoma: Cutaneous",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-02",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf#page=58"
+          },
+          {
+            "citation_key": "7",
+            "title": "Systemic Therapy for Melanoma: ASCO Guideline Update",
+            "authors": "Seth R, Agarwala SS, Messersmith H, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2023-10-20",
+            "doi": "10.1200/JCO.23.01136",
+            "url": "https://doi.org/10.1200/jco.23.01136"
+          },
+          {
+            "citation_key": "8",
+            "title": "Final Results for Adjuvant Dabrafenib plus Trametinib in Stage III Melanoma",
+            "authors": "Long GV, Hauschild A, Santinami M, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2024-11-07",
+            "doi": "10.1056/NEJMoa2404139",
+            "url": "https://doi.org/10.1056/nejmoa2404139?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "9",
+            "title": "Colon Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-07",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=48"
+          },
+          {
+            "citation_key": "10",
+            "title": "Treatment of Metastatic Colorectal Cancer: ASCO Guideline",
+            "authors": "Morris VK, Kennedy EB, Baxter NN, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2023-01-20",
+            "doi": "10.1200/JCO.22.01690",
+            "url": "https://doi.org/10.1200/jco.22.01690"
+          },
+          {
+            "citation_key": "11",
+            "title": "Encorafenib, Cetuximab, and mFOLFOX6 in BRAF-Mutated Colorectal Cancer",
+            "authors": "Elez E, Yoshino T, Shen L, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2025-06-26",
+            "doi": "10.1056/NEJMoa2501912",
+            "url": "https://doi.org/10.1056/nejmoa2501912?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "12",
+            "title": "Non-Small Cell Lung Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-22",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=59"
+          },
+          {
+            "citation_key": "13",
+            "title": "Therapy for Stage IV NSCLC with Driver Alterations",
+            "authors": "Reuss JE, Ismaila N, Ahluwalia A, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-06-20",
+            "doi": "10.1200/JCO-26-00843",
+            "url": "https://doi.org/10.1200/jco-26-00843"
+          },
+          {
+            "citation_key": "14",
+            "title": "Targeted Therapies in Advanced Non-Small-Cell Lung Cancer: New Biomarkers and Treatment Strategies",
+            "authors": "Hendriks LEL, Lin JJ, Tan DSW, et al.",
+            "journal": "The Lancet. Respiratory Medicine",
+            "date": "2026-09-06",
+            "doi": "10.1016/S2213-2600(26)00253-5",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42702211"
+          },
+          {
+            "citation_key": "15",
+            "title": "Thyroid Carcinoma",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-06-02",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/thyroid.pdf#page=64"
+          },
+          {
+            "citation_key": "16",
+            "title": "Systemic Treatment of Thyroid Cancer: ASCO Guideline",
+            "authors": "Saba NF, Ismaila N, Adkins D, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-05-10",
+            "doi": "10.1200/JCO-26-00235",
+            "url": "https://doi.org/10.1200/jco-26-00235"
+          },
+          {
+            "citation_key": "17",
+            "title": "Dabrafenib and Trametinib Treatment in Patients With Locally Advanced or Metastatic BRAF V600-Mutant Anaplastic Thyroid Cancer",
+            "authors": "Subbiah V, Kreitman RJ, Wainberg ZA, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2018-01-01",
+            "doi": "10.1200/JCO.2017.73.6785",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/29072975"
+          },
+          {
+            "citation_key": "18",
+            "title": "Biliary Tract Cancers",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-03-10",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/btc.pdf#page=38"
+          },
+          {
+            "citation_key": "19",
+            "title": "Dabrafenib Plus Trametinib in Patients With BRAFV600E-mutated Biliary Tract Cancer (ROAR): A Phase 2, Open-Label, Single-Arm, Multicentre Basket Trial",
+            "authors": "Subbiah V, Lassen U, \u00c9lez E, et al.",
+            "journal": "The Lancet. Oncology",
+            "date": "2020-09-01",
+            "doi": "10.1016/S1470-2045(20)30321-1",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/32818466"
+          },
+          {
+            "citation_key": "20",
+            "title": "Treating Biliary Tract Cancers: New Targets and Therapies",
+            "authors": "Ho J, Fiocco C, Spencer K.",
+            "journal": "Drugs",
+            "date": "2022-11-01",
+            "doi": "10.1007/s40265-022-01808-x",
+            "url": "https://doi.org/10.1007/s40265-022-01808-x"
+          },
+          {
+            "citation_key": "21",
+            "title": "Central Nervous System Cancers",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-08-17",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/cns.pdf#page=28"
+          },
+          {
+            "citation_key": "22",
+            "title": "BRAFV600E-mutated Central Nervous System Tumors Benefit From Treatment With Dabrafenib Plus Trametinib: Results From the Drug Rediscovery Protocol",
+            "authors": "Haj Mohammad SF, Spiekman IAC, Verkerk K, et al.",
+            "journal": "European Journal of Cancer",
+            "date": "2026-05-02",
+            "doi": "10.1016/j.ejca.2026.116674",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/41830662"
+          },
+          {
+            "citation_key": "23",
+            "title": "Significant clinical and radiologic response to targeted therapy in pediatric cervicomedullary low-grade gliomas harboring the BRAFV600E mutation",
+            "authors": "Campino GA, Shrot S, Constantini S, et al.",
+            "journal": "Child's Nervous System : ChNS : Official Journal of the International Society for Pediatric Neurosurgery",
+            "date": "2025-12-21",
+            "doi": "10.1007/s00381-025-07084-w",
+            "url": "https://doi.org/10.1007/s00381-025-07084-w"
+          },
+          {
+            "citation_key": "24",
+            "title": "Hairy Cell Leukemia",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-14",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/hairy_cell.pdf#page=7"
+          },
+          {
+            "citation_key": "25",
+            "title": "Dabrafenib Plus Trametinib in Patients With Relapsed/Refractory BRAF V600E Mutation-Positive Hairy Cell Leukemia",
+            "authors": "Kreitman RJ, Moreau P, Ravandi F, et al.",
+            "journal": "Blood",
+            "date": "2023-03-02",
+            "doi": "10.1182/blood.2021013658",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36108341"
+          },
+          {
+            "citation_key": "26",
+            "title": "Guideline for diagnosis and management of hairy cell leukaemia (HCL) and hairy cell variant (HCL\u2010V)",
+            "authors": "Parry-Jones N, Joshi A, Forconi F, Dearden C, BSH guidelines committee.",
+            "journal": "British Journal of Haematology",
+            "date": "2020-12-01",
+            "doi": "10.1111/bjh.17055",
+            "url": "https://doi.org/10.1111/bjh.17055"
+          },
+          {
+            "citation_key": "27",
+            "title": "Histiocytic Neoplasms",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-16",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf#page=45"
+          },
+          {
+            "citation_key": "28",
+            "title": "RAF-independent MEK mutations drive refractory histiocytic neoplasms but respond to ERK inhibition",
+            "authors": "Diamond EL, Emile JF, Fujino T, et al.",
+            "journal": "Cancer Cell",
+            "date": "2026-01-12",
+            "doi": "10.1016/j.ccell.2025.09.014",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12616613/"
+          },
+          {
+            "citation_key": "29",
+            "title": "Rectal Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-07",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/rectal.pdf#page=65"
+          },
+          {
+            "citation_key": "30",
+            "title": "A new first-line standard-of-care for BRAF V600E-mutated mCRC",
+            "authors": "Romero D.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2025-08-01",
+            "doi": "10.1038/s41571-025-01042-w",
+            "url": "https://doi.org/10.1038/s41571-025-01042-w"
+          },
+          {
+            "citation_key": "31",
+            "title": "A Randomised Study of Encorafenib, Cetuximab, and FOLFIRI Versus FOLFIRI With or Without Bevacizumab in BRAF V600e-Mutant Colorectal Cancer: BREAKWATER Cohort 3",
+            "authors": "Kopetz S, Tabernero J, Lonardi S, et al.",
+            "journal": "Annals of Oncology : Official Journal of the European Society for Medical Oncology",
+            "date": "2026-08-01",
+            "doi": "10.1016/j.annonc.2026.04.017",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42219860"
+          },
+          {
+            "citation_key": "32",
+            "title": "Late-line options for patients with metastatic colorectal cancer: a review and evidence-based algorithm",
+            "authors": "Cirac\u00ec P, Studiale V, Taravella A, Antoniotti C, Cremolini C.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2025-01-01",
+            "doi": "10.1038/s41571-024-00965-0",
+            "url": "https://doi.org/10.1038/s41571-024-00965-0"
+          },
+          {
+            "citation_key": "33",
+            "title": "Phase 2 Study of Dabrafenib Plus Trametinib in Patients With BRAF V600e-Mutant Metastatic NSCLC: Updated 5-Year Survival Rates and Genomic Analysis",
+            "authors": "Planchard D, Besse B, Groen HJM, et al.",
+            "journal": "Journal of Thoracic Oncology : Official Publication of the International Association for the Study of Lung Cancer",
+            "date": "2022-01-01",
+            "doi": "10.1016/j.jtho.2021.08.011",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/34455067"
+          },
+          {
+            "citation_key": "34",
+            "title": "First-Line Immunotherapy With or Without Chemotherapy Versus BRAF Plus MEK Inhibitors in BRAFV600E-mutated Metastatic Non-Small-Cell Lung Cancer (FRONT-BRAF): A Multicentre, Retrospective Cohort Study",
+            "authors": "Di Federico A, Wang K, Chen MF, et al.",
+            "journal": "The Lancet. Oncology",
+            "date": "2025-10-01",
+            "doi": "10.1016/S1470-2045(25)00409-7",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/41038185"
+          },
+          {
+            "citation_key": "35",
+            "title": "2021 American Thyroid Association Guidelines for Management of Patients With Anaplastic Thyroid Cancer",
+            "authors": "Bible KC, Kebebew E, Brierley J, et al.",
+            "journal": "Thyroid : Official Journal of the American Thyroid Association",
+            "date": "2021-03-01",
+            "doi": "10.1089/thy.2020.0944",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8349723/"
+          },
+          {
+            "citation_key": "36",
+            "title": "Liquid biopsies for BRAF V600E assessment and monitoring in anaplastic thyroid carcinoma: a real-world study of a tertiary cancer center",
+            "authors": "Colombo E, Ortolan E, Cavalieri S, et al.",
+            "journal": "Endocrine",
+            "date": "2026-06-23",
+            "doi": "10.1007/s12020-026-04672-x",
+            "url": "https://doi.org/10.1007/s12020-026-04672-x"
+          },
+          {
+            "citation_key": "37",
+            "title": "Dabrafenib plus trametinib in BRAFV600E-mutated rare cancers: the phase 2 ROAR trial",
+            "authors": "Subbiah V, Kreitman RJ, Wainberg ZA, et al.",
+            "journal": "Nature Medicine",
+            "date": "2023-05-01",
+            "doi": "10.1038/s41591-023-02321-8",
+            "url": "https://doi.org/10.1038/s41591-023-02321-8"
+          },
+          {
+            "citation_key": "38",
+            "title": "Phase II Study of Dabrafenib and Trametinib in Patients with Tumors with BRAF V600E Mutations: Updated Results From NCI-MATCH ECOG-ACRIN Trial (EAY131) Subprotocol H",
+            "authors": "Salama AKS, Wang V, Macrae ER, et al.",
+            "journal": "JCO Precision Oncology",
+            "date": "2026-01-01",
+            "doi": "10.1200/PO-25-00338",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12810769/"
+          },
+          {
+            "citation_key": "39",
+            "title": "Tumour-agnostic kinase inhibitors",
+            "authors": "Adashek JJ, Nikanjam M, Kurzrock R.",
+            "journal": "Nature Reviews. Drug Discovery",
+            "date": "2025-07-01",
+            "doi": "10.1038/s41573-025-01147-y",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12221794/"
+          },
+          {
+            "citation_key": "40",
+            "title": "Ampullary Adenocarcinoma",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-02-10",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/ampullary.pdf#page=36"
+          },
+          {
+            "citation_key": "41",
+            "title": "Low-Dose Vemurafenib Plus Rituximab in Frontline and Relapsed or Refractory Hairy Cell Leukemia: The Scripps Regimen",
+            "authors": "Hermel DJ, Saven A.",
+            "journal": "Blood Advances",
+            "date": "2026-08-25",
+            "doi": "10.1182/bloodadvances.2025019243",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42308249"
+          },
+          {
+            "citation_key": "42",
+            "title": "Molecular Pathways and Mechanisms of BRAF in Cancer Therapy",
+            "authors": "Poulikakos PI, Sullivan RJ, Yaeger R.",
+            "journal": "Clinical Cancer Research : An Official Journal of the American Association for Cancer Research",
+            "date": "2022-11-01",
+            "doi": "10.1158/1078-0432.CCR-21-2138",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9616966/"
+          },
+          {
+            "citation_key": "43",
+            "title": "Clinical and molecular characteristics of Class II and III BRAF mutations in colorectal cancer",
+            "authors": "Sahin IH, Xiu J, Baca Y, et al.",
+            "journal": "NPJ Precision Oncology",
+            "date": "2026-02-26",
+            "doi": "10.1038/s41698-026-01329-w",
+            "url": "https://doi.org/10.1038/s41698-026-01329-w"
+          },
+          {
+            "citation_key": "44",
+            "title": "Case 2-2024: A 57-Year-Old Woman with Melanoma and Fever",
+            "authors": "Mohareb AM, Kang J, Montazeri K, Shroff SG.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2024-01-18",
+            "doi": "10.1056/NEJMcpc2300974",
+            "url": "https://doi.org/10.1056/nejmcpc2300974?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "45",
+            "title": "BRAF Mutations in CNS Tumors\u2014Prognostic Markers and Therapeutic Targets",
+            "authors": "Muniz TP, Mason WP.",
+            "journal": "CNS Drugs",
+            "date": "2023-07-01",
+            "doi": "10.1007/s40263-023-01016-5",
+            "url": "https://doi.org/10.1007/s40263-023-01016-5"
+          },
+          {
+            "citation_key": "46",
+            "title": "2022 ESC Guidelines on Cardio-Oncology Developed in Collaboration With the European Hematology Association (EHA), the European Society for Therapeutic Radiology and Oncology (ESTRO) and the International Cardio-Oncology Society (IC-OS)",
+            "authors": "Lyon AR, L\u00f3pez-Fern\u00e1ndez T, Couch LS, et al.",
+            "journal": "European Heart Journal",
+            "date": "2022-11-01",
+            "doi": "10.1093/eurheartj/ehac244",
+            "url": "https://doi.org/10.1093/eurheartj/ehac244"
+          }
+        ]
+      },
+      "B": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for BRAF alterations in cancer? Cite the specific guideline or trial.",
+        "text": "0e81\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nBRAF V600E is a targetable driver across multiple cancers, and guideline-endorsed, trial-backed BRAF\u00b1MEK (or BRAF+EGFR) inhibitor therapy now exists for melanoma, NSCLC, anaplastic and [differentiated thyroid cancer](/rare-disease/differentiated-thyroid-carcinoma), colorectal cancer, and\u2014tumor-agnostically\u2014for most other BRAF V600E\u2013mutant solid tumors.[[1]][[2]] The optimal regimen is lineage-specific: BRAF+MEK inhibition works well in melanoma, NSCLC, and thyroid cancer, but colorectal cancer requires BRAF+EGFR inhibition because of adaptive EGFR-mediated resistance.[[1]] The sections below organize the recommendations and pivotal evidence by tumor type.\nMelanoma\nNCCN lists combination BRAF/MEK targeted therapy as a category 1 option for BRAF V600\u2013mutant unresectable/metastatic disease \u2014 dabrafenib/trametinib, encorafenib/binimetinib, or vemurafenib/cobimetinib \u2014 though combination immunotherapy (ipilimumab/nivolumab or nivolumab/relatlimab) or anti\u2013PD-1 monotherapy is preferred first-line because a randomized trial confirmed OS superiority of first-line immunotherapy.[[3]] BRAF/MEK inhibition may be preferred for patients with high-volume, symptomatic disease needing a rapid response, often transitioning to immunotherapy after 8\u201312 weeks.[[3]] In the adjuvant setting, dabrafenib/trametinib is a preferred, category 1 option for resected stage III BRAF V600\u2013positive disease.[[3]]\nASCO guidelines similarly recommend dabrafenib/trametinib, encorafenib/binimetinib, or vemurafenib/cobimetinib as strongly recommended options, while stating that nivolumab plus ipilimumab is preferred first-line over BRAF/MEK inhibitor therapy.[[4]] These combinations were established by randomized phase 3 trials \u2014 COMBI-d/COMBI-v (dabrafenib/trametinib), coBRIM (vemurafenib/cobimetinib), and COLUMBUS (encorafenib/binimetinib) \u2014 each showing superiority of BRAF/MEK combination over BRAF inhibitor alone.[[4]] The DREAMseq phase 3 and SECOMBIT phase 2 trials established the preference for upfront immunotherapy by showing better 2-year/4-year OS with nivolumab/ipilimumab first versus BRAF/MEK first.[[5]]\nNon-small cell lung cancer\nNCCN lists dabrafenib/trametinib and binimetinib/encorafenib as preferred first-line and subsequent therapy options for BRAF V600E\u2013mutant NSCLC, with single-agent dabrafenib or vemurafenib useful in certain circumstances (e.g., if the combination is not tolerated).[[6]] Here is the NCCN algorithm for BRAF V600E\u2013mutant NSCLC:\n[[6]]\nASCO guidelines (Therapy for Stage IV NSCLC with Driver Alterations, 2026) recommend either dabrafenib/trametinib or encorafenib/binimetinib in both the first-line and previously treated settings (moderate evidence, strong recommendation), and specify that BRAF alterations other than V600E should be treated per non-driver guidelines.[[7]] Pivotal evidence comes from the phase 2 study of dabrafenib/trametinib (Planchard et al.; ORR 64% treatment-na\u00efve, PFS ~10.8 months) and the phase 2 PHAROS trial of encorafenib/binimetinib (ORR 75% treatment-na\u00efve, median PFS 30.2 months; updated mOS 47.6 months).[[7]][[8]] ESMO likewise recommends BRAF/MEK inhibitors as preferred first-line for BRAF V600E NSCLC.[[5]][[9]] The first-line choice between BRAF/MEK inhibition and immunotherapy remains debated, as BRAF V600E NSCLC often occurs in smokers with high PD-L1/TMB; the retrospective FRONT-BRAF cohort found no OS difference but higher ORR with targeted therapy.[[5]]\nColorectal cancer\nUnlike other lineages, BRAF V600E CRC requires co-targeting of EGFR. ASCO guidelines recommend encorafenib plus cetuximab (or panitumumab) for previously treated BRAF V600E\u2013mutant mCRC that has progressed after \u22651 prior line (moderate evidence, strong).[[10]] This is based on the phase 3 BEACON CRC trial, in which both encorafenib/cetuximab (doublet) and encorafenib/binimetinib/cetuximab (triplet) improved OS, PFS, and ORR versus cetuximab-chemotherapy; the triplet did not improve survival over the doublet but added toxicity, so the doublet became standard.[[11]][[12]][[13]] For first-line treatment, ESMO/guideline-recommended standards remain chemotherapy (FOLFOXIRI) plus bevacizumab.[[11]] More recently, the phase 3 BREAKWATER trial (Elez et al., NEJM 2025) established first-line encorafenib + cetuximab + mFOLFOX6, leading to accelerated FDA approval including as first-line therapy.[[14]] A 2025 network meta-analysis confirmed anti-EGFR/BRAF\u2013based regimens as superior for OS and PFS.[[15]] Notably, the tumor-agnostic dabrafenib/trametinib approval specifically excludes CRC.[[1]][[2]]\nThyroid cancer\nFor BRAF V600E\u2013mutant anaplastic thyroid cancer (ATC), ASCO guidelines (2026) recommend dabrafenib and trametinib first-line (moderate evidence, strong), with the option of adding pembrolizumab (weak/conditional).[[16]] This rests on the phase 2 ROAR basket study ATC cohort: ORR 56\u201369%, median PFS 6.7 months, median OS 14.5 months.[[17]][[18]] The 2021 ATA ATC guidelines also endorse dabrafenib/trametinib and highlight emerging data on neoadjuvant BRAF-directed therapy followed by surgery.[[19]]\nFor BRAF V600E RAI-refractory differentiated thyroid cancer (DTC), ASCO guidelines state clinicians may offer dabrafenib or trametinib before MKIs (weak), though lenvatinib is generally preferred frontline given a higher response rate and randomized evidence.[[16]] The recently reported phase 3 trial of dabrafenib plus trametinib in BRAF V600E RAI-refractory DTC (Gao et al., Lancet Oncology 2026) showed significantly improved PFS (12.8 vs 3.7 months; HR 0.38) and ORR versus placebo, positioning it as a new second-line standard of care.[[16]][[20]]\nTumor-agnostic BRAF V600E therapy\nIn June 2022, the FDA granted accelerated, histology-agnostic approval of dabrafenib plus trametinib for unresectable/metastatic BRAF V600E solid tumors (adults and children \u22656 years) that progressed on prior therapy with no satisfactory alternatives \u2014 explicitly excluding CRC.[[1]][[21]] This was supported by the phase 2 ROAR basket trial and NCI-MATCH subprotocol H (EAY131-H).[[22]][[23]] Across ROAR cohorts, ORRs varied markedly by lineage: anaplastic thyroid 56%, biliary tract 53%, [low-grade glioma](/rare-disease/low-grade-astrocytoma) 54%, high-grade glioma 33%, hairy cell leukemia 89%, and multiple myeloma 50%.[[22]] NCI-MATCH reported a combined ORR of 36.1% and median OS of 28.6 months across diverse BRAF V600 tumors.[[23]] This lineage-dependent efficacy is well summarized in a 2024 review:\nOther lineage-specific approvals/recommendations include vemurafenib for Erdheim-Chester disease and hairy cell leukemia (BRAF V600E in ~100% of cases, ~96% response), and dabrafenib/trametinib for pediatric BRAF V600E low-grade glioma.[[2]] For biliary tract cancer, the ROAR BTC cohort (n=43) showed ORR 47% and median PFS 9 months.[[24]]\nA practical caveat across all tumor types: BRAF monomer inhibitors do not address non-V600 (class II/III) BRAF alterations, and there is currently no data supporting these BRAF-targeted regimens for non-V600E BRAF mutations \u2014 such patients should receive standard non-driver therapy.[[7]][[25]] Acquired resistance via MAPK reactivation also limits durability in most responders.[[1]][[26]]\n\n\nWould you like to explore the optimal sequencing of BRAF/MEK targeted therapy versus immunotherapy in BRAF V600E melanoma and NSCLC?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "BRAF \u2014 a tumour-agnostic drug target with lineage-specific dependencies",
+            "authors": "Hanrahan AJ, Chen Z, Rosen N, Solit DB.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2024-03-01",
+            "doi": "10.1038/s41571-023-00852-0",
+            "url": "https://doi.org/10.1038/s41571-023-00852-0"
+          },
+          {
+            "citation_key": "2",
+            "title": "Tumour-agnostic kinase inhibitors",
+            "authors": "Adashek JJ, Nikanjam M, Kurzrock R.",
+            "journal": "Nature Reviews. Drug Discovery",
+            "date": "2025-07-01",
+            "doi": "10.1038/s41573-025-01147-y",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12221794/"
+          },
+          {
+            "citation_key": "3",
+            "title": "Melanoma: Cutaneous",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-02",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/cutaneous_melanoma.pdf#page=58"
+          },
+          {
+            "citation_key": "4",
+            "title": "Systemic Therapy for Melanoma: ASCO Guideline Update",
+            "authors": "Seth R, Agarwala SS, Messersmith H, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2023-10-20",
+            "doi": "10.1200/JCO.23.01136",
+            "url": "https://doi.org/10.1200/jco.23.01136"
+          },
+          {
+            "citation_key": "5",
+            "title": "First-Line Immunotherapy With or Without Chemotherapy Versus BRAF Plus MEK Inhibitors in BRAFV600E-mutated Metastatic Non-Small-Cell Lung Cancer (FRONT-BRAF): A Multicentre, Retrospective Cohort Study",
+            "authors": "Di Federico A, Wang K, Chen MF, et al.",
+            "journal": "The Lancet. Oncology",
+            "date": "2025-10-01",
+            "doi": "10.1016/S1470-2045(25)00409-7",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/41038185"
+          },
+          {
+            "citation_key": "6",
+            "title": "Non-Small Cell Lung Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-22",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110"
+          },
+          {
+            "citation_key": "7",
+            "title": "Therapy for Stage IV NSCLC with Driver Alterations",
+            "authors": "Reuss JE, Ismaila N, Ahluwalia A, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-06-20",
+            "doi": "10.1200/JCO-26-00843",
+            "url": "https://doi.org/10.1200/jco-26-00843"
+          },
+          {
+            "citation_key": "8",
+            "title": "Targeted Therapies in Advanced Non-Small-Cell Lung Cancer: New Biomarkers and Treatment Strategies",
+            "authors": "Hendriks LEL, Lin JJ, Tan DSW, et al.",
+            "journal": "The Lancet. Respiratory Medicine",
+            "date": "2026-09-06",
+            "doi": "10.1016/S2213-2600(26)00253-5",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42702211"
+          },
+          {
+            "citation_key": "9",
+            "title": "BRAF in Non-Small Cell Lung Cancer: From Molecular Mechanisms to Clinical Practice",
+            "authors": "Parisi C, Planchard D.",
+            "journal": "Cancer",
+            "date": "2025-03-15",
+            "doi": "10.1002/cncr.35781",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/40172088"
+          },
+          {
+            "citation_key": "10",
+            "title": "Treatment of Metastatic Colorectal Cancer: ASCO Guideline",
+            "authors": "Morris VK, Kennedy EB, Baxter NN, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2023-01-20",
+            "doi": "10.1200/JCO.22.01690",
+            "url": "https://doi.org/10.1200/jco.22.01690"
+          },
+          {
+            "citation_key": "11",
+            "title": "Management of BRAF-mutant Metastatic Colorectal Cancer: A Review of Treatment Options and Evidence-Based Guidelines",
+            "authors": "Grothey A, Fakih M, Tabernero J.",
+            "journal": "Annals of Oncology : Official Journal of the European Society for Medical Oncology",
+            "date": "2021-08-01",
+            "doi": "10.1016/j.annonc.2021.03.206",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/33836264"
+          },
+          {
+            "citation_key": "12",
+            "title": "Late-line options for patients with metastatic colorectal cancer: a review and evidence-based algorithm",
+            "authors": "Cirac\u00ec P, Studiale V, Taravella A, Antoniotti C, Cremolini C.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2025-01-01",
+            "doi": "10.1038/s41571-024-00965-0",
+            "url": "https://doi.org/10.1038/s41571-024-00965-0"
+          },
+          {
+            "citation_key": "13",
+            "title": "Toxicities from BRAF and MEK Inhibitors: Strategies to Maximize Therapeutic Success",
+            "authors": "Wang M, Sullivan RJ, Mooradian MJ.",
+            "journal": "Current Oncology Reports",
+            "date": "2024-08-01",
+            "doi": "10.1007/s11912-024-01544-3",
+            "url": "https://doi.org/10.1007/s11912-024-01544-3"
+          },
+          {
+            "citation_key": "14",
+            "title": "Encorafenib, Cetuximab, and mFOLFOX6 in BRAF-Mutated Colorectal Cancer",
+            "authors": "Elez E, Yoshino T, Shen L, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2025-06-26",
+            "doi": "10.1056/NEJMoa2501912",
+            "url": "https://doi.org/10.1056/nejmoa2501912?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "15",
+            "title": "Targeted therapy in advanced BRAF -mutated colorectal cancer: systematic review and network meta-analysis",
+            "authors": "Qin BD, Jiao XD, Wang Z, et al.",
+            "journal": "BMJ",
+            "date": "2025-11-19",
+            "doi": "10.1136/bmj-2025-086026",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12628362/"
+          },
+          {
+            "citation_key": "16",
+            "title": "Systemic Treatment of Thyroid Cancer: ASCO Guideline",
+            "authors": "Saba NF, Ismaila N, Adkins D, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-05-10",
+            "doi": "10.1200/JCO-26-00235",
+            "url": "https://doi.org/10.1200/jco-26-00235"
+          },
+          {
+            "citation_key": "17",
+            "title": "Dabrafenib Plus Trametinib in Patients With BRAF V600e-Mutant Anaplastic Thyroid Cancer: Updated Analysis From the Phase II ROAR Basket Study",
+            "authors": "Subbiah V, Kreitman RJ, Wainberg ZA, et al.",
+            "journal": "Annals of Oncology : Official Journal of the European Society for Medical Oncology",
+            "date": "2022-04-01",
+            "doi": "10.1016/j.annonc.2021.12.014",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/35026411"
+          },
+          {
+            "citation_key": "18",
+            "title": "Dabrafenib and Trametinib Treatment in Patients With Locally Advanced or Metastatic BRAF V600-Mutant Anaplastic Thyroid Cancer",
+            "authors": "Subbiah V, Kreitman RJ, Wainberg ZA, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2018-01-01",
+            "doi": "10.1200/JCO.2017.73.6785",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/29072975"
+          },
+          {
+            "citation_key": "19",
+            "title": "2021 American Thyroid Association Guidelines for Management of Patients With Anaplastic Thyroid Cancer",
+            "authors": "Bible KC, Kebebew E, Brierley J, et al.",
+            "journal": "Thyroid : Official Journal of the American Thyroid Association",
+            "date": "2021-03-01",
+            "doi": "10.1089/thy.2020.0944",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8349723/"
+          },
+          {
+            "citation_key": "20",
+            "title": "Efficacy and Safety of Dabrafenib Plus Trametinib in Adults With Differentiated Thyroid Cancer: A Randomised, Double-Blind, Placebo-Controlled, Phase 3 Trial",
+            "authors": "Gao M, Park YJ, Lin CC, et al.",
+            "journal": "The Lancet. Oncology",
+            "date": "2026-07-13",
+            "doi": "10.1016/S1470-2045(26)00133-6",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42442381"
+          },
+          {
+            "citation_key": "21",
+            "title": "FDA Orange Book",
+            "authors": "",
+            "journal": "FDA Orange Book",
+            "date": "2026-10-06",
+            "doi": "",
+            "url": "https://www.fda.gov/drugs/drug-approvals-and-databases/approved-drug-products-therapeutic-equivalence-evaluations-orange-book"
+          },
+          {
+            "citation_key": "22",
+            "title": "Dabrafenib plus trametinib in BRAFV600E-mutated rare cancers: the phase 2 ROAR trial",
+            "authors": "Subbiah V, Kreitman RJ, Wainberg ZA, et al.",
+            "journal": "Nature Medicine",
+            "date": "2023-05-01",
+            "doi": "10.1038/s41591-023-02321-8",
+            "url": "https://doi.org/10.1038/s41591-023-02321-8"
+          },
+          {
+            "citation_key": "23",
+            "title": "Phase II Study of Dabrafenib and Trametinib in Patients with Tumors with BRAF V600E Mutations: Updated Results From NCI-MATCH ECOG-ACRIN Trial (EAY131) Subprotocol H",
+            "authors": "Salama AKS, Wang V, Macrae ER, et al.",
+            "journal": "JCO Precision Oncology",
+            "date": "2026-01-01",
+            "doi": "10.1200/PO-25-00338",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12810769/"
+          },
+          {
+            "citation_key": "24",
+            "title": "Molecular Testing and Targeted Therapies in Hepatobiliary Cancers: A Review",
+            "authors": "Tsilimigras DI, Kurzrock R, Pawlik TM.",
+            "journal": "JAMA Surgery",
+            "date": "2025-05-01",
+            "doi": "10.1001/jamasurg.2025.0242",
+            "url": "https://jamanetwork.com/journals/jamasurgery/fullarticle/10.1001/jamasurg.2025.0242?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "25",
+            "title": "A Practical Review of Encorafenib and Binimetinib Therapy Management in Patients with BRAF V600E-Mutant Metastatic Non-Small Cell Lung Cancer",
+            "authors": "Baik C, Cheng ML, Dietrich M, Gray JE, Karim NA.",
+            "journal": "Advances in Therapy",
+            "date": "2024-07-01",
+            "doi": "10.1007/s12325-024-02839-4",
+            "url": "https://doi.org/10.1007/s12325-024-02839-4"
+          },
+          {
+            "citation_key": "26",
+            "title": "Cutaneous Melanoma",
+            "authors": "Long GV, Swetter SM, Menzies AM, Gershenwald JE, Scolyer RA.",
+            "journal": "Lancet",
+            "date": "2023-08-05",
+            "doi": "10.1016/S0140-6736(23)00821-8",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/37499671"
+          }
+        ]
+      }
+    }
+  ],
+  "primary_source_facts": [
+    {
+      "claim": "ALEX final median OS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/41110693/",
+      "verified_values": {
+        "alectinib_months": 81.1,
+        "crizotinib_months": 54.2,
+        "HR": 0.78
+      }
+    },
+    {
+      "claim": "WU-KONG28 first-line sunvozertinib",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42212913/",
+      "verified_values": {
+        "PFS_months": [
+          10.3,
+          7.5
+        ],
+        "HR": 0.65,
+        "NCT": "NCT05668988"
+      }
+    },
+    {
+      "claim": "ADAURA exploratory eight-year landmark",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42732874/",
+      "verified_values": {
+        "stage_IB_IIIA_OS_percent": [
+          79,
+          64
+        ],
+        "HR": 0.52
+      }
+    },
+    {
+      "claim": "LAURA PFS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/38828946/",
+      "verified_values": {
+        "PFS_months": [
+          39.1,
+          5.6
+        ],
+        "HR": 0.16
+      }
+    },
+    {
+      "claim": "Daraxonrasib FDA approval",
+      "source": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-daraxonrasib-metastatic-pancreatic-adenocarcinoma",
+      "verified_values": {
+        "approval_date": "2026-08-26",
+        "trial": "RASolute 302",
+        "NCT": "NCT06625320"
+      }
+    },
+    {
+      "claim": "Magrolimab ENHANCE-2 failure in TP53 AML",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/40009500/",
+      "verified_values": {
+        "nonintensive_OS_months": [
+          4.4,
+          6.6
+        ],
+        "HR": 1.132,
+        "NCT": "NCT04778397"
+      }
+    },
+    {
+      "claim": "Crizotinib ALCL approval population",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/35561013/",
+      "label_source": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2025/217581Orig1s000Lbl.pdf",
+      "verified_values": {
+        "population": "Pediatric patients >=1 year and young adults with relapsed/refractory systemic ALK-positive ALCL",
+        "limitation": "Safety and efficacy have not been established in older adults"
+      }
+    }
+  ]
+}

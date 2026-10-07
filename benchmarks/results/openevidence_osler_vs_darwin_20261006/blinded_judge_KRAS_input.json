@@ -1,0 +1,690 @@
+{
+  "benchmark_date": "2026-10-06",
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "pairs": [
+    {
+      "gene": "KRAS",
+      "A": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for KRAS alterations in cancer? Cite the specific guideline or trial.",
+        "text": "c028\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nKRAS-directed targeted therapy is now guideline-endorsed in NSCLC, colorectal cancer, and pancreatic cancer, built almost entirely around allele-specific KRAS G12C inhibitors (sotorasib, adagrasib), with a newer pan-RAS(ON) inhibitor (daraxonrasib) now category 1 in pancreatic cancer. The specific recommendations and pivotal trials differ by tumor type.\nNSCLC (KRAS G12C) \u2014 NCCN and ASCO\n- NCCN (Non-Small Cell Lung Cancer, v9.2026) lists sotorasib or adagrasib as subsequent-therapy (second-line and beyond) options for advanced/metastatic KRAS G12C-mutated NSCLC, usable after at least one line of therapy if no prior KRAS G12C-targeted agent; these are category 2A and not first-line (first-line remains chemoimmunotherapy by PD-L1 status)[[1]]. For agents with a similar mechanism, switching between them at progression is not recommended.\n- ASCO (Therapy for Stage IV NSCLC with Driver Alterations, 2026) recommends that clinicians may offer sotorasib or adagrasib in the second-line/subsequent setting (evidence moderate; strength strong), explicitly after prior platinum chemotherapy and/or anti\u2013PD-(L)1, and not first-line.[[2]]\n- Pivotal trials: Sotorasib received accelerated approval on the single-arm phase 2 CodeBreaK 100 (ORR ~37%, median PFS 6.8 months, median OS 12.5 months)[[3]][[4]]. The phase 3 CodeBreaK 200 showed improved PFS (5.6 vs 4.5 months, HR 0.66) and ORR vs docetaxel but no OS benefit. Adagrasib was approved on phase 2 KRYSTAL-1 (ORR 42.9%, PFS 6.5 months, OS 12.6 months), confirmed by phase 3 KRYSTAL-12 (PFS 5.5 vs 3.8 months, HR [[5]][[6]][[7]][[8]][[9]][[10]]0.58; ORR 32% vs 9%; OS immature). A 2026 Cochrane review summarizes that both drugs improve PFS over chemotherapy in the second line.[[2]][[11]][[12]]\nThe ASCO second-line algorithm for these alterations is shown here:\n[[13]]\nColorectal cancer (KRAS G12C) \u2014 NCCN and ESMO\nKRAS G12C occurs in ~3\u20134% of mCRC, where single-agent G12C inhibition is weak (sotorasib ORR ~10%, adagrasib ORR ~19%), driving a combination-with-anti-EGFR strategy.[[14]][[15]][[16]]\n- NCCN (Colon and Rectal Cancer, v2.2026) includes, for KRAS-mutant/BRAF-WT pMMR/MSS disease: adagrasib or sotorasib monotherapy as a less-intensive option, and (adagrasib or sotorasib) + (cetuximab or panitumumab) as subsequent therapy after fluoropyrimidine/oxaliplatin/irinotecan. The combination also appears as an initial-treatment option for unresectable metachronous metastases, with single-agent use if the EGFR inhibitor is not tolerated[[17]][[18]].\n- ESMO guidelines likewise acknowledge/recommend a KRAS G12C inhibitor plus an anti-EGFR antibody for previously treated KRAS G12C-mutated mCRC.[[19]]\n- Pivotal trials: Phase 3 CodeBreaK 300 (sotorasib 960 mg + panitumumab vs trifluridine-tipiracil/regorafenib) met its PFS endpoint (5.6 vs 2.0\u20132.2 months, HR 0.48\u20130.49) with ORR 26\u201330%; OS favored the combination numerically (HR 0.70) but was not statistically significant. KRYSTAL-1 ad[[7]][[20]][[21]][[22]]agrasib + cetuximab produced ORR ~46% and median PFS 6.9 months vs 19% with monotherapy, supporting FDA accelerated approval.[[14]][[23]]\nThe CodeBreaK 300 primary PFS result is shown here:\n[[15]]\nPancreatic adenocarcinoma \u2014 NCCN (daraxonrasib category 1; G12C inhibitors category 2A/2B)\nKRAS G12C is rare in PDAC (~1\u20131.5%), where G12D/G12V/G12R predominate.[[24]][[25]][[26]]\n- NCCN (Pancreatic Adenocarcinoma, v4.2026) now lists daraxonrasib (pan-RAS inhibitor) as a category 1 preferred subsequent-therapy option for locally advanced/metastatic disease after prior therapy, and as a category 1 switch option at recurrence. Adagras[[27]]ib or sotorasib are \"useful in certain circumstances\" if KRAS G12C-positive (category 2A for good/intermediate PS; category 2B for poor PS).\n- Trial evidence: Daraxonrasib's category 1 status derives from the phase 3 RASolute 302 trial, which roughly doubled OS versus chemotherapy in previously treated metastatic PDAC (13.2 vs 6.7 months). G12C inhibitor activity in PDAC comes from CodeBrea[[25]][[28]]K 100 (sotorasib ORR 21%) and KRYSTAL-1 (adagrasib ORR ~33%).[[26]][[29]][[30]]\nOther solid tumors (tumor-agnostic KRAS G12C activity)\nThe KRYSTAL-1 phase 2 solid-tumor cohort showed adagrasib activity across rare KRAS G12C-mutant tumors (overall ORR 35%, including 41.7% in biliary tract and 33.3% in pancreatic cancer), though this is trial evidence rather than a formal pan-tumor guideline recommendation.[[31]][[32]] Both NCCN NSCLC and pancreatic guidelines have also begun incorporating next-generation and non-G12C agents (e.g., daraxonrasib added to NSCLC biomarker tables for RAS-mutant disease).[[1]]\nNon-G12C and emerging agents\nBeyond approved drugs, active trial development targets KRAS G12D (e.g., zoldonrasib, HRS-4642, GFH375), pan-KRAS/pan-RAS inhibitors (daraxonrasib), and first-line KRAS inhibitor + anti-EGFR combinations in NSCLC (e.g., KROCUS with fulzerasib + cetuximab, ORR 69%).[[33]][[34]][[35]][[36]] Divarasib is being compared head-to-head against sotorasib/adagrasib in the Krascendo-1 trial.[[37]]\n[[1]][[2]][[6]][[11]][[14]][[17]][[18]][[19]][[21]][[25]][[27]][[29]][[31]][[32]]\n\n\nWould you like to explore resistance mechanisms to KRAS G12C inhibitors and the combination strategies under investigation?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "Non-Small Cell Lung Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-22",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=53"
+          },
+          {
+            "citation_key": "2",
+            "title": "Therapy for Stage IV NSCLC with Driver Alterations",
+            "authors": "Reuss JE, Ismaila N, Ahluwalia A, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-06-20",
+            "doi": "10.1200/JCO-26-00843",
+            "url": "https://doi.org/10.1200/jco-26-00843"
+          },
+          {
+            "citation_key": "3",
+            "title": "LUMAKRAS",
+            "authors": "Food and Drug Administration",
+            "journal": "",
+            "date": "2025-01-22",
+            "doi": "",
+            "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=c80a362c-7ac3-4894-a076-0691e68ef8c1"
+          },
+          {
+            "citation_key": "4",
+            "title": "Top advances in lung cancer, 2021",
+            "authors": "Mohindra NA, Patel JD.",
+            "journal": "Cancer",
+            "date": "2022-10-01",
+            "doi": "10.1002/cncr.34406",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9886158/"
+          },
+          {
+            "citation_key": "5",
+            "title": "FDA Approval Summary: Sotorasib for KRAS G12C Mutated Metastatic NSCLC",
+            "authors": "Nakajima EC, Drezner N, Li X, et al.",
+            "journal": "Clinical Cancer Research : An Official Journal of the American Association for Cancer Research",
+            "date": "2022-04-14",
+            "doi": "10.1158/1078-0432.CCR-21-3074",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9012672/"
+          },
+          {
+            "citation_key": "6",
+            "title": "KRAS-Targeted Therapies in NSCLC: Resistance, Combination Strategies, and Emerging Clinical Paradigms",
+            "authors": "Kapoor A, Sansar B, Gupta A, et al.",
+            "journal": "Medical Oncology",
+            "date": "2026-08-20",
+            "doi": "10.1007/s12032-026-03318-2",
+            "url": "https://doi.org/10.1007/s12032-026-03318-2"
+          },
+          {
+            "citation_key": "7",
+            "title": "Targeting KRAS in cancer",
+            "authors": "Singhal A, Li BT, O'Reilly EM.",
+            "journal": "Nature Medicine",
+            "date": "2024-04-01",
+            "doi": "10.1038/s41591-024-02903-0",
+            "url": "https://doi.org/10.1038/s41591-024-02903-0"
+          },
+          {
+            "citation_key": "8",
+            "title": "KRAS: the Achilles\u2019 heel of pancreas cancer biology",
+            "authors": "Drizyte-Miller K, Talabi T, Somasundaram A, Cox AD, Der CJ.",
+            "journal": "The Journal of Clinical Investigation",
+            "date": "2025-08-15",
+            "doi": "10.1172/JCI191939",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12352898/"
+          },
+          {
+            "citation_key": "9",
+            "title": "Adagrasib in Non\u2013Small-Cell Lung Cancer Harboring a KRAS G12C Mutation",
+            "authors": "J\u00e4nne PA, Riely GJ, Gadgeel SM, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2022-07-14",
+            "doi": "10.1056/NEJMoa2204619",
+            "url": "https://doi.org/10.1056/nejmoa2204619?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "10",
+            "title": "The KRYSTAL-1 study of adagrasib \u2014 a new trial for KRAS G12C-mutated non-small-cell lung cancer",
+            "authors": "Murciano-Goroff YR, Lito P.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2022-11-01",
+            "doi": "10.1038/s41571-022-00676-4",
+            "url": "https://doi.org/10.1038/s41571-022-00676-4"
+          },
+          {
+            "citation_key": "11",
+            "title": "Adagrasib Versus Docetaxel in KRASG12C-mutated Non-Small-Cell Lung Cancer (KRYSTAL-12): A Randomised, Open-Label, Phase 3 Trial",
+            "authors": "Barlesi F, Yao W, Duruisseaux M, et al.",
+            "journal": "Lancet",
+            "date": "2025-08-09",
+            "doi": "10.1016/S0140-6736(25)00866-9",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/40783289"
+          },
+          {
+            "citation_key": "12",
+            "title": "KRAS G12C inhibitors versus chemotherapy in second line and beyond in adults with advanced or metastatic non\u2010small cell lung cancer (NSCLC) harbouring the KRAS G12C mutation",
+            "authors": "Anneloes Noordhof, Oke Dimas Asmara, Kim Jong, et al.",
+            "journal": "Cochrane Database of Systematic Reviews",
+            "date": "2026-02-17",
+            "doi": "10.1002/14651858.cd016054",
+            "url": "https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.CD016054/full"
+          },
+          {
+            "citation_key": "13",
+            "title": "Therapy for Stage IV NSCLC with Driver Alterations",
+            "authors": "",
+            "journal": "",
+            "date": "2026-05-26",
+            "doi": "10.1200/JCO-26-00843",
+            "url": "https://ascopubs.org/doi/10.1200/JCO-26-00843"
+          },
+          {
+            "citation_key": "14",
+            "title": "Adagrasib with or without Cetuximab in Colorectal Cancer with Mutated KRAS G12C",
+            "authors": "Yaeger R, Weiss J, Pelster MS, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2023-01-05",
+            "doi": "10.1056/NEJMoa2212419",
+            "url": "https://doi.org/10.1056/nejmoa2212419?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "15",
+            "title": "Sotorasib plus Panitumumab in Refractory Colorectal Cancer with Mutated KRAS G12C",
+            "authors": "Fakih MG, Salvatore L, Esaki T, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2023-12-07",
+            "doi": "10.1056/NEJMoa2308795",
+            "url": "https://doi.org/10.1056/nejmoa2308795?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "16",
+            "title": "Sotorasib for Previously Treated Colorectal Cancers With KRASG12C Mutation (CodeBreaK100): A Prespecified Analysis of a Single-Arm, Phase 2 Trial",
+            "authors": "Fakih MG, Kopetz S, Kuboki Y, et al.",
+            "journal": "The Lancet. Oncology",
+            "date": "2022-01-01",
+            "doi": "10.1016/S1470-2045(21)00605-7",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/34919824"
+          },
+          {
+            "citation_key": "17",
+            "title": "Colon Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-07",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=47"
+          },
+          {
+            "citation_key": "18",
+            "title": "Rectal Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-07",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/rectal.pdf#page=64"
+          },
+          {
+            "citation_key": "19",
+            "title": "Glecirasib With or Without Cetuximab in Previously Treated Locally Advanced or Metastatic Colorectal Cancer With KRASG12C Mutation (JAB-21822-1002 and JAB-21822-1007): Two Open-Label, Non-Randomised Phase 1/2 Trials",
+            "authors": "Li J, Wang Z, Huang J, et al.",
+            "journal": "The Lancet. Gastroenterology & Hepatology",
+            "date": "2026-02-01",
+            "doi": "10.1016/S2468-1253(25)00267-5",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/41344351"
+          },
+          {
+            "citation_key": "20",
+            "title": "Health-Related Quality of Life in Patients With KRASG12C-mutated Chemorefractory Metastatic Colorectal Cancer Treated With Sotorasib Plus Panitumumab or Standard of Care (CodeBreaK 300): Results From a Phase 3, Randomised Clinical Trial",
+            "authors": "Modest DP, Fakih M, Salvatore L, et al.",
+            "journal": "The Lancet. Oncology",
+            "date": "2025-09-01",
+            "doi": "10.1016/S1470-2045(25)00352-3",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/40812325"
+          },
+          {
+            "citation_key": "21",
+            "title": "Overall Survival Analysis of the Phase III CodeBreaK 300 Study of Sotorasib Plus Panitumumab Versus Investigator's Choice in Chemorefractory KRAS G12C Colorectal Cancer",
+            "authors": "Pietrantonio F, Salvatore L, Esaki T, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2025-07-01",
+            "doi": "10.1200/JCO-24-02026",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/40215429"
+          },
+          {
+            "citation_key": "22",
+            "title": "Late-line options for patients with metastatic colorectal cancer: a review and evidence-based algorithm",
+            "authors": "Cirac\u00ec P, Studiale V, Taravella A, Antoniotti C, Cremolini C.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2025-01-01",
+            "doi": "10.1038/s41571-024-00965-0",
+            "url": "https://doi.org/10.1038/s41571-024-00965-0"
+          },
+          {
+            "citation_key": "23",
+            "title": "Targeting KRAS-Mutated Gastrointestinal Malignancies with Small-Molecule Inhibitors: A New Generation of Breakthrough Therapies",
+            "authors": "Caughey BA, Strickler JH.",
+            "journal": "Drugs",
+            "date": "2024-01-01",
+            "doi": "10.1007/s40265-023-01980-8",
+            "url": "https://doi.org/10.1007/s40265-023-01980-8"
+          },
+          {
+            "citation_key": "24",
+            "title": "Pancreatic Cancer: Advances and Challenges",
+            "authors": "Halbrook CJ, Lyssiotis CA, Pasca di Magliano M, Maitra A.",
+            "journal": "Cell",
+            "date": "2023-04-13",
+            "doi": "10.1016/j.cell.2023.02.014",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10182830/"
+          },
+          {
+            "citation_key": "25",
+            "title": "Current Landscape of RAS-Targeted Therapy for Pancreatic Cancer",
+            "authors": "Wu YL, Herzberg B, Manji GA.",
+            "journal": "The Oncologist",
+            "date": "2026-09-23",
+            "doi": "10.1093/oncolo/oyag379",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42776617"
+          },
+          {
+            "citation_key": "26",
+            "title": "Treating Pancreatic Ductal Adenocarcinoma: The Targeted Revolution is Here",
+            "authors": "May MS, Park W, O'Reilly EM.",
+            "journal": "Drugs",
+            "date": "2026-04-01",
+            "doi": "10.1007/s40265-026-02295-0",
+            "url": "https://doi.org/10.1007/s40265-026-02295-0"
+          },
+          {
+            "citation_key": "27",
+            "title": "Pancreatic Adenocarcinoma",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-11",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/pancreatic.pdf#page=21"
+          },
+          {
+            "citation_key": "28",
+            "title": "Breaking the RAS Barrier in Pancreatic Cancer",
+            "authors": "Sivakumar S.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2026-07-23",
+            "doi": "10.1056/NEJMe2606948",
+            "url": "https://doi.org/10.1056/nejme2606948?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "29",
+            "title": "Improving outcomes of patients with pancreatic cancer",
+            "authors": "Dreyer SB, Beer P, Hingorani SR, Biankin AV.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2025-06-01",
+            "doi": "10.1038/s41571-025-01019-9",
+            "url": "https://doi.org/10.1038/s41571-025-01019-9"
+          },
+          {
+            "citation_key": "30",
+            "title": "Therapeutic developments in pancreatic cancer",
+            "authors": "Hu ZI, O'Reilly EM.",
+            "journal": "Nature Reviews. Gastroenterology & Hepatology",
+            "date": "2024-01-01",
+            "doi": "10.1038/s41575-023-00840-w",
+            "url": "https://doi.org/10.1038/s41575-023-00840-w"
+          },
+          {
+            "citation_key": "31",
+            "title": "Adagrasib in Advanced Solid Tumors Harboring a KRASG12C Mutation",
+            "authors": "Bekaii-Saab TS, Yaeger R, Spira AI, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2023-09-01",
+            "doi": "10.1200/JCO.23.00434",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/37099736"
+          },
+          {
+            "citation_key": "32",
+            "title": "Tumour-agnostic kinase inhibitors",
+            "authors": "Adashek JJ, Nikanjam M, Kurzrock R.",
+            "journal": "Nature Reviews. Drug Discovery",
+            "date": "2025-07-01",
+            "doi": "10.1038/s41573-025-01147-y",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12221794/"
+          },
+          {
+            "citation_key": "33",
+            "title": "Fulzerasib Plus Cetuximab in First-Line KRASG12C-mutated Non-Small-Cell Lung Cancer (KROCUS): A Single-Arm, Multicentre, Phase 1b/2 Trial",
+            "authors": "Gregorc V, Majem M, Lo Russo G, et al.",
+            "journal": "The Lancet. Oncology",
+            "date": "2026-04-01",
+            "doi": "10.1016/S1470-2045(25)00764-8",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/41926959"
+          },
+          {
+            "citation_key": "34",
+            "title": "KRAS-G12D inhibitor HRS-4642 plus chemotherapy in advanced KRAS G12D-mutant pancreatic cancer: a phase 1b/2 trial",
+            "authors": "Cui J, Jiang K, Li W, et al.",
+            "journal": "Nature Medicine",
+            "date": "2026-07-09",
+            "doi": "10.1038/s41591-026-04538-9",
+            "url": "https://doi.org/10.1038/s41591-026-04538-9"
+          },
+          {
+            "citation_key": "35",
+            "title": "Targeting KRAS-Mutant Lung Cancers",
+            "authors": "Garbo E, Scaparone P, Hoe HJ, et al.",
+            "journal": "Journal of the National Comprehensive Cancer Network : JNCCN",
+            "date": "2026-09-18",
+            "doi": "10.6004/jnccn.2026.7038",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42759542"
+          },
+          {
+            "citation_key": "36",
+            "title": "Targeting KRAS mutated NSCLC \u2013 novel TKIs and beyond",
+            "authors": "Cantor DJ, Aggarwal C.",
+            "journal": "Clinical Cancer Research : An Official Journal of the American Association for Cancer Research",
+            "date": "2023-09-15",
+            "doi": "10.1158/1078-0432.CCR-23-1658",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10530517/"
+          },
+          {
+            "citation_key": "37",
+            "title": "Targeted Therapies in Advanced Non-Small-Cell Lung Cancer: New Biomarkers and Treatment Strategies",
+            "authors": "Hendriks LEL, Lin JJ, Tan DSW, et al.",
+            "journal": "The Lancet. Respiratory Medicine",
+            "date": "2026-09-06",
+            "doi": "10.1016/S2213-2600(26)00253-5",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42702211"
+          }
+        ]
+      },
+      "B": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for KRAS alterations in cancer? Cite the specific guideline or trial.",
+        "text": "0987\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"31d50329-817b-4653-aacb-628819b93192\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"cfa07633-3bc1-4635-adfd-e9e9152431b9\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"2eb573ef-548f-4519-a746-e1aedcc4dcd8\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nThree tumor types now have guideline-endorsed KRAS-directed therapy, all in the previously treated setting: KRAS G12C\u2013mutant NSCLC (sotorasib or adagrasib monotherapy), KRAS G12C\u2013mutant colorectal cancer (a G12C inhibitor plus an anti-EGFR antibody), and metastatic pancreatic adenocarcinoma (the pan-RAS inhibitor daraxonrasib). No KRAS inhibitor is recommended as first-line therapy outside of a clinical trial in any of these diseases.[[1]][[2]][[3]][[4]]\n[[1]][[2]][[3]][[4]][[5]][[6]][[7]][[8]][[9]][[10]][[11]][[12]]\nNSCLC\nThe NCCN NSCLC algorithm for KRAS G12C (version dated September 22, 2026) directs standard first-line chemotherapy/immunotherapy stratified by PD-L1, with adagrasib or sotorasib reserved for subsequent therapy; the footnote specifies use after at least one line of therapy and only if no previous KRAS G12C\u2013targeted therapy.[[2]] The biomarker-directed therapy principles page lists both agents under KRAS G12C subsequent therapy only, with a footnote advising against switching between agents of similar mechanism at progression.[[2]]\nASCO guidelines (Therapy for Stage IV NSCLC with Driver Alterations, 2026) state in recommendation 2.20 that clinicians may offer sotorasib or adagrasib (evidence strength moderate; recommendation strength strong), explicitly noting these agents are not first-line options and that patients should receive standard checkpoint inhibitor and/or chemotherapy upfront.[[1]] The guideline's clinical interpretation emphasizes that sotorasib has not shown an OS advantage in CodeBreaK 200 and that adagrasib OS data from KRYSTAL-12 remain unreported, with dose reductions required in 51% of adagrasib patients versus 24% on docetaxel.[[1]]\nNCCN separately lists daraxonrasib as an emerging-biomarker agent for KRAS mutations at codons G12, G13, and Q61 in NSCLC, noting a recommended phase 2 dose of 200 mg daily in NSCLC versus the FDA-approved 300 mg daily in pancreatic cancer.[[2]] This is a listing of emerging activity, not a treatment recommendation; the supporting NSCLC data are phase 1\u20132, with the randomized RASOLVE-301 trial versus docetaxel ongoing.[[13]][[14]]\nColorectal cancer\nNCCN Colon and Rectal Cancer guidelines (both dated April 7, 2026) list (adagrasib or sotorasib) + (cetuximab or panitumumab) for KRAS G12C\u2013mutant disease in two places: as subsequent therapy after prior oxaliplatin and irinotecan or beyond second line, and in the initial-treatment branch for unresectable metachronous metastases (i.e., patients who have had prior oxaliplatin-based adjuvant therapy \u2014 not systemic-therapy\u2013naive mCRC).[[3]][[15]] A footnote permits single-agent adagrasib or sotorasib if the patient cannot tolerate an EGFR inhibitor, and monotherapy also appears under \"less intensive therapy\".[[3]] Note that the randomized and registrational evidence, and the FDA indications, are pairing-specific: sotorasib with panitumumab and adagrasib with cetuximab.[[7]][[16]]\nNCCN pathology principles state that any known KRAS or NRAS exon 2/3/4 mutation precludes cetuximab or panitumumab unless given as part of a regimen targeting a KRAS G12C mutation \u2014 the one circumstance in which anti-EGFR antibody is appropriate in RAS-mutant CRC.[[3]][[15]] The requirement for extended RAS testing before anti-EGFR therapy derives from the ASCO Provisional Clinical Opinion update and the ASCP/CAP/AMP/ASCO molecular biomarker guideline.[[17]][[18]]\nOn efficacy, be careful with data cuts: the early KRYSTAL-1 phase 1b cohort reported an ORR of 46% in 28 evaluable patients, whereas the[[19]] 94-patient expansion cohort supporting accelerated approval showed ORR 34%, median DOR 5.8 months, PFS 6.9 months, and OS 15.9 months.[[6]][[7]] Adagrasib monotherapy in CRC yielded ORR 19% and PFS 5.6 months.[[19]] KRYSTAL-10 is testing adagrasib/cetuximab versus chemotherapy in the second line.[[20]]\nPancreatic adenocarcinoma\nNCCN (version dated September 11, 2026) lists daraxonrasib as a category 1 preferred option for subsequent therapy in good PS 0\u20131 and intermediate PS 2, and as a category 1 option under \"useful in certain circumstances\" for poor PS 3.[[4]] It is also listed as a category 1 switch option for recurrence <6 months from completion of primary therapy.[[4]] Adagrasib or sotorasib are listed as \"useful in certain circumstances\" if KRAS G12C\u2013positive (category 2B in poor PS).[[4]]\nTwo caveats on daraxonrasib deserve emphasis:\n- The indication is not biomarker-restricted. The approved indication covers metastatic pancreatic adenocarcinoma after \u22651 prior systemic therapy or in patients who are not candidates for multiagent therapy. RASolute 302 required documented RAS status (mutant or wild-type); 92% had KRAS G12 mutations, 5% had G13/Q61, and 3% had no RAS mutation detected, with RAS wild-type patients required to have[[9]][[16]] received matched targeted therapy if another driver was present.[[8]]\n- The trial enrolled only ECOG PS 0\u20131; NCCN's listing for PS 2 and PS 3 is an extrapolation requiring careful patient selection.[[8]]\nTesting requirements\nEligibility for sotorasib and adagrasib is allele-specific \u2014 KRAS G12C, not \"KRAS-mutant\".[[16]] In CRC, NCCN requires RAS and BRAF genotyping as part of multigene panel testing at diagnosis of metastatic disease, on tissue (preferred) or blood-based ctDNA.[[3]] In pancreatic cancer, NCCN recommends somatic NGS profiling for all patients who are candidates for anticancer therapy, tissue preferred with ctDNA if tissue is not feasible \u2014 this is distinct from, and not substituted by, the universal germline testing recommendation.[[4]] A negative or uninformative plasma result does not exclude the alteration.\nSafety points that affect prescribing\n- Sotorasib: hepatotoxicity in 27% (16% grade \u22653); monitor LFTs every 3 weeks for 3 months then monthly. ILD/pneumonitis warning. Avoid PPIs and H2-receptor antagonists (reduced absorption); if an acid-reducing agent is unavoidable, give sotorasib 4 hours before or 10 hours after a locally acting antacid.[[21]][[22]]\n- Adagrasib: concentration-dependent QTc prolongation (>60 ms increase in 11%) \u2014 avoid concomitant QT-prolonging drugs and monitor ECG/electrolytes; hepatotoxicity any grade 37%; ILD/pneumonitis 4.1%; inhibits CYP3A4, CYP2C9, CYP2D6, P-gp, and is itself a CYP3A4 substrate.[[22]]\n- Sequential immunotherapy: hepatotoxicity was markedly higher in patients who stopped immunotherapy <3 months before starting sotorasib (33.3%) than \u22653 months before (13.8%).[[23]][[24]]\n- Daraxonrasib: rash in 85.5% (13.7% grade \u22653) and stomatitis in 53.1% (12.0% grade \u22653); the label directs prophylactic and concomitant medications to reduce dermatologic reactions, with warnings covering diarrhea, GI perforation, and ILD/pneumonitis.[[9]][[10]]\nEmerging evidence, not yet guideline-recommended\nFirst-line KRAS inhibitor plus immunotherapy data remain nonrandomized: KRYSTAL-7 (adagrasib + pembrolizumab) reported ORR 44% overall and 61% with PD-L1 \u226550%, with median PFS 27.7 months in the PD-L1\u2013high subgroup; olomorasib + pembrolizumab gave ORR 73.9% in first line and 90% in first-line PD-L1 \u226550% in a phase 1/2 trial, supporting a breakthrough therapy designation.[[24]][[25]][[26]] Divarasib is the only agent in head-to-head comparison with sotorasib/adagrasib (Krascendo 1), with an OS benefit reported at interim analysis via press release only.[[25]] CodeBreaK 202 (sotorasib + chemotherapy) is ongoing in treatment-naive disease.[[27]] Resistance mechanisms differ by class: secondary KRAS mutations and RTK/MAPK bypass with G12C(OFF) inhibitors, versus mutant KRAS amplification in 36% and[[12]] no acquired secondary KRAS mutations with daraxonrasib.[[28]]\nOn ESMO specifically: no ESMO clinical practice guideline document addressing KRAS-targeted therapy was retrieved in this search. A secondary source states that ESMO and NCCN guidelines have acknowledged or recommended a KRAS G12C inhibitor plus anti-EGFR antibody in pretreated KRAS G12C\u2013mutant mCRC, but the specific ESMO recommendation wording and level of evidence cannot be verified here and should be confirmed against the current ESMO Living Guideline for metastatic C[[29]]RC and for oncogene-addicted metastatic NSCLC.\n\n\nWould you like to explore how to sequence therapy after progression on a first-generation KRAS G12C inhibitor?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "Therapy for Stage IV NSCLC with Driver Alterations",
+            "authors": "Reuss JE, Ismaila N, Ahluwalia A, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-06-20",
+            "doi": "10.1200/JCO-26-00843",
+            "url": "https://doi.org/10.1200/jco-26-00843"
+          },
+          {
+            "citation_key": "2",
+            "title": "Non-Small Cell Lung Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-22",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=53"
+          },
+          {
+            "citation_key": "3",
+            "title": "Colon Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-07",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/colon.pdf#page=47"
+          },
+          {
+            "citation_key": "4",
+            "title": "Pancreatic Adenocarcinoma",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-11",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/pancreatic.pdf#page=60"
+          },
+          {
+            "citation_key": "5",
+            "title": "Sotorasib plus Panitumumab in Refractory Colorectal Cancer with Mutated KRAS G12C",
+            "authors": "Fakih MG, Salvatore L, Esaki T, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2023-12-07",
+            "doi": "10.1056/NEJMoa2308795",
+            "url": "https://doi.org/10.1056/nejmoa2308795?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "6",
+            "title": "Efficacy and Safety of Adagrasib Plus Cetuximab in Patients With KRASG12C-Mutated Metastatic Colorectal Cancer",
+            "authors": "Yaeger R, Uboha NV, Pelster MS, et al.",
+            "journal": "Cancer Discovery",
+            "date": "2024-06-03",
+            "doi": "10.1158/2159-8290.CD-24-0217",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/38587856"
+          },
+          {
+            "citation_key": "7",
+            "title": "FDA grants accelerated approval to adagrasib with cetuximab for KRAS G12C-mutated colorectal cancer | FDA",
+            "authors": "",
+            "journal": "Food and Drug Administration",
+            "date": "2024-06-21",
+            "doi": "",
+            "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-grants-accelerated-approval-adagrasib-cetuximab-kras-g12c-mutated-colorectal-cancer"
+          },
+          {
+            "citation_key": "8",
+            "title": "Daraxonrasib or Chemotherapy in Previously Treated Metastatic Pancreatic Cancer",
+            "authors": "O'Reilly EM, Wainberg ZA, Hendifar AE, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2026-07-23",
+            "doi": "10.1056/NEJMoa2605555",
+            "url": "https://doi.org/10.1056/nejmoa2605555?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "9",
+            "title": "RASONQUE",
+            "authors": "Food and Drug Administration",
+            "journal": "",
+            "date": "2026-08-27",
+            "doi": "",
+            "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=13a65923-d072-4dac-8620-8eabbf8c3641"
+          },
+          {
+            "citation_key": "10",
+            "title": "Daraxonrasib effective in metastatic pancreatic ductal adenocarcinoma",
+            "authors": "Sidaway P.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2026-09-01",
+            "doi": "10.1038/s41571-026-01176-5",
+            "url": "https://doi.org/10.1038/s41571-026-01176-5"
+          },
+          {
+            "citation_key": "11",
+            "title": "Targeting KRAS in cancer",
+            "authors": "Singhal A, Li BT, O'Reilly EM.",
+            "journal": "Nature Medicine",
+            "date": "2024-04-01",
+            "doi": "10.1038/s41591-024-02903-0",
+            "url": "https://doi.org/10.1038/s41591-024-02903-0"
+          },
+          {
+            "citation_key": "12",
+            "title": "Identification of candidate alterations mediating KRAS G12C inhibitor resistance in advanced colorectal and pancreatic cancers",
+            "authors": "Jazieh K, Tsai J, Solomon S, et al.",
+            "journal": "Clinical Cancer Research : An Official Journal of the American Association for Cancer Research",
+            "date": "2025-03-03",
+            "doi": "10.1158/1078-0432.CCR-24-2948",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11879249/"
+          },
+          {
+            "citation_key": "13",
+            "title": "Daraxonrasib for Previously Treated RAS-Mutant Non\u2013Small-Cell Lung Cancer",
+            "authors": "Arbour KC, Punekar S, Luo J, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2026-09-03",
+            "doi": "10.1056/NEJMoa2504059",
+            "url": "https://doi.org/10.1056/nejmoa2504059?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "14",
+            "title": "The evolving landscape of RAS-targeted therapies",
+            "authors": "Misale S.",
+            "journal": "Nature Cancer",
+            "date": "2025-12-01",
+            "doi": "10.1038/s43018-025-01077-z",
+            "url": "https://doi.org/10.1038/s43018-025-01077-z"
+          },
+          {
+            "citation_key": "15",
+            "title": "Rectal Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-07",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/rectal.pdf#page=64"
+          },
+          {
+            "citation_key": "16",
+            "title": "FDA Orange Book",
+            "authors": "",
+            "journal": "FDA Orange Book",
+            "date": "2026-10-06",
+            "doi": "",
+            "url": "https://www.fda.gov/drugs/drug-approvals-and-databases/approved-drug-products-therapeutic-equivalence-evaluations-orange-book"
+          },
+          {
+            "citation_key": "17",
+            "title": "Extended RAS Gene Mutation Testing in Metastatic Colorectal Carcinoma to Predict Response to Anti-Epidermal Growth Factor Receptor Monoclonal Antibody Therapy: American Society of Clinical Oncology Provisional Clinical Opinion Update 2015",
+            "authors": "Allegra CJ, Rumble RB, Hamilton SR, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2016-01-10",
+            "doi": "10.1200/JCO.2015.63.9674",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/26438111"
+          },
+          {
+            "citation_key": "18",
+            "title": "Molecular Biomarkers for the Evaluation of Colorectal Cancer: Guideline From the American Society for Clinical Pathology, College of American Pathologists, Association for Molecular Pathology, and American Society of Clinical Oncology",
+            "authors": "Sepulveda AR, Hamilton SR, Allegra CJ, et al.",
+            "journal": "Archives of Pathology & Laboratory Medicine",
+            "date": "2017-05-01",
+            "doi": "10.5858/arpa.2016-0554-CP",
+            "url": "https://meridian.allenpress.com/aplm/article-lookup/doi/10.5858/arpa.2016-0554-CP"
+          },
+          {
+            "citation_key": "19",
+            "title": "Adagrasib with or without Cetuximab in Colorectal Cancer with Mutated KRAS G12C",
+            "authors": "Yaeger R, Weiss J, Pelster MS, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2023-01-05",
+            "doi": "10.1056/NEJMoa2212419",
+            "url": "https://doi.org/10.1056/nejmoa2212419?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "20",
+            "title": "Pan-RAS inhibitors and polo-like kinase 1: promising targets in colorectal cancer",
+            "authors": "Jayachandran P, Elliott A, Soni S, et al.",
+            "journal": "Oncogene",
+            "date": "2025-08-01",
+            "doi": "10.1038/s41388-025-03484-z",
+            "url": "https://doi.org/10.1038/s41388-025-03484-z"
+          },
+          {
+            "citation_key": "21",
+            "title": "LUMAKRAS",
+            "authors": "Food and Drug Administration",
+            "journal": "",
+            "date": "2025-01-22",
+            "doi": "",
+            "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=c80a362c-7ac3-4894-a076-0691e68ef8c1"
+          },
+          {
+            "citation_key": "22",
+            "title": "Targeted Therapies for Previously \u201cUndruggable\u201d KRAS-Mutated Non\u2013Small Cell Lung Cancer: A Review of Sotorasib and Adagrasib",
+            "authors": "Mausey N, Halford Z.",
+            "journal": "The Annals of Pharmacotherapy",
+            "date": "2024-06-01",
+            "doi": "10.1177/10600280231197459",
+            "url": "https://doi.org/10.1177/10600280231197459"
+          },
+          {
+            "citation_key": "23",
+            "title": "Pooled Safety Analysis and Management of Sotorasib-Related Adverse Events in KRAS G12c-Mutated Advanced Non-Small Cell Lung Cancer",
+            "authors": "Skoulidis F, Li BT, Hochmair M, et al.",
+            "journal": "The Oncologist",
+            "date": "2025-01-17",
+            "doi": "10.1093/oncolo/oyae356",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/39846981"
+          },
+          {
+            "citation_key": "24",
+            "title": "KRAS-Targeted Therapies in NSCLC: Resistance, Combination Strategies, and Emerging Clinical Paradigms",
+            "authors": "Kapoor A, Sansar B, Gupta A, et al.",
+            "journal": "Medical Oncology",
+            "date": "2026-08-20",
+            "doi": "10.1007/s12032-026-03318-2",
+            "url": "https://doi.org/10.1007/s12032-026-03318-2"
+          },
+          {
+            "citation_key": "25",
+            "title": "Targeted Therapies in Advanced Non-Small-Cell Lung Cancer: New Biomarkers and Treatment Strategies",
+            "authors": "Hendriks LEL, Lin JJ, Tan DSW, et al.",
+            "journal": "The Lancet. Respiratory Medicine",
+            "date": "2026-09-06",
+            "doi": "10.1016/S2213-2600(26)00253-5",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42702211"
+          },
+          {
+            "citation_key": "26",
+            "title": "Efficacy and Safety of Olomorasib in Combination With Pembrolizumab in Treatment of Patients With KRAS G12c-Mutant Advanced NSCLC",
+            "authors": "Burns TF, Ammakkanavar NR, Hollebecque A, et al.",
+            "journal": "Journal of Thoracic Oncology : Official Publication of the International Association for the Study of Lung Cancer",
+            "date": "2026-04-01",
+            "doi": "10.1016/j.jtho.2025.11.018",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/41319864"
+          },
+          {
+            "citation_key": "27",
+            "title": "Recent advances in therapeutic strategies for non-small cell lung cancer",
+            "authors": "Su PL, Furuya N, Asrar A, et al.",
+            "journal": "Journal of Hematology & Oncology",
+            "date": "2025-03-27",
+            "doi": "10.1186/s13045-025-01679-1",
+            "url": "https://doi.org/10.1186/s13045-025-01679-1"
+          },
+          {
+            "citation_key": "28",
+            "title": "Acquired Resistance to the RAS(ON) Multi-Selective Inhibitor Daraxonrasib Guides Rational Combination Therapy Strategies in Pancreatic Cancer",
+            "authors": "Aronchik I, Kar S, Zhuang Y, et al.",
+            "journal": "Nature Medicine",
+            "date": "2026-08-01",
+            "doi": "10.1038/s41591-026-04537-w",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42581230"
+          },
+          {
+            "citation_key": "29",
+            "title": "Glecirasib With or Without Cetuximab in Previously Treated Locally Advanced or Metastatic Colorectal Cancer With KRASG12C Mutation (JAB-21822-1002 and JAB-21822-1007): Two Open-Label, Non-Randomised Phase 1/2 Trials",
+            "authors": "Li J, Wang Z, Huang J, et al.",
+            "journal": "The Lancet. Gastroenterology & Hepatology",
+            "date": "2026-02-01",
+            "doi": "10.1016/S2468-1253(25)00267-5",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/41344351"
+          }
+        ]
+      }
+    }
+  ],
+  "primary_source_facts": [
+    {
+      "claim": "ALEX final median OS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/41110693/",
+      "verified_values": {
+        "alectinib_months": 81.1,
+        "crizotinib_months": 54.2,
+        "HR": 0.78
+      }
+    },
+    {
+      "claim": "WU-KONG28 first-line sunvozertinib",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42212913/",
+      "verified_values": {
+        "PFS_months": [
+          10.3,
+          7.5
+        ],
+        "HR": 0.65,
+        "NCT": "NCT05668988"
+      }
+    },
+    {
+      "claim": "ADAURA exploratory eight-year landmark",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42732874/",
+      "verified_values": {
+        "stage_IB_IIIA_OS_percent": [
+          79,
+          64
+        ],
+        "HR": 0.52
+      }
+    },
+    {
+      "claim": "LAURA PFS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/38828946/",
+      "verified_values": {
+        "PFS_months": [
+          39.1,
+          5.6
+        ],
+        "HR": 0.16
+      }
+    },
+    {
+      "claim": "Daraxonrasib FDA approval",
+      "source": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-daraxonrasib-metastatic-pancreatic-adenocarcinoma",
+      "verified_values": {
+        "approval_date": "2026-08-26",
+        "trial": "RASolute 302",
+        "NCT": "NCT06625320"
+      }
+    },
+    {
+      "claim": "Magrolimab ENHANCE-2 failure in TP53 AML",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/40009500/",
+      "verified_values": {
+        "nonintensive_OS_months": [
+          4.4,
+          6.6
+        ],
+        "HR": 1.132,
+        "NCT": "NCT04778397"
+      }
+    },
+    {
+      "claim": "Crizotinib ALCL approval population",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/35561013/",
+      "label_source": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2025/217581Orig1s000Lbl.pdf",
+      "verified_values": {
+        "population": "Pediatric patients >=1 year and young adults with relapsed/refractory systemic ALK-positive ALCL",
+        "limitation": "Safety and efficacy have not been established in older adults"
+      }
+    }
+  ]
+}
