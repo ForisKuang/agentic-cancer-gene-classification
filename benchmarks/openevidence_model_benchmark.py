@@ -24,16 +24,43 @@ class CallBudgetExceeded(RuntimeError):
 _ORPHAN_TAIL_KEY = '", "kind": "'
 
 
-def _is_pending_orphan_tail(text: str) -> bool:
-    """Whether `text` may be the start of a headless widget tail still streaming.
+def _is_pending_headless_tail(text: str) -> bool:
+    """Whether the text after the first leading widget may be an unfinished headless tail.
 
-    A complete tail is removed by oe._strip_generation_step_widgets; an
-    incomplete one (or a fragment cut before its `", "kind": "` key) is kept.
+    That is the only place OpenEvidence sends one (see
+    oe._strip_generation_step_widgets); a complete tail there is removed by the
+    strip. An incomplete one is pending while it starts with
+    oe._ORPHAN_WIDGET_TAIL_START and its JSON is still open, or while it's a
+    callid fragment cut before that key: lowercase UUID hex (as emitted)
+    followed by a prefix of `", "kind": "`. Anything else, e.g. "FDA" or
+    "a therapy", can no longer become a tail and is prose.
     """
-    if oe._ORPHAN_WIDGET_TAIL_START.match(text):
-        return True
-    hex_prefix = re.match(r"[0-9a-fA-F-]{1,36}", text)
-    return bool(hex_prefix) and _ORPHAN_TAIL_KEY.startswith(text[hex_prefix.end():])
+    leading = text.lstrip()
+    if not leading.startswith(oe._GENERATION_STEP_MARKER):
+        return False
+    try:
+        payload, end = oe._JSON_DECODER.raw_decode(leading, len(oe._GENERATION_STEP_MARKER))
+    except json.JSONDecodeError:
+        return False
+    rest = leading[end:]
+    if not oe._is_generation_step_payload(payload) or not rest or oe._orphan_widget_tail_length(rest):
+        return False
+    if oe._ORPHAN_WIDGET_TAIL_START.match(rest):
+        try:
+            oe._JSON_DECODER.raw_decode(oe._ORPHAN_WIDGET_HEAD + rest)
+        except json.JSONDecodeError:
+            return True
+        return False
+    callid_suffix = re.match(r"[0-9a-f-]{1,36}", rest)
+    return bool(callid_suffix) and _ORPHAN_TAIL_KEY.startswith(rest[callid_suffix.end():])
+
+
+def _without_trailing_marker_prefix(text: str) -> str:
+    """Drop a proper prefix of the widget marker at the end (rest not yet arrived)."""
+    for length in range(min(len(text), len(oe._GENERATION_STEP_MARKER) - 1), 0, -1):
+        if text.endswith(oe._GENERATION_STEP_MARKER[:length]):
+            return text[:-length]
+    return text
 
 
 def has_prose(text: str) -> bool:
@@ -42,8 +69,11 @@ def has_prose(text: str) -> bool:
     Widgets are split across SSE events at arbitrary points, so this is
     judged on the joined text so far, not per event. After the shared widget
     strip, a marker whose JSON decodes is dropped; one whose JSON is still
-    open truncates the text there (rest of the widget hasn't arrived).
+    open, or a trailing partial marker, truncates the text there (rest of the
+    widget hasn't arrived). Citation markers alone are not prose.
     """
+    if _is_pending_headless_tail(text):
+        return False
     stripped = oe._strip_generation_step_widgets(text)
     kept, position = [], 0
     while (start := stripped.find(oe._GENERATION_STEP_MARKER, position)) >= 0:
@@ -53,11 +83,8 @@ def has_prose(text: str) -> bool:
                 stripped, start + len(oe._GENERATION_STEP_MARKER))
         except json.JSONDecodeError:
             position = len(stripped)
-    kept.append(stripped[position:])
-    remainder = oe._CITATION_MARKER_PATTERN.sub("", "".join(kept)).strip()
-    if oe._GENERATION_STEP_MARKER in text and _is_pending_orphan_tail(remainder):
-        return False
-    return bool(remainder)
+    kept.append(_without_trailing_marker_prefix(stripped[position:]))
+    return bool(oe._CITATION_MARKER_PATTERN.sub("", "".join(kept)).strip())
 
 
 class ObservedStream(httpx.AsyncByteStream):

@@ -384,3 +384,37 @@ def test_has_prose_treats_pending_headless_widget_tail_as_not_prose():
     tail = 'a9ac", "kind": "search"}], "done": true, "summary": "Searched"}'
     assert not has_prose(head + tail + "\n")
     assert has_prose(head + tail + "\n\nTargeted therapy")
+
+
+_COMPLETE_WIDGET = ('REACTCOMPONENT!:!InlineGenerationStep!:!{"steps": [{"kind": "reasoning"}], '
+                    '"done": false, "summary": "Analyzing query"}')
+
+
+async def test_observed_stream_ttft_partial_marker_prefix_is_not_prose():
+    rest = _COMPLETE_WIDGET[len("REACT"):]
+    assert await _ttft_per_event([_sse("REACT"), _sse(rest), _sse("Real answer.")]) == [
+        False, False, True]
+    assert await _ttft_per_event([_sse("REACTCOMPONENT!:!Inline"), _sse(rest[len("COMPONENT!:!Inline"):]),
+                                  _sse("Real answer.")]) == [False, False, True]
+
+
+async def test_observed_stream_ttft_hex_looking_prose_after_widget_counts():
+    assert await _ttft_per_event([_sse(_COMPLETE_WIDGET), _sse("FDA"), _sse("[[1]]")]) == [
+        False, True, True]
+    assert await _ttft_per_event([_sse(_COMPLETE_WIDGET), _sse("A"), _sse(" therapy")]) == [
+        False, True, True]
+
+
+async def test_observed_stream_ttft_ambiguous_callid_fragment_resolves_on_next_event():
+    assert await _ttft_per_event([_sse(_COMPLETE_WIDGET), _sse("a"), _sse(" therapy")]) == [
+        False, False, True]
+
+
+def test_has_prose_hex_prose_not_after_leading_widget():
+    from benchmarks.openevidence_model_benchmark import has_prose
+
+    assert has_prose("FDA" + _COMPLETE_WIDGET)
+    assert has_prose(_COMPLETE_WIDGET + 'a9ac", "kind": "search"}], "done": true, "summary": "S"}'
+                     + "\n\nFDA")
+    assert not has_prose("REACTCOMPONENT!:!")
+    assert has_prose("Real answer. REACT")
