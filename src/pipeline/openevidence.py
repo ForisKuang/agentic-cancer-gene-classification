@@ -163,41 +163,62 @@ def _build_question(gene: str, tumor_type: Optional[str] = None, fusion: Optiona
     )
 
 
-def _iter_sse_payloads(raw: str) -> List[str]:
-    """Split an SSE stream body into raw per-event data payloads.
+def _iter_sse_messages(raw: str) -> List[Tuple[str, str]]:
+    """Split an SSE stream body into (event name, data payload) pairs.
 
-    Each event is a blank-line-separated block containing one or more
-    `data:` lines. Per the SSE spec, multiple `data:` lines within one event
-    are joined with "\\n" between them (NOT concatenated directly — plain
-    concatenation can corrupt JSON payload semantics when a single JSON
-    payload is split across lines).
+    Each event is a blank-line-separated block containing an optional
+    `event:` line and one or more `data:` lines. Per the SSE spec, multiple
+    `data:` lines within one event are joined with "\\n" between them (NOT
+    concatenated directly — plain concatenation can corrupt JSON payload
+    semantics when a single JSON payload is split across lines). The event
+    name defaults to "message" when no `event:` line is present.
     """
-    payloads: List[str] = []
+    messages: List[Tuple[str, str]] = []
     for block in raw.replace("\r\n", "\n").split("\n\n"):
-        data_lines = [
-            line[len("data:"):].strip()
-            for line in block.splitlines()
-            if line.startswith("data:")
-        ]
+        event_name = "message"
+        data_lines: List[str] = []
+        for line in block.splitlines():
+            if line.startswith("data:"):
+                data_lines.append(line[len("data:"):].strip())
+            elif line.startswith("event:"):
+                event_name = line[len("event:"):].strip() or "message"
         if not data_lines:
             continue
-        payloads.append("\n".join(data_lines))
-    return payloads
+        messages.append((event_name, "\n".join(data_lines)))
+    return messages
+
+
+def _iter_sse_payloads(raw: str) -> List[str]:
+    """Data payloads of every SSE event in `raw`, ignoring event names."""
+    return [payload for _, payload in _iter_sse_messages(raw)]
+
+
+# The real stream ends with a bare `data: [DONE]` sentinel (live-captured,
+# tests/fixtures/openevidence/) — not JSON, and not an error.
+_SSE_DONE_SENTINEL = "[DONE]"
 
 
 def _parse_sse_events(raw: str) -> List[dict]:
-    """Parse an SSE stream body into a list of JSON event payloads.
+    """Parse an SSE stream body into a list of JSON analysis event payloads.
 
-    There is no application-level stream-termination sentinel in the real
-    OpenEvidence API (confirmed absent from both the official docs and a
-    live-captured response) — completion is signalled entirely by the HTTP
-    response body ending normally, which the transport layer (httpx) is
-    responsible for detecting; see _post_streaming_analysis. Malformed
-    payloads are skipped rather than failing the whole parse, since a single
-    bad delta shouldn't discard everything accumulated so far.
+    Real streams (tests/fixtures/openevidence/*_osler_raw.sse) open with two
+    named metadata events — `event: request-id` and `event: analysis-id`,
+    whose data is a bare, non-JSON identifier — and close with a bare
+    `data: [DONE]` sentinel. Those are expected protocol framing, not
+    malformed deltas, so they're skipped silently; only unnamed ("message")
+    analysis events are JSON-decoded. Completion is still detected by the
+    HTTP body ending normally (see _post_streaming_analysis), not by
+    [DONE]. A genuinely malformed analysis payload is skipped with a warning
+    rather than failing the whole parse, since a single bad delta shouldn't
+    discard everything accumulated so far.
     """
     events: List[dict] = []
-    for payload in _iter_sse_payloads(raw):
+    for event_name, payload in _iter_sse_messages(raw):
+        if event_name != "message":
+            logger.debug("Ignoring OpenEvidence SSE %s event", event_name)
+            continue
+        if payload == _SSE_DONE_SENTINEL:
+            continue
         try:
             event = json.loads(payload)
         except json.JSONDecodeError:
@@ -245,25 +266,122 @@ def _citation_from_event(event: dict) -> Optional[OpenEvidenceCitation]:
     )
 
 
-def _strip_generation_step_prefix(text: str) -> str:
-    """Remove the frontend widget prefix after joining potentially split deltas.
+_GENERATION_STEP_MARKER = "REACTCOMPONENT!:!InlineGenerationStep!:!"
 
-    Decode JSON to find its exact end, including nested props and braces in
-    strings, without consuming any following analysis prose. Leave malformed
-    or unrelated text unchanged rather than guessing where the prose begins.
+# Re-creates the head that the real wire format drops from the SECOND
+# leading progress widget (see _strip_generation_step_widgets): the orphaned
+# remainder always begins inside the first step's "callid" UUID string, i.e.
+# three containers deep (widget object > "steps" array > step object > string).
+_ORPHAN_WIDGET_HEAD = '{"steps": [{"callid": "'
+
+# The observed start of that orphaned remainder: the last few hex digits of
+# the callid UUID, its closing quote, then the step's "kind" key — e.g.
+# `a9ac", "kind": "search"`. Only text that begins EXACTLY like this (at the
+# start of the analysis, or directly after a removed widget) is ever tried as
+# a headless tail; without this anchor, re-attaching _ORPHAN_WIDGET_HEAD
+# would happily fold leading prose like `[[1]] Patient evidence: ` into the
+# synthetic callid string and delete it along with the tail.
+#
+# Deliberately NOT handled, because neither occurs in OpenEvidence's wire
+# format (the headless tail always directly follows the first leading
+# widget): a headless tail after arbitrary non-widget prose is left in place,
+# and prose at the very start of the text that itself has this exact
+# tail shape and completes into a finished widget would be removed.
+_ORPHAN_WIDGET_TAIL_START = re.compile(r'[0-9a-fA-F-]{1,36}", "kind": "')
+
+_JSON_DECODER = json.JSONDecoder()
+
+
+def _is_generation_step_payload(payload: object) -> bool:
+    return isinstance(payload, dict) and isinstance(payload.get("steps"), list)
+
+
+def _orphan_widget_tail_length(text: str) -> int:
+    """Length of a headless progress-widget tail at the start of `text`, or 0.
+
+    Accepted only if re-attaching _ORPHAN_WIDGET_HEAD yields one complete
+    JSON object shaped like a finished widget state ("steps" of step objects
+    plus the top-level "done"/"summary" keys every real widget carries) — prose
+    can't satisfy that, so real text is never mistaken for a fragment. Only
+    attempted when `text` starts with _ORPHAN_WIDGET_TAIL_START.
     """
-    marker = "REACTCOMPONENT!:!InlineGenerationStep!:!"
-    decoder = json.JSONDecoder()
-    while text.lstrip().startswith(marker):
-        payload = text.lstrip()[len(marker):].lstrip()
-        if not payload.startswith("{"):
+    if not _ORPHAN_WIDGET_TAIL_START.match(text):
+        return 0
+    try:
+        payload, end = _JSON_DECODER.raw_decode(_ORPHAN_WIDGET_HEAD + text)
+    except json.JSONDecodeError:
+        return 0
+    if not _is_generation_step_payload(payload):
+        return 0
+    if not all(isinstance(step, dict) for step in payload["steps"]):
+        return 0
+    if "done" not in payload or "summary" not in payload:
+        return 0
+    return max(end - len(_ORPHAN_WIDGET_HEAD), 0)
+
+
+def _strip_generation_step_widgets(text: str) -> str:
+    """Remove OpenEvidence's InlineGenerationStep progress widgets from text.
+
+    The widget ("Analyzing query", "Searching published medical literature",
+    "Matching clinical trials", ...) is frontend UI state sent as ordinary
+    `{"text": ...}` deltas, split at arbitrary points and carrying no other
+    key, so it can't be filtered per event — it's removed from the joined
+    text instead. Three real shapes (tests/fixtures/openevidence/):
+
+    1. A complete `REACTCOMPONENT!:!InlineGenerationStep!:!{...}` widget,
+       at the start of the answer or mid-answer (osler's
+       "matchclinicaltrials" step, sent as an active/finished pair).
+    2. Right after the first leading widget, the second leading widget state
+       arrives HEADLESS: the wire never carries its marker, `{"steps": [{"`
+       or most of the first step's callid UUID, so the joined text continues
+       `...}a9ac", "kind": "search", ... "summary": "Analyzed query, searched
+       for evidence"}` (see _orphan_widget_tail_length).
+    3. That same headless tail at the very start of a cached analysis built
+       by the earlier leading-only strip, which removed shape 1 and stopped.
+
+    Each widget's exact end is found by JSON-decoding it (nested props and
+    braces inside strings included), so no following prose, citation, or
+    citation marker is consumed; whitespace at a removed widget's seam is
+    collapsed to a paragraph break. A complete marker-prefixed widget is
+    removed wherever it appears, markdown code included — the literal marker
+    is never legitimate clinical prose, and honoring code fences/spans would
+    let a stray backtick in the answer shield a real widget. A marker whose
+    JSON doesn't decode (e.g. a widget truncated before its closing brace) is
+    left in place rather than guessing where the prose resumes.
+    """
+    stripped = text.lstrip()
+    orphan_length = _orphan_widget_tail_length(stripped)
+    if orphan_length:
+        text = stripped[orphan_length:].lstrip()
+
+    kept: List[str] = []
+    position = 0
+    search_from = 0
+    while True:
+        start = text.find(_GENERATION_STEP_MARKER, search_from)
+        if start < 0:
             break
+        payload_start = start + len(_GENERATION_STEP_MARKER)
         try:
-            _, end = decoder.raw_decode(payload)
+            payload, end = _JSON_DECODER.raw_decode(text, payload_start)
         except json.JSONDecodeError:
-            break
-        text = payload[end:].lstrip()
-    return text
+            search_from = payload_start
+            continue
+        if not _is_generation_step_payload(payload):
+            search_from = payload_start
+            continue
+        end += _orphan_widget_tail_length(text[end:])
+        kept.append(text[position:start])
+        position = search_from = end
+    if not kept:
+        return text
+    kept.append(text[position:])
+
+    # Only whitespace touching a removed widget is normalized: the first
+    # segment keeps its leading text and the last its trailing text as-is.
+    segments = [kept[0].rstrip()] + [segment.strip() for segment in kept[1:-1]] + [kept[-1].lstrip()]
+    return "\n\n".join(segment for segment in segments if segment)
 
 
 def _build_analysis(question: str, events: List[dict]) -> OpenEvidenceAnalysis:
@@ -308,7 +426,7 @@ def _build_analysis(question: str, events: List[dict]) -> OpenEvidenceAnalysis:
 
     return OpenEvidenceAnalysis(
         question=question,
-        text=_strip_generation_step_prefix("".join(text_parts)),
+        text=_strip_generation_step_widgets("".join(text_parts)),
         citations=list(citations_by_key.values()),
     )
 
@@ -332,11 +450,26 @@ _TRIAL_ACRONYM_PATTERN = re.compile(
 )
 _OUTCOME_STAT_PATTERN = re.compile(r"\b(PFS|OS|HR|ORR|DFS)\b")
 _CITATION_MARKER_PATTERN = re.compile(r"\[\[\d+\]\]")
+# A markdown link or image, e.g. "[small cell lung cancer](/rare-disease/
+# small-cell-lung-cancer)" — OpenEvidence links are site-relative, and the card
+# renders its fields as plain text (textContent), so card sentences keep only
+# the link text / image alt text. The label may contain one level of nested
+# brackets ("[outer [inner]](/path)" -> "outer [inner]"), but a "[[n]]"
+# citation marker is never treated as a label, even when followed by "(url)".
+_MARKDOWN_LINK_PATTERN = re.compile(
+    r"!?\[(?!\[\d+\]\])((?:[^\[\]\n]|\[[^\[\]\n]*\])+)\]\([^()\s]*\)"
+)
 _SENTENCE_SPLIT_PATTERN = re.compile(r"(?<=[.!?])\s+")
 
 
+def _strip_markdown_links(text: str) -> str:
+    return _MARKDOWN_LINK_PATTERN.sub(r"\1", text)
+
+
 def _split_sentences(text: str) -> List[str]:
-    cleaned = _CITATION_MARKER_PATTERN.sub("", text)
+    """Card-ready sentences: citation markers removed, markdown links
+    reduced to their text (see _MARKDOWN_LINK_PATTERN)."""
+    cleaned = _strip_markdown_links(_CITATION_MARKER_PATTERN.sub("", text))
     return [sentence.strip() for sentence in _SENTENCE_SPLIT_PATTERN.split(cleaned) if sentence.strip()]
 
 
@@ -616,7 +749,7 @@ def _split_sentences_with_citation_keys(text: str) -> List[Tuple[str, List[str]]
         raw_sentence = match.group("sentence")
         trailing_markers = match.group("trailing_markers") or ""
         keys = _CITATION_KEY_PATTERN.findall(raw_sentence) + _CITATION_KEY_PATTERN.findall(trailing_markers)
-        cleaned_sentence = _CITATION_MARKER_PATTERN.sub("", raw_sentence).strip()
+        cleaned_sentence = _strip_markdown_links(_CITATION_MARKER_PATTERN.sub("", raw_sentence)).strip()
         if not cleaned_sentence:
             continue
         pairs.append((cleaned_sentence, keys))
@@ -731,11 +864,12 @@ async def _post_streaming_analysis(question: str, api_key: str, client: httpx.As
     }
     payload = {"text": question, "model": settings.openevidence_model}
 
-    # No [DONE]-style completion sentinel exists in the real API — a stream
-    # that ends because the connection was dropped/reset mid-response raises
-    # from within aiter_text() itself (an httpx transport exception), which
-    # the retry predicate above already treats as transient. A stream that
-    # finishes this loop without raising is, by definition, complete.
+    # Completion is taken from the HTTP body ending normally, not from the
+    # trailing `data: [DONE]` event (which _parse_sse_events just skips) — a
+    # stream that ends because the connection was dropped/reset mid-response
+    # raises from within aiter_text() itself (an httpx transport exception),
+    # which the retry predicate above already treats as transient. A stream
+    # that finishes this loop without raising is, by definition, complete.
     async with client.stream(
         "POST", url, json=payload, headers=headers, timeout=settings.openevidence_timeout_seconds
     ) as response:
@@ -812,7 +946,12 @@ class OpenEvidenceClient:
             # missing-API-key cache miss) is never cached.
             logger.error("OpenEvidence lookup failed for %s: %s", gene, exc)
             raise
-        return OpenEvidenceAnalysis(**payload)
+        analysis = OpenEvidenceAnalysis(**payload)
+        # Re-clean on every read, not just at _build_analysis time: entries
+        # cached before the widget fix still hold widget metadata (a headless
+        # leading widget tail and any mid-answer widgets), and this is the only
+        # read path for both the sidecar and warmup. Idempotent on clean text.
+        return analysis.model_copy(update={"text": _strip_generation_step_widgets(analysis.text)})
 
 
 # ---------------------------------------------------------------------------

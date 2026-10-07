@@ -19,7 +19,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Coroutine, Dict, List, Literal, Optional, Tuple, Union
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote
 
 import httpx
 import uvicorn
@@ -30,6 +30,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from benchmarks.run_benchmark import DEFAULT_HOLDOUT, run_benchmark
+from src.api_keys_routes import router as api_keys_router
 from src.auth import (
     AuthenticatedUser,
     AuthMeResponse,
@@ -44,6 +45,7 @@ from src.auth import (
     generate_sp_metadata_xml,
     get_current_user,
     get_google_auth_url,
+    get_request_user,
     get_google_user_info,
     get_keycloak_auth_url,
     get_keycloak_user_info,
@@ -58,6 +60,7 @@ from src.auth import (
     require_admin,
     require_auth,
     set_session_cookie,
+    validate_redirect_to,
     verify_oauth_state,
 )
 from src.config import settings
@@ -76,6 +79,7 @@ from src.models.schema import (
     FusionPositionContext,
     GeneAnnotateRequest,
     GeneAnnotation,
+    GeneAnnotationWithRun,
     LocalBackend,
     OpenEvidenceAnalysis,
 )
@@ -119,6 +123,8 @@ def _datadog_log_record_factory(*args, **kwargs):
     usr_id = user_ctx.get("user_id") or "-"
     usr_email = user_ctx.get("email") or "-"
     usr_name = user_ctx.get("name") or "-"
+    auth_method = user_ctx.get("auth_method") or "-"
+    api_key_id = user_ctx.get("api_key_id") or "-"
     defaults = {
         "dd.service": os.getenv("DD_SERVICE", "agentic-cancer-gene-classification"),
         "dd.env": os.getenv("DD_ENV", ""),
@@ -128,6 +134,8 @@ def _datadog_log_record_factory(*args, **kwargs):
         "usr.id": usr_id,
         "usr.email": usr_email,
         "usr.name": usr_name,
+        "acgc.auth_method": auth_method,
+        "acgc.api_key_id": api_key_id,
     }
     for key, value in defaults.items():
         if key not in record.__dict__:
@@ -141,7 +149,8 @@ logging.basicConfig(
     format=(
         "%(asctime)s %(levelname)s %(name)s "
         "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s "
-        "dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s usr.id=%(usr.id)s] — %(message)s"
+        "dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s usr.id=%(usr.id)s "
+        "acgc.auth_method=%(acgc.auth_method)s acgc.api_key_id=%(acgc.api_key_id)s] — %(message)s"
     ),
     stream=sys.stdout,
 )
@@ -179,9 +188,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+app.include_router(api_keys_router)
 
 _STATIC_DIR = Path(__file__).parent / "static"
 if _STATIC_DIR.exists():
@@ -203,7 +213,7 @@ async def no_cache_static(request: Request, call_next):
 
 @app.middleware("http")
 async def user_context_middleware(request: Request, call_next):
-    user = get_current_user(request)
+    user = await get_request_user(request)
     if not user:
         header_val = request.headers.get(settings.datadog_user_id_header)
         if header_val and header_val.strip():
@@ -222,6 +232,8 @@ async def user_context_middleware(request: Request, call_next):
         name=user.name if user else None,
         role=user.role if user else None,
         domain=user.domain if user else None,
+        auth_method=user.auth_method if user else None,
+        api_key_id=user.api_key_id if user else None,
     )
     if user:
         tag_user(
@@ -230,6 +242,7 @@ async def user_context_middleware(request: Request, call_next):
             name=user.name,
             role=user.role,
         )
+        tag_current_span({"acgc.auth_method": user.auth_method, "acgc.api_key_id": user.api_key_id or ""})
     try:
         return await call_next(request)
     finally:
@@ -257,6 +270,9 @@ class AnnotationJobStatusResponse(BaseModel):
     error: Optional[str] = None
     timings_ms: Dict[str, float] = Field(default_factory=dict)
     created_at: float = Field(default_factory=time.monotonic, exclude=True)
+    # Internal bookkeeping for callers that reuse this job store (e.g. the gene
+    # query API): which endpoint family created the job and its request.
+    kind: str = Field(default="annotate", exclude=True)
 
 
 class FusionContextResponse(BaseModel):
@@ -676,15 +692,25 @@ def _fusion_evidence_inputs(fusions: List[FusionInput]) -> List[FusionInput]:
     return inputs
 
 
+async def _save_run_result(
+    http_request: Request,
+    request_payload: dict,
+    result: AnnotationResult,
+) -> None:
+    """Save a run, raising on failure. For callers that hand out a link to the
+    run and so must not report success unless it was actually saved."""
+    await http_request.app.state.run_store.save_run(
+        result.run_id, result.timestamp, request_payload, result.model_dump()
+    )
+
+
 async def _persist_run_result(
     http_request: Request,
     request_payload: dict,
     result: AnnotationResult,
 ) -> None:
     try:
-        await http_request.app.state.run_store.save_run(
-            result.run_id, result.timestamp, request_payload, result.model_dump()
-        )
+        await _save_run_result(http_request, request_payload, result)
     except Exception:
         # A run's own result always returns even if it can't be persisted for
         # later sharing — the run store isn't on the critical path for the caller.
@@ -713,6 +739,11 @@ def _public_app_base_url(request: Request) -> str:
     if configured:
         return configured
     return str(request.base_url).rstrip("/")
+
+
+def _run_view_url(request: Request, run_id: str) -> str:
+    """Absolute UI deep link for a saved run (see app.js loadSharedRun)."""
+    return f"{_public_app_base_url(request)}/?run={run_id}"
 
 
 def _request_user_id(request: Request, current_user: Optional[AuthenticatedUser] = None) -> Optional[str]:
@@ -788,7 +819,13 @@ async def root(request: Request) -> Response:
     if settings.auth_enabled:
         user = get_current_user(request)
         if not user:
-            return RedirectResponse(url="/login", status_code=303)
+            target = request.url.path
+            if request.url.query:
+                target += f"?{request.url.query}"
+            login_url = "/login"
+            if target != "/":
+                login_url += f"?redirect_to={quote(validate_redirect_to(target), safe='')}"
+            return RedirectResponse(url=login_url, status_code=303)
     return FileResponse(_STATIC_DIR / "index.html")
 
 
@@ -798,7 +835,7 @@ async def login_page(request: Request, redirect_to: Optional[str] = "/") -> Resp
         return RedirectResponse(url="/", status_code=303)
     user = get_current_user(request)
     if user:
-        return RedirectResponse(url=redirect_to or "/", status_code=303)
+        return RedirectResponse(url=validate_redirect_to(redirect_to), status_code=303)
     login_html = _STATIC_DIR / "login.html"
     if login_html.exists():
         return FileResponse(login_html)
@@ -846,18 +883,18 @@ async def auth_login(
             redirect_uri = settings.google_redirect_uri.strip()
         else:
             redirect_uri = f"{_public_app_base_url(request)}/auth/callback/google"
-        state = create_oauth_state(redirect_to=redirect_to or "/")
+        state = create_oauth_state(redirect_to=validate_redirect_to(redirect_to))
         google_url = get_google_auth_url(redirect_uri=redirect_uri, state=state)
         return RedirectResponse(url=google_url)
 
     if settings.keycloak_enabled:
-        return RedirectResponse(url=f"/auth/keycloak/login?redirect_to={redirect_to or '/'}")
+        return RedirectResponse(url=f"/auth/keycloak/login?redirect_to={quote(validate_redirect_to(redirect_to), safe='')}")
 
     if settings.saml_enabled and settings.saml_idp_sso_url.strip():
-        return RedirectResponse(url=f"/auth/saml/login?redirect_to={redirect_to or '/'}")
+        return RedirectResponse(url=f"/auth/saml/login?redirect_to={quote(validate_redirect_to(redirect_to), safe='')}")
 
     if settings.dev_login_enabled or settings.agcg_dev_mode:
-        return RedirectResponse(url=f"/auth/dev/login?redirect_to={redirect_to or '/'}")
+        return RedirectResponse(url=f"/auth/dev/login?redirect_to={quote(validate_redirect_to(redirect_to), safe='')}")
 
     raise HTTPException(
         status_code=500,
@@ -944,7 +981,7 @@ async def auth_callback_google(
         groups=profile.groups,
     )
     session_token = create_session_token(user)
-    target_url = state_data.get("redirect_to") or "/"
+    target_url = validate_redirect_to(state_data.get("redirect_to"))
     response = RedirectResponse(url=target_url, status_code=303)
     set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
     record_user_action(
@@ -968,7 +1005,7 @@ async def auth_saml_login(
             detail="SAML IdP SSO URL is not configured. Please set SAML_IDP_SSO_URL in your environment.",
         )
     acs_url = f"{_public_app_base_url(request)}/auth/saml/acs"
-    _, redirect_url = build_saml_authn_request(acs_url=acs_url, relay_state=redirect_to or "/")
+    _, redirect_url = build_saml_authn_request(acs_url=acs_url, relay_state=validate_redirect_to(redirect_to))
     return RedirectResponse(url=redirect_url)
 
 
@@ -1064,7 +1101,7 @@ async def auth_saml_acs(request: Request) -> Response:
         groups=profile.groups,
     )
     session_token = create_session_token(user)
-    target_url = relay_state or "/"
+    target_url = validate_redirect_to(relay_state)
     response = RedirectResponse(url=target_url, status_code=303)
     set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
     record_user_action(
@@ -1101,7 +1138,7 @@ async def auth_keycloak_login(
     else:
         redirect_uri = f"{_public_app_base_url(request)}/auth/callback/keycloak"
 
-    state = create_oauth_state(redirect_to=redirect_to or "/")
+    state = create_oauth_state(redirect_to=validate_redirect_to(redirect_to))
     keycloak_url = get_keycloak_auth_url(redirect_uri=redirect_uri, state=state, idp_hint=idp_hint)
     return RedirectResponse(url=keycloak_url, status_code=status.HTTP_303_SEE_OTHER)
 
@@ -1134,7 +1171,7 @@ async def auth_callback_keycloak(
             detail="Invalid or expired OAuth state parameter.",
         )
 
-    redirect_to = state_data.get("redirect_to") or "/"
+    redirect_to = validate_redirect_to(state_data.get("redirect_to"))
 
     if settings.keycloak_redirect_uri.strip():
         redirect_uri = settings.keycloak_redirect_uri.strip()
@@ -1250,7 +1287,7 @@ async def auth_dev_login(
   </div>
 </body>
 </html>
-"""
+""".replace('?email=', f'?redirect_to={quote(validate_redirect_to(redirect_to), safe="")}&amp;email=')
         )
 
     allowed, reason = is_email_allowed(email)
@@ -1275,7 +1312,7 @@ async def auth_dev_login(
         groups=profile.groups,
     )
     session_token = create_session_token(user)
-    response = RedirectResponse(url=redirect_to or "/", status_code=303)
+    response = RedirectResponse(url=validate_redirect_to(redirect_to), status_code=303)
     set_session_cookie(response, session_token, is_secure=request.url.scheme == "https")
     record_user_action(
         user.email,
@@ -1350,13 +1387,22 @@ async def annotate(
     return result
 
 
-@app.post("/v1/annotate/jobs", response_model=AnnotationJobCreateResponse)
-async def create_annotation_job(
+async def _launch_annotation_job(
     request: AnnotateRequest,
     http_request: Request,
-    current_user: AuthenticatedUser = Depends(require_auth),
-) -> AnnotationJobCreateResponse:
-    _record_annotation_request_metrics(request, http_request, current_user)
+    current_user: Optional[AuthenticatedUser],
+    *,
+    kind: str = "annotate",
+    require_persistence: bool = False,
+    complete_action: str = "job_complete",
+    error_action: str = "job_error",
+    extra_details: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Queue a background annotation run in the in-memory job store and
+    return its job ID. Shared by /v1/annotate/jobs and the gene query API.
+
+    With require_persistence, a failure to save the run fails the job instead
+    of being logged and ignored."""
     await _evict_stale_annotation_jobs()
 
     job_id = str(uuid.uuid4())
@@ -1364,6 +1410,7 @@ async def create_annotation_job(
         job_id=job_id,
         status="queued",
         fusions_processed=len(request.fusions),
+        kind=kind,
     )
     await _store_annotation_job(job)
 
@@ -1394,7 +1441,10 @@ async def create_annotation_job(
                 on_annotation=on_annotation,
                 on_total_known=on_total_known,
             )
-            await _persist_run_result(http_request, request.model_dump(), result)
+            if require_persistence:
+                await _save_run_result(http_request, request.model_dump(), result)
+            else:
+                await _persist_run_result(http_request, request.model_dump(), result)
             current = await _get_annotation_job(job_id)
             current.status = "complete"
             current.result = result
@@ -1407,18 +1457,19 @@ async def create_annotation_job(
                 await record_user_annotation_activity(current_user.email, count=result.genes_annotated)
             record_user_action(
                 user_id=current_user.email if current_user else _request_user_id(http_request),
-                action="job_complete",
+                action=complete_action,
                 details={
                     "job_id": job_id,
                     "duration_ms": round(result.timings_ms.get("total", 0.0), 1),
                     "genes_completed": result.genes_annotated,
+                    **(extra_details or {}),
                 },
             )
         except Exception as exc:
             logger.exception("Annotation job %s failed", job_id)
             record_user_action(
                 user_id=current_user.email if current_user else _request_user_id(http_request),
-                action="job_error",
+                action=error_action,
                 details={"job_id": job_id, "error": str(exc)},
             )
             current = await _get_annotation_job(job_id)
@@ -1427,6 +1478,17 @@ async def create_annotation_job(
             await _store_annotation_job(current)
 
     _track_background_task(run_job())
+    return job_id
+
+
+@app.post("/v1/annotate/jobs", response_model=AnnotationJobCreateResponse)
+async def create_annotation_job(
+    request: AnnotateRequest,
+    http_request: Request,
+    current_user: AuthenticatedUser = Depends(require_auth),
+) -> AnnotationJobCreateResponse:
+    _record_annotation_request_metrics(request, http_request, current_user)
+    job_id = await _launch_annotation_job(request, http_request, current_user)
     return AnnotationJobCreateResponse(
         job_id=job_id,
         status_url=f"/v1/annotate/jobs/{job_id}",
@@ -1579,17 +1641,19 @@ async def get_fusion_evidence_job(
     return await _get_fusion_evidence_job(job_id)
 
 
-@app.post("/v1/annotate/gene", response_model=GeneAnnotation)
+@app.post("/v1/annotate/gene", response_model=GeneAnnotationWithRun)
 async def annotate_gene(
     request: GeneAnnotateRequest,
     http_request: Request,
     current_user: AuthenticatedUser = Depends(require_auth),
-) -> GeneAnnotation:
+) -> GeneAnnotationWithRun:
     """
-    Annotate a single gene and return the result-card payload as JSON.
+    Annotate a single gene and return the result-card payload as JSON, plus the
+    saved run's `run_id` and a `view_url` that opens it in the UI.
 
     This is a convenience endpoint for external REST clients. For batch runs or
-    mixed gene/fusion inputs, use POST /v1/annotate.
+    mixed gene/fusion inputs, use POST /v1/annotate. For a slim, rationale-only
+    response, use POST /v1/genes/query.
     """
     _record_annotation_request_metrics(request, http_request, current_user)
     gene_input = FusionInput(gene=request.gene, tumor_type=request.tumor_type)
@@ -1621,7 +1685,11 @@ async def annotate_gene(
             "duration_ms": round(result.timings_ms.get("total", 0.0), 1),
         },
     )
-    return result.annotations[0]
+    return GeneAnnotationWithRun(
+        **result.annotations[0].model_dump(),
+        run_id=result.run_id,
+        view_url=_run_view_url(http_request, result.run_id),
+    )
 
 
 @app.get("/v1/annotate/{run_id}", response_model=AnnotationResult)
@@ -2194,6 +2262,13 @@ async def benchmark(
     except Exception as e:
         logger.exception("Benchmark error")
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+# Imported here, after every helper it reuses is defined, to avoid a circular
+# import at module load (the router module looks those helpers up on src.main).
+from src.api.gene_query import router as gene_query_router  # noqa: E402
+
+app.include_router(gene_query_router)
 
 
 @app.exception_handler(Exception)

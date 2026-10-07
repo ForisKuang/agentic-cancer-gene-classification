@@ -1,0 +1,42 @@
+{
+  "judge_model": "claude-haiku-4-5-20251001",
+  "paid_judge_calls": 1,
+  "usage": {
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "inference_geo": "not_available",
+    "input_tokens": 17947,
+    "output_tokens": 1432,
+    "output_tokens_details": null,
+    "server_tool_use": null,
+    "service_tier": "standard"
+  },
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "mapping": {
+    "BRAF": {
+      "A": "darwin",
+      "B": "osler"
+    }
+  },
+  "per_gene": [
+    {
+      "gene": "BRAF",
+      "A": {
+        "factual_correctness": 4,
+        "specificity": 5,
+        "hallucination_safety": 4
+      },
+      "B": {
+        "factual_correctness": 4,
+        "specificity": 4,
+        "hallucination_safety": 4
+      },
+      "comparison": "Both answers address BRAF V600E targeted therapy across multiple tumor types with strong guidance from NCCN, ASCO, and ESMO. Answer A provides exceptionally granular detail on dosing distinctions, safety monitoring frameworks, and nuanced guidance; it explicitly flags that colorectal cancer requires BRAF+EGFR blockade and specifies encorafenib 300 mg daily (distinct from 450 mg in melanoma), includes comprehensive safety profiles (pyrexia frequency ~55%, duration 9 days; cardiac monitoring with ECG timelines for cobimetinib/vemurafenib; G6PD screening for dabrafenib; reduced dosing guidance for histiocytic neoplasms). Answer A cites the 2025 ATA guidelines and explicitly states dabrafenib/vemurafenib have no role in class II/III BRAF alterations. Answer B covers the same tumor types (melanoma, NSCLC, CRC, thyroid, tumor-agnostic) and correctly frames BRAF/MEK vs. immunotherapy sequencing, but omits safety monitoring detail, dosing nuance, and the explicit G6PD guidance. Both correctly state that dabrafenib/trametinib approval excludes CRC. Answer A reports COMBI-AD final ~10-year analysis with RFS/DMFS benefit and non-significant OS (20% lower death risk, ~25% in V600E); Answer B does not cite COMBI-AD adjuvant data. Answer A provides BREAKWATER Cohort 3 data (ORR 64.4% vs 39.2%, mPFS 15.2 vs 8.3 mo, OS HR 0.56); Answer B cites BREAKWATER but with less quantitative detail. Answer A lists specific ROAR ORRs by lineage (ATC 56%, biliary 53%, LGG 54%, HGG 33%, HCL 89%, myeloma 50%); Answer B provides anaplastic thyroid 56%, biliary 53%, LGG 54%, HGG 33%, HCL 89% without myeloma. Both reference DREAMseq favoring immunotherapy first-line in melanoma. Answer B introduces the Gao et al. (Lancet Oncology 2026) phase 3 trial of dabrafenib+trametinib in RAI-refractory DTC with PFS improvement (12.8 vs 3.7 mo, HR 0.38) versus placebo\u2014this is absent in Answer A. Answer A omits this new DTC data. Answer A includes extensive pediatric low-grade glioma data (tovorafenib approval, selumetinib in 7/18 pLGG with BRAF fusions) and discusses BRAF fusions in detail (ulixertinib 5/27 responses in class II, meta-analysis 29% overall). Answer B omits pediatric glioma trial detail. Neither answer reports suspicious trial IDs or invented claims. Both appropriately qualify non-V600 and fusion data as lacking guideline endorsement. Answer A includes NCI-MATCH trametinib failure (1/32 responses in non-V600) and encorafenib/binimetinib zero responses in 8 BRAF fusion patients; Answer B states \"currently no data supporting these BRAF-targeted regimens for non-V600E.\" Answer A's safety section is substantially more granular and actionable. Answer B's addition of the new DTC phase 3 trial is clinically important but does not compensate for the omission of safety frameworks and dosing nuance that Answer A provides.",
+      "spot_check_flags": "COMBI-AD final OS claim in Answer A (\"20% lower risk of death overall, ~25% in the V600E subgroup did not reach significance\") requires verification against NEJM 2024 publication DOI 10.1056/NEJMoa2404139. BREAKWATER Cohort 3 ORR and OS data (Answer A: 64.4% vs 39.2%, mPFS 15.2 vs 8.3 mo, OS HR 0.56) vs. Answer B's reference to same trial\u2014spot-check NEJM 2025 DOI 10.1056/NEJMoa2501912 and Annals of Oncology 2026 (Kopetz et al., DOI 10.1016/j.annonc.2026.04.017). ROAR lineage-specific ORRs (myeloma 50% in Answer A only) merit verification against Nature Medicine 2023 DOI 10.1038/s41591-023-02321-8. Gao et al. (Lancet Oncology 2026) phase 3 DTC trial in Answer B (PFS HR 0.38, 12.8 vs 3.7 months)\u2014cited as DOI 10.1016/S1470-2045(26)00133-6\u2014requires spot-check against source; this is a critical recent trial absent from Answer A. NCI-MATCH trametinib 1/32 in non-V600 (Answer A) should be verified against JCO Precision Oncology 2026 DOI 10.1200/PO-25-00338 and cited reference 42 (Poulikakos et al., CCR 2022). FRONT-BRAF retrospective no-OS-difference claim (Answer B) requires verification."
+    }
+  ]
+}

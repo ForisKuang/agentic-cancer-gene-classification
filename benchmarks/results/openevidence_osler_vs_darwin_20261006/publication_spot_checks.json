@@ -1,0 +1,126 @@
+{
+  "checked_at": "2026-10-06",
+  "method": "Primary PubMed abstract checks via web; targeted sample, not all claims",
+  "checks": [
+    {
+      "claim": "ALEX final median OS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/41110693/",
+      "verified_values": {
+        "alectinib_months": 81.1,
+        "crizotinib_months": 54.2,
+        "HR": 0.78
+      },
+      "finding": "Both osler and darwin ALK report 57.2 months for crizotinib, inconsistent with this abstract; darwin is not a clinical gold standard"
+    },
+    {
+      "claim": "WU-KONG28 first-line sunvozertinib",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42212913/",
+      "verified_values": {
+        "PFS_months": [
+          10.3,
+          7.5
+        ],
+        "HR": 0.65,
+        "NCT": "NCT05668988"
+      },
+      "finding": "both EGFR answers match these PFS values"
+    },
+    {
+      "claim": "ADAURA exploratory eight-year landmark",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42732874/",
+      "verified_values": {
+        "stage_IB_IIIA_OS_percent": [
+          79,
+          64
+        ],
+        "HR": 0.52
+      },
+      "finding": "darwin EGFR correctly labels this as exploratory"
+    },
+    {
+      "claim": "LAURA PFS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/38828946/",
+      "verified_values": {
+        "PFS_months": [
+          39.1,
+          5.6
+        ],
+        "HR": 0.16
+      },
+      "finding": "darwin EGFR gives matching quantitative values; osler states the PFS benefit without these figures"
+    },
+    {
+      "claim": "Daraxonrasib FDA approval",
+      "source": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-daraxonrasib-metastatic-pancreatic-adenocarcinoma",
+      "verified_values": {
+        "approval_date": "2026-08-26",
+        "trial": "RASolute 302",
+        "NCT": "NCT06625320"
+      },
+      "finding": "Both KRAS answers name this recently approved therapy; approval is genuine"
+    },
+    {
+      "claim": "Magrolimab ENHANCE-2 failure in TP53 AML",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/40009500/",
+      "verified_values": {
+        "nonintensive_OS_months": [
+          4.4,
+          6.6
+        ],
+        "HR": 1.132,
+        "NCT": "NCT04778397"
+      },
+      "finding": "Darwin TP53 correctly reports the negative randomized result; osler omits this trial"
+    },
+    {
+      "claim": "Crizotinib ALCL approval population",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/35561013/",
+      "label_source": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2025/217581Orig1s000Lbl.pdf",
+      "verified_values": {
+        "population": "Pediatric patients >=1 year and young adults with relapsed/refractory systemic ALK-positive ALCL",
+        "limitation": "Safety and efficacy have not been established in older adults"
+      },
+      "finding": "Osler ALK overgeneralizes approval to adult and pediatric ALCL; darwin ALK correctly specifies pediatric and young adult R/R disease"
+    },
+    {
+      "claim": "PANDA-T0 paper and pilot outcome",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42585289/",
+      "verified_values": {
+        "DOI": "10.1126/scitranslmed.ads9325",
+        "NCT": "NCT03855371",
+        "marrow_complete_remissions": 4,
+        "patients": 5
+      },
+      "finding": "The reviewed judge falsely suspected fabrication based on recency; osler citation and pilot result are genuine"
+    },
+    {
+      "claim": "PYNNACLE phase 1 primary publication",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/41740031/",
+      "verified_values": {
+        "DOI": "10.1056/NEJMoa2508820",
+        "NCT": "NCT04585750",
+        "ORR_percent": 20,
+        "KRAS_wild_type_efficacious_dose_ORR_percent": 30
+      },
+      "finding": "Darwin TP53 primary efficacy and KRAS context are supported"
+    },
+    {
+      "claim": "TP53 Y220C acquired resistance publication",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/41504628/",
+      "verified_values": {
+        "DOI": "10.1158/2159-8290.CD-25-1761",
+        "mechanism": "Secondary TP53 alterations in cis with Y220C"
+      },
+      "finding": "Recent paper flagged for verification by judge is genuine"
+    },
+    {
+      "claim": "Wiman p53 editorial identity",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42823505/",
+      "verified_values": {
+        "DOI": "10.1038/s43018-026-01254-8",
+        "publication_date": "2026-10-01"
+      },
+      "finding": "Recent date is not proof of fabrication; commentary identity confirmed, not primary efficacy validation"
+    }
+  ]
+}

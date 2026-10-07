@@ -1,0 +1,314 @@
+event: request-id
+data: REDACTED-REQUEST-ID
+
+event: analysis-id
+data: 00000000-0000-0000-0000-000000000000
+
+data: {"text": "REACTCOMPONENT!:!InlineGenerationStep!:!{\"steps\": [{\"kind\": \"reasoning\", \"label\": \"Analyzing query\", \"id\": \"analyzing"}
+
+data: {"text": "query\", \"active\": true, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 0, \"metadata\": {}}], \"done\": false, \"summary\": \"Analyzing query\"}"}
+
+data: {"text": "a9ac\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"search"}
+
+data: {"text": "medical"}
+
+data: {"text": "literature\", \"active\": true, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 0, \"metadata\": {}, \"queries\": []}, {\"call"}
+
+data: {"text": "id\": \"3055bbcb-ba1d-4249-bc6e-67699a27a4fb\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"search"}
+
+data: {"text": "medical"}
+
+data: {"text": "literature\", \"active\": true, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n"}
+
+data: {"text": "\n\n"}
+
+data: {"text": "Targeted therapy for EGFR alterations is overwhelmingly a non\u2013[small cell lung cancer](/rare-disease/small-cell-lung-cancer) (NSCLC) story"}
+
+data: {"text": ", where activating "}
+
+data: {"text": "EGFR"}
+
+data: {"text": " mutations are an established oncogenic driver and multiple E"}
+
+data: {"text": "GFR-directed tyrosine kinase inhibitors (TKIs) and the bispecific antibody amivantamab are NCCN- and ASCO-endorsed across the first-line, subsequent-line, and curative-intent settings. (\"EGFR alterations\" as a therapeutic target refers to N"}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110"}, "source_texts": []}}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "[[3]]", "reference": {"citation_key": 3, "reference_text": "Owen DH, Ismaila N, Freeman-Daily J, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/JCO.24.00762\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, Version 2024.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2024;42(20):e44-e59. doi:10.1200/JCO.24.00762.", "reference_detail": {"title": "Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, Version 2024.1", "authors_string": "Owen DH, Ismaila N, Freeman-Daily J, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2024;42(20):e44-e59. doi:10.1200/JCO.24.00762.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2024-07-10", "doi": "10.1200/JCO.24.00762", "url": "https://doi.org/10.1200/JCO.24.00762"}, "source_texts": []}}
+
+data: {"text": "SCLC here; in colorectal and head/neck cancer the anti-EGFR antibodies cetuximab/panitumumab target EGFR protein rather than activating "}
+
+data: {"text": "EGFR"}
+
+data: {"text": " mutations, which was not the focus of the retrieved evidence.) Recommendations differ sharply by the specific alteration \u2014 classical sensitizing mutations (exon 19 deletion/L858R), other atypical activating mutations (G719X, L861Q, S768"}
+
+data: {"text": "I), and exon 20 insertions \u2014 so each is addressed separately below.\nThe ASCO living guideline (Reuss et al., 2026) consolidates the stage IV dri"}
+
+data: {"text": "ver-alteration recommendations into a single algorithm:"}
+
+data: {"text": "\n"}
+
+data: {"image": {"url": "https://storage.googleapis.com/asco-multimedia/figures/jco.26.00843/jco-26-00843f1-7c717040e7d0.jpg", "name": "Figure 1", "caption": "Treatment Options for Patients with Stage IV Non-Small Cell Lung Cancer with EGFR Alterations"}}
+
+data: {"text": "[[4]]", "reference": {"citation_key": 4, "reference_text": "<a target=\"_blank\" href=\"https://ascopubs.org/doi/10.1200/JCO-26-00843\">Therapy for Stage IV NSCLC with Driver Alterations</a>. ASCO Guidelines. 2026.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "publication_info_string": "ASCO Guidelines", "publication_date": "2026-05-26", "doi": "10.1200/JCO-26-00843", "url": "https://ascopubs.org/doi/10.1200/JCO-26-00843"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "First-line: classical EGFR mutations (exon 19 deletion / L858R)"}
+
+data: {"text": "\nBoth NCCN and ASCO now endorse treatment intensification over single-agent osimertinib as preferred, based on two phase III trials:"}
+
+data: {"text": "\n- "}
+
+data: {"text": "NCCN (NSCLC v9.2026)"}
+
+data: {"text": " lists three category 1 preferred first-line options: osimertinib monotherapy; carboplatin or cisplatin/osimertinib/pemetrexed ("}
+
+data: {"text": "nonsquamous); and lazertinib + amivantamab. Afatinib, dacomitinib, erlotinib (\u00b1 bevacizumab or ramucirumab), gefitinib, and lazertinib are category 1 options \"useful in certain circumstances\"."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=48"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "ASCO guidelines recommend"}
+
+data: {"text": " clinicians offer osimertinib plus platinum-pemetrexed chemotherapy or amiv"}
+
+data: {"text": "antamab plus lazertinib (moderate evidence, strong), with osimertinib monotherapy remaining an option for patients who decline combination therapy."}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "\nSupporting trials:"}
+
+data: {"text": "\n- "}
+
+data: {"text": "FLAURA"}
+
+data: {"text": " established osimertinib monotherapy over first-generation TKIs (median PFS 18.9 vs 10.2 months, HR 0.46; median OS 38.6 vs 31.8 months, HR "}
+
+data: {"text": "0.80)."}
+
+data: {"text": "[[5]]", "reference": {"citation_key": 5, "reference_text": "Soria JC, Ohe Y, Vansteenkiste J, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa1713137?utm_source=openevidence&utm_medium=referral\">Osimertinib in Untreated EGFR-Mutated Advanced Non-Small-Cell Lung Cancer</a>. The New England Journal of Medicine. 2018;378(2):113-125. doi:10.1056/NEJMoa1713137.", "reference_detail": {"title": "Osimertinib in Untreated EGFR-Mutated Advanced Non\u2013Small-Cell Lung Cancer", "authors_string": "Soria JC, Ohe Y, Vansteenkiste J, et al.", "publication_info_string": "The New England Journal of Medicine. 2018;378(2):113-125. doi:10.1056/NEJMoa1713137.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2018-01-11", "doi": "10.1056/NEJMoa1713137", "url": "https://doi.org/10.1056/nejmoa1713137?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "[[6]]", "reference": {"citation_key": 6, "reference_text": "Ramalingam SS, Vansteenkiste J, Planchard D, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa1913662?utm_source=openevidence&utm_medium=referral\">Overall Survival With Osimertinib in Untreated, EGFR-Mutated Advanced NSCLC</a>. The New England Journal of Medicine. 2020;382(1):41-50. doi:10.1056/NEJMoa1913662.", "reference_detail": {"title": "Overall Survival with Osimertinib in Untreated, EGFR-Mutated Advanced NSCLC", "authors_string": "Ramalingam SS, Vansteenkiste J, Planchard D, et al.", "publication_info_string": "The New England Journal of Medicine. 2020;382(1):41-50. doi:10.1056/NEJMoa1913662.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2020-01-02", "doi": "10.1056/NEJMoa1913662", "url": "https://doi.org/10.1056/nejmoa1913662?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "FLAURA2"}
+
+data: {"text": " showed osimertinib + platinum-pemetrexed improved PFS (25.5 vs 16.7 months, HR 0.62) and OS (47.5 vs 37.6 months, HR 0.77; P=0.02) over osimertinib alone, with grade \u22653 AEs of 64% vs 27% \u2014 the CNS-metastasis subgroup derived particular benefit."}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "[[7]]", "reference": {"citation_key": 7, "reference_text": "Planchard D, J\u00e4nne PA, Cheng Y, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2306434?utm_source=openevidence&utm_medium=referral\">Osimertinib With or Without Chemotherapy in EGFR-Mutated Advanced NSCLC</a>. The New England Journal of Medicine. 2023;389(21):1935-1948. doi:10.1056/NEJMoa2306434.", "reference_detail": {"title": "Osimertinib with or without Chemotherapy in EGFR-Mutated Advanced NSCLC", "authors_string": "Planchard D, J\u00e4nne PA, Cheng Y, et al.", "publication_info_string": "The New England Journal of Medicine. 2023;389(21):1935-1948. doi:10.1056/NEJMoa2306434.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2023-11-23", "doi": "10.1056/NEJMoa2306434", "url": "https://doi.org/10.1056/nejmoa2306434?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "[[8]]", "reference": {"citation_key": 8, "reference_text": "J\u00e4nne PA, Planchard D, Kobayashi K, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2510308?utm_source=openevidence&utm_medium=referral\">Survival With Osimertinib Plus Chemotherapy in EGFR-Mutated Advanced NSCLC</a>. The New England Journal of Medicine. 2026;394(1):27-38. doi:10.1056/NEJMoa2510308.", "reference_detail": {"title": "Survival with Osimertinib plus Chemotherapy in EGFR-Mutated Advanced NSCLC", "authors_string": "J\u00e4nne PA, Planchard D, Kobayashi K, et al.", "publication_info_string": "The New England Journal of Medicine. 2026;394(1):27-38. doi:10.1056/NEJMoa2510308.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2026-01-01", "doi": "10.1056/NEJMoa2510308", "url": "https://doi.org/10.1056/nejmoa2510308?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "MARIPOSA"}
+
+data: {"text": " show"}
+
+data: {"text": "ed amivantamab-lazertinib improved PFS (23.7 vs 16.6 months) and, in the final analysis, OS (HR 0.75; P=0.005; 3-year OS 60% vs 51%) versus osimertinib, at the cost of more infusion reactions, rash, paronychia, and venous thromboembolism"}
+
+data: {"text": "[[9]]", "reference": {"citation_key": 9, "reference_text": "Dimou A, Mansfield A. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejme2509843?utm_source=openevidence&utm_medium=referral\">EGFR-Mutated Lung Cancer - Letting the Butterfly Out of the Cocoon</a>. The New England Journal of Medicine. 2025;393(17):1743-1745. doi:10.1056/NEJMe2509843.", "reference_detail": {"title": "EGFR-Mutated Lung Cancer \u2014 Letting the Butterfly Out of the Cocoon", "authors_string": "Dimou A, Mansfield A.", "publication_info_string": "The New England Journal of Medicine. 2025;393(17):1743-1745. doi:10.1056/NEJMe2509843.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2025-10-30", "doi": "10.1056/NEJMe2509843", "url": "https://doi.org/10.1056/nejme2509843?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "."}
+
+data: {"text": "[[10]]", "reference": {"citation_key": 10, "reference_text": "Su PL, Furuya N, Asrar A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1186/s13045-025-01679-1\">Recent Advances in Therapeutic Strategies for Non-Small Cell Lung Cancer</a>. Journal of Hematology & Oncology. 2025;18(1):35. doi:10.1186/s13045-025-01679-1.", "reference_detail": {"title": "Recent advances in therapeutic strategies for non-small cell lung cancer", "authors_string": "Su PL, Furuya N, Asrar A, et al.", "publication_info_string": "Journal of Hematology & Oncology. 2025;18(1):35. doi:10.1186/s13045-025-01679-1.", "journal_name": "Journal of Hematology & Oncology", "journal_short_name": "J Hematol Oncol", "publication_date": "2025-03-27", "doi": "10.1186/s13045-025-01679-1", "url": "https://doi.org/10.1186/s13045-025-01679-1"}, "source_texts": []}}
+
+data: {"text": "[[11]]", "reference": {"citation_key": 11, "reference_text": "Hayashi H, Cho BC, Spigel DR, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/42061572\">Long-Term Impact of First-Line Amivantamab Plus Lazertinib Versus Osimertinib on Mechanisms of Acquired Resistance in MARIPOSA: A Brief Report</a>. Journal of Thoracic Oncology : Official Publication of the International Association for the Study of Lung Cancer. 2026;21(9):103894. doi:10.1016/j.jtho.2026.103894.", "reference_detail": {"title": "Long-Term Impact of First-Line Amivantamab Plus Lazertinib Versus Osimertinib on Mechanisms of Acquired Resistance in MARIPOSA: A Brief Report", "authors_string": "Hayashi H, Cho BC, Spigel DR, et al.", "publication_info_string": "Journal of Thoracic Oncology : Official Publication of the International Association for the Study of Lung Cancer. 2026;21(9):103894. doi:10.1016/j.jtho.2026.103894.", "journal_name": "Journal of Thoracic Oncology : Official Publication of the International Association for the Study of Lung Cancer", "journal_short_name": "J Thorac Oncol", "publication_date": "2026-09-01", "doi": "10.1016/j.jtho.2026.103894", "url": "https://pubmed.ncbi.nlm.nih.gov/42061572"}, "source_texts": []}}
+
+data: {"text": "\nThe MARIPOSA overall survival result is shown here:"}
+
+data: {"text": "\n"}
+
+data: {"image": {"url": "https://storage.googleapis.com/openevidence-multimedia/nejm/cms/10.1056_nejmoa2503001/asset/db22ff2b-6174-5747-9143-e99de3d6bbe4/assets/images/large/NEJMoa2503001_f1.jpg", "name": "Figure 1", "caption": "Overall Survival. Panel A shows Kaplan\u2013Meier estimates of overall survival (assessed in an analysis of the time from randomization to death from any cause) among participants who received amivantamab\u2013lazertinib and those who received osimertinib. Blue shading indicates the 95% confidence interval for the amivantamab\u2013lazertinib group and gray shading the 95% confidence interval for the osimertinib group. Tick marks indicate censored data. A forest plot of overall survival according to subgroup is shown in Panel B. Shading indicates the 95% confidence interval for the hazard ratio for overall survival (amivantamab\u2013lazertinib vs. osimertinib) among all participants who underwent randomization. In the subgroup analyses, hazard ratios and the associated 95% confidence intervals were obtained from an unstratified proportional-hazards model; the confidence intervals have not been adjusted for multiplicity and should not be used to infer definitive treatment effects. Eastern Cooperative Oncology Group (ECOG) performance-status scores range from 0 to 5, with higher scores indicating greater disability. \ud835\ude78 bars indicate 95% confidence intervals. EGFR denotes epidermal growth factor receptor, L858R exon 21 codon p.Leu858Arg, and NE could not be estimated."}}
+
+data: {"text": "[[12]]", "reference": {"citation_key": 12, "reference_text": "Yang JC, Lu S, Hayashi H, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2503001?utm_source=openevidence&utm_medium=referral\">Overall Survival With Amivantamab-Lazertinib in EGFR-Mutated Advanced NSCLC</a>. The New England Journal of Medicine. 2025;393(17):1681-1693. doi:10.1056/NEJMoa2503001.", "reference_detail": {"title": "Overall Survival with Amivantamab\u2013Lazertinib in EGFR-Mutated Advanced NSCLC", "authors_string": "Yang JC, Lu S, Hayashi H, et al.", "publication_info_string": "The New England Journal of Medicine. 2025;393(17):1681-1693. doi:10.1056/NEJMoa2503001.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2025-10-30", "doi": "10.1056/NEJMoa2503001", "url": "https://doi.org/10.1056/nejmoa2503001?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "First-line: atypical/other activating mutations (G719X, L861Q, S768I)"}
+
+data: {"text": "\n- "}
+
+data: {"text": "NCCN"}
+
+data: {"text": " lists afatinib, erlotinib, dacomitinib, gefitinib, and osimertinib as first-line options for S768I, L861Q, and/or G719X."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "ASCO guidelines recommend"}
+
+data: {"text": " osimertinib for these other activating alterations (weak evidence, weak) and note amivantamab plus lazertinib may also be offered,"}
+
+data: {"text": " based on the single-arm CHRYSALIS-2 Cohort C data (treatment-na\u00efve PFS 19.5 months). NCCN biomarker principles note these ~10% of EGFR-mutant tumors respond on a mutation-specific basis, particularly to osimertinib and afatinib."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=102"}, "source_texts": []}}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "First"}
+
+data: {"text": "-line: EGFR exon 20 insertions"}
+
+data: {"text": "\nThese are biologically distinct and generally resistant to classical EGFR TKIs:"}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=102"}, "source_texts": []}}
+
+data: {"text": "[[13]]", "reference": {"citation_key": 13, "reference_text": "Zhou C, Greillier L, Liu G, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2604461?utm_source=openevidence&utm_medium=referral\">First-Line Sunvozertinib in NSCLC With EGFR Exon 20 Insertion Mutations</a>. The New England Journal of Medicine. 2026;395(8):765-775. doi:10.1056/NEJMoa2604461.", "reference_detail": {"title": "First-Line Sunvozertinib in NSCLC with EGFR Exon 20 Insertion Mutations", "authors_string": "Zhou C, Greillier L, Liu G, et al.", "publication_info_string": "The New England Journal of Medicine. 2026;395(8):765-775. doi:10.1056/NEJMoa2604461.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2026-08-20", "doi": "10.1056/NEJMoa2604461", "url": "https://doi.org/10.1056/nejmoa2604461?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "NCCN"}
+
+data: {"text": " lists carboplatin/pemetrexed + amivantamab (nonsquamous, category 1, preferred) as the first-line option."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "ASCO guidelines recommend"}
+
+data: {"text": " sunvozertinib monotherapy or amivantamab plus platinum-doublet chemotherapy (moderate evidence, strong"}
+
+data: {"text": "). This reflects PAPILLON (amivantamab-chemotherapy PFS 11.4 vs 6.7 months, HR 0.40) and WU-KONG28 (first-line sunvozertinib PFS 10.3 vs 7.5 months, HR 0.65)."}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "[[13]]", "reference": {"citation_key": 13, "reference_text": "Zhou C, Greillier L, Liu G, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2604461?utm_source=openevidence&utm_medium=referral\">First-Line Sunvozertinib in NSCLC With EGFR Exon 20 Insertion Mutations</a>. The New England Journal of Medicine. 2026;395(8):765-775. doi:10.1056/NEJMoa2604461.", "reference_detail": {"title": "First-Line Sunvozertinib in NSCLC with EGFR Exon 20 Insertion Mutations", "authors_string": "Zhou C, Greillier L, Liu G, et al.", "publication_info_string": "The New England Journal of Medicine. 2026;395(8):765-775. doi:10.1056/NEJMoa2604461.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2026-08-20", "doi": "10.1056/NEJMoa2604461", "url": "https://doi.org/10.1056/nejmoa2604461?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "[[14]]", "reference": {"citation_key": 14, "reference_text": "Food and Drug Administration. <a target=\"_blank\" href=\"https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=1466c070-9f97-4fa4-a955-6a6b59981fb8\">Rybrevant</a>. 2025.", "reference_detail": {"title": "Rybrevant", "authors_string": "Food and Drug Administration", "publication_info_string": "Updated date: 2025-11-11", "publication_date": "2025-11-11", "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=1466c070-9f97-4fa4-a955-6a6b59981fb8"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "Subsequent therapy after progression"}
+
+data: {"text": "\n- After progression on osimertinib/third-generation TKI, "}
+
+data: {"text": "NCCN"}
+
+data: {"text": " and "}
+
+data: {"text": "ASCO"}
+
+data: {"text": " support carboplatin/pemetrexed + amivantamab (category 1, preferred in NCCN), based on "}
+
+data: {"text": "MARIPOSA-2"}
+
+data: {"text": " (amivantamab-chemotherapy PFS 6.3 vs 4.2 months, HR 0.48). Datopotamab deruxtecan is an NCCN-preferred option for EGFR-mutant disease after prior EGFR therapy and platinum chemotherapy"}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=49"}, "source_texts": []}}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "[[15]]", "reference": {"citation_key": 15, "reference_text": "Passaro A, Wang J, Wang Y, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/37879444\">Amivantamab Plus Chemotherapy With and Without Lazertinib in EGFR-mutant Advanced NSCLC After Disease Progression on Osimertinib: Primary Results From the Phase III MARIPOSA-2 Study</a>. Annals of Oncology : Official Journal of the European Society for Medical Oncology. 2024;35(1):77-90. doi:10.1016/j.annonc.2023.10.117.", "reference_detail": {"title": "Amivantamab Plus Chemotherapy With and Without Lazertinib in EGFR-mutant Advanced NSCLC After Disease Progression on Osimertinib: Primary Results From the Phase III MARIPOSA-2 Study", "authors_string": "Passaro A, Wang J, Wang Y, et al.", "publication_info_string": "Annals of Oncology : Official Journal of the European Society for Medical Oncology. 2024;35(1):77-90. doi:10.1016/j.annonc.2023.10.117.", "journal_name": "Annals of Oncology : Official Journal of the European Society for Medical Oncology", "journal_short_name": "Ann Oncol", "publication_date": "2024-01-01", "doi": "10.1016/j.annonc.2023.10.117", "url": "https://pubmed.ncbi.nlm.nih.gov/37879444"}, "source_texts": []}}
+
+data: {"text": "."}
+
+data: {"text": "\n- After progression on first/second-generation TKIs with "}
+
+data: {"text": "T790M"}
+
+data: {"text": ", osimertinib is recommended (AURA3: PFS 10.1 vs 4.4 months, HR 0.30)."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=50"}, "source_texts": []}}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "\n- For "}
+
+data: {"text": "exon 20 insertions"}
+
+data: {"text": " after platinum chemotherapy, amivantamab or sunvozertinib may be offered; sunvozertinib is an option even"}
+
+data: {"text": " after prior amivantamab."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=52"}, "source_texts": []}}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "Curative-intent (early-stage and stage III)"}
+
+data: {"text": "\n- "}
+
+data: {"text": "Adjuvant osimertinib"}
+
+data: {"text": " for 3 years is recommended for resected stage IB\u2013IIIA EGFR-mutant (exon 19 del/L858R) NSCLC, based on "}
+
+data: {"text": "ADAURA"}
+
+data: {"text": " (DFS HR 0.27 overall; OS HR 0.49; 8-year exploratory OS 79% vs 64% stage IB\u2013IIIA"}
+
+data: {"text": "). NCCN places this as category 1 after adjuvant chemotherapy or in platinum-ineligible patients, and ASCO recommends it after platinum-based chemotherapy for resected stage III."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=94"}, "source_texts": []}}
+
+data: {"text": "[[16]]", "reference": {"citation_key": 16, "reference_text": "Tsuboi M, Herbst RS, John T, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2304594?utm_source=openevidence&utm_medium=referral\">Overall Survival With Osimertinib in Resected EGFR-Mutated NSCLC</a>. The New England Journal of Medicine. 2023;389(2):137-147. doi:10.1056/NEJMoa2304594.", "reference_detail": {"title": "Overall Survival with Osimertinib in Resected EGFR-Mutated NSCLC", "authors_string": "Tsuboi M, Herbst RS, John T, et al.", "publication_info_string": "The New England Journal of Medicine. 2023;389(2):137-147. doi:10.1056/NEJMoa2304594.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2023-07-13", "doi": "10.1056/NEJMoa2304594", "url": "https://doi.org/10.1056/nejmoa2304594?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "[[17]]", "reference": {"citation_key": 17, "reference_text": "Herbst RS, Wu YL, John T, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/36720083\">Adjuvant Osimertinib for Resected EGFR-Mutated Stage IB-IIIA Non-Small-Cell Lung Cancer: Updated Results From the Phase III Randomized ADAURA Trial</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2023;41(10):1830-1840. doi:10.1200/JCO.22.02186.", "reference_detail": {"title": "Adjuvant Osimertinib for Resected EGFR-Mutated Stage IB-IIIA Non-Small-Cell Lung Cancer: Updated Results From the Phase III Randomized ADAURA Trial", "authors_string": "Herbst RS, Wu YL, John T, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2023;41(10):1830-1840. doi:10.1200/JCO.22.02186.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2023-04-01", "doi": "10.1200/JCO.22.02186", "url": "https://pubmed.ncbi.nlm.nih.gov/36720083"}, "source_texts": []}}
+
+data: {"text": "[[18]]", "reference": {"citation_key": 18, "reference_text": "Wu YL, Majem M, John T, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/42732874\">Adjuvant Osimertinib in Resected EGFR-Mutated Stage IB-IIIA Non-Small Cell Lung Cancer: Exploratory 8-Year Overall Survival Landmark Update From the ADAURA Trial [161/175</a>. Journal of Thoracic Oncology : Official Publication of the International Association for the Study of Lung Cancer. 2026;:104179. doi:10.1016/j.jtho.2026.104179.", "reference_detail": {"title": "Adjuvant Osimertinib in Resected EGFR-Mutated Stage IB-IIIA Non-Small Cell Lung Cancer: Exploratory 8-Year Overall Survival Landmark Update From the ADAURA Trial [161/175", "authors_string": "Wu YL, Majem M, John T, et al.", "publication_info_string": "Journal of Thoracic Oncology : Official Publication of the International Association for the Study of Lung Cancer. 2026;:104179. doi:10.1016/j.jtho.2026.104179.", "journal_name": "Journal of Thoracic Oncology : Official Publication of the International Association for the Study of Lung Cancer", "journal_short_name": "J Thorac Oncol", "publication_date": "2026-09-13", "doi": "10.1016/j.jtho.2026.104179", "url": "https://pubmed.ncbi.nlm.nih.gov/42732874"}, "source_texts": []}}
+
+data: {"text": "[[19]]", "reference": {"citation_key": 19, "reference_text": "Daly ME, Singh N, Ismaila N, Management of Stage III NSCLC Guideline Expert Panel. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-24-01324\">Management of Stage III Non-Small Cell Lung Cancer: ASCO Guideline Rapid Recommendation Update</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2024;42(25):3058-3060. doi:10.1200/JCO-24-01324.", "reference_detail": {"title": "Management of Stage III Non\u2013Small Cell Lung Cancer: ASCO Guideline Rapid Recommendation Update", "authors_string": "Daly ME, Singh N, Ismaila N, Management of Stage III NSCLC Guideline Expert Panel.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2024;42(25):3058-3060. doi:10.1200/JCO-24-01324.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2024-09-01", "doi": "10.1200/JCO-24-01324", "url": "https://doi.org/10.1200/jco-24-01324"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "Consolidation osimertinib"}
+
+data: {"text": " (category 1) is recommended for unresectable stage III EGFR-mutant NSCLC that has not progressed after chemoradiation, based on the "}
+
+data: {"text": "LAURA"}
+
+data: {"text": " trial."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=33"}, "source_texts": []}}
+
+data: {"text": "[[20]]", "reference": {"citation_key": 20, "reference_text": "Melosky B, Juergens RA, Chu QSC, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/41512290\">Targeting Common EGFR Mutations in Non-Small Cell Lung Cancer: A Review of Global Phase 3 Trials of Third-Generation Inhibitors</a>. Journal of the National Cancer Institute. 2026;118(5):789-810. doi:10.1093/jnci/djag008.", "reference_detail": {"title": "Targeting Common EGFR Mutations in Non-Small Cell Lung Cancer: A Review of Global Phase 3 Trials of Third-Generation Inhibitors", "authors_string": "Melosky B, Juergens RA, Chu QSC, et al.", "publication_info_string": "Journal of the National Cancer Institute. 2026;118(5):789-810. doi:10.1093/jnci/djag008.", "journal_name": "Journal of the National Cancer Institute", "journal_short_name": "J Natl Cancer Inst", "publication_date": "2026-05-01", "doi": "10.1093/jnci/djag008", "url": "https://pubmed.ncbi.nlm.nih.gov/41512290"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "Neoadjuvant osimertinib \u00b1 chem"}
+
+data: {"text": "otherapy is an NCCN option for stage II\u2013IIIB EGFR-mutant disease, with adjuvant osimertinib afterward."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=94"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "Important caveat preserved across sources:"}
+
+data: {"text": " Tumors without a sensitizing "}
+
+data: {"text": "EGFR"}
+
+data: {"text": " mutation should not receive EGFR TKIs in any line, and PD-1/PD-L1 monotherapy is"}
+
+data: {"text": " less effective in EGFR-mutant NSCLC regardless of PD-L1 expression."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=50"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "\n\n"}
+
+data: {"text": "Would you like to explore how to tailor subsequent therapy based on the specific resistance mechanism (e.g., MET amplification vs EGFR C797S) after osimertinib?"}
+
+data: [DONE]
+

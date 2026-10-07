@@ -87,12 +87,161 @@ def compare(disabled: dict, enabled: dict, gold: dict) -> dict:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
+    parser.add_argument("--models", action="store_true", help="Summarize sidecar model arms")
     args = parser.parse_args()
+    if args.models:
+        data = json.loads((args.directory / "models.json").read_text())
+        write_json(args.directory / "comparison.json", compare_models(data))
+        return
     holdout = Path(__file__).parent / "data" / "holdout.jsonl"
     gold = {r["gene"]: r for r in map(json.loads, holdout.read_text().splitlines())}
     arms = [json.loads((args.directory / f"{arm}.json").read_text())
             for arm in ("disabled", "enabled")]
     write_json(args.directory / "comparison.json", compare(*arms, gold))
+
+
+def percentile(values: list[float], fraction: float) -> float:
+    """Linearly interpolated percentile, including small samples."""
+    values = sorted(values)
+    position = (len(values) - 1) * fraction
+    lower = int(position)
+    upper = min(lower + 1, len(values) - 1)
+    return values[lower] + (values[upper] - values[lower]) * (position - lower)
+
+
+def compare_models(data: dict) -> dict:
+    """Summarize live sidecar measurements independently of clinical judging."""
+    from statistics import mean, median
+    import re
+    from urllib.parse import urlsplit
+    from src.pipeline import openevidence as oe
+    from src.models.schema import OpenEvidenceCitation
+
+    def guideline_citations(row):
+        citations = []
+        for raw in row["analysis"].get("citations", []):
+            citation = OpenEvidenceCitation(**raw)
+            if any(domain in citation.url.lower() for domain in oe._GUIDELINE_URL_DOMAINS) or (
+                citation.authors.strip().lower() in oe._GUIDELINE_ISSUING_ORGANIZATIONS
+                or oe._GUIDELINE_TITLE_PATTERN.search(citation.title)
+            ):
+                citations.append(raw)
+        return citations
+
+    if data["status"] != "complete":
+        raise ValueError("Model benchmark must be complete")
+
+    def summarize(pairs):
+        summaries = {}
+        for model in data["models"]:
+            all_rows = [pair[model] for pair in pairs.values()]
+            successful = [row for row in all_rows if row["status"] == "success"]
+            latencies = [row["wall_seconds"] for row in successful]
+            ttfts = [row["ttft_seconds"] for row in successful if row["ttft_seconds"] is not None]
+            summaries[model] = {
+                "successes": len(successful), "requested": len(all_rows),
+                "success_rate": len(successful) / len(all_rows),
+                "median_seconds": median(latencies) if latencies else None,
+                "p90_seconds": percentile(latencies, .9) if latencies else None,
+                "median_ttft_seconds": median(ttfts) if ttfts else None,
+                "p90_ttft_seconds": percentile(ttfts, .9) if ttfts else None,
+                "under_300s": sum(row["wall_seconds"] < 300 for row in successful),
+                **{f"mean_{key}": mean(values) if values else None for key, values in {
+                    "answer_chars": [row["answer_chars"] for row in successful],
+                    "citations": [row["distilled"]["citation_count"] for row in successful],
+                    "guidelines": [len(row["distilled"]["guidelines"]) for row in successful],
+                    "guideline_citations": [len(guideline_citations(row)) for row in successful],
+                    "page_anchored_guidelines": [sum(bool(g["page_anchor"]) for g in
+                        row["distilled"]["guidelines"]) for row in successful],
+                    "trial_mentions": [len(row["distilled"]["trial_mentions"])
+                                       for row in successful],
+                    "additive_citations": [row["additive"]["citation_count"] for row in successful],
+                }.items()},
+            }
+        return summaries
+
+    summaries = summarize(data["per_gene"])
+    rows = []
+
+    def labels(row):
+        guidelines = {urlsplit(g["url"]).netloc.lower().removeprefix("www.") +
+                      urlsplit(g["url"]).path.lower() for g in guideline_citations(row)}
+        # Named trials outside the production extractor are captured separately;
+        # Case-sensitive seeds avoid ordinary words (e.g. toxicity profile).
+        # Ambiguous PROFILE/SOLO/PRIMA/ARROW are excluded, including PRIMA-1 drug.
+        # Count neither all uppercase words nor outcome-stat sentences as trials.
+        trials = set(re.findall(
+            r"\b(?:NCT\d{8}|(?:FLAURA|ADAURA|LAURA|MARIPOSA|PAPILLON|ALEX|CROWN|ALTA|"
+            r"J-ALEX|ALTA-1L|LIBRETTO|CodeBreaK|KRYSTAL|BEACON|BREAKWATER|"
+            r"COMBI|CheckMate|KEYNOTE|OlympiA|OlympiAD|EMBRACA|POLO|TALAPRO|PROfound|"
+            r"PAOLA|ATHENA|TRITON|ASCEND|ALINA|eXalt3|TRIDENT|"
+            r"WU-KONG|FOCUS4|MIRROS|PYNNACLE|PANDA|ALKAZAR|ANBL|COMPEL|CHRYSALIS)"
+            r"(?:[- ]?\d+[A-Za-z]*|-[A-Za-z]+)?)\b", row["analysis"]["text"]))
+        return {"guidelines": sorted(guidelines),
+                "trials": sorted({re.sub(r"[- ]", "", t.upper()) for t in trials})}
+
+    for gene in data["genes"]:
+        pair = data["per_gene"][gene]
+        row = {"gene": gene, "models": {}}
+        for model, raw in pair.items():
+            row["models"][model] = {
+                "status": raw["status"], "wall_seconds": raw["wall_seconds"],
+                "ttft_seconds": raw["ttft_seconds"],
+                **({"answer_chars": raw["answer_chars"],
+                    "citations": raw["distilled"]["citation_count"],
+                    "guidelines": raw["distilled"]["guidelines"],
+                    "guideline_citations": guideline_citations(raw),
+                    "trial_mentions": len(raw["distilled"]["trial_mentions"]),
+                    "additive_citations": raw["additive"]["citation_count"],
+                    "agreement_labels": labels(raw)} if raw["status"] == "success" else {}),
+            }
+        if all(pair.get(m, {}).get("status") == "success" for m in ("osler", "darwin")):
+            for kind in ("guidelines", "trials"):
+                reference = set(labels(pair["darwin"])[kind])
+                candidate = set(labels(pair["osler"])[kind])
+                row[f"{kind}_agreement"] = {
+                    "reference": sorted(reference), "candidate": sorted(candidate),
+                    "overlap": sorted(reference & candidate),
+                    "darwin_reference_recall": len(reference & candidate) / len(reference)
+                                               if reference else None,
+                    "darwin_only": sorted(reference - candidate),
+                    "osler_only": sorted(candidate - reference),
+                }
+        rows.append(row)
+
+    def agreement(selected):
+        result = {}
+        for kind in ("guidelines", "trials"):
+            pairs = [row[f"{kind}_agreement"] for row in selected
+                     if f"{kind}_agreement" in row]
+            reference = sum(len(pair["reference"]) for pair in pairs)
+            overlap = sum(len(pair["overlap"]) for pair in pairs)
+            recalls = [pair["darwin_reference_recall"] for pair in pairs
+                       if pair["darwin_reference_recall"] is not None]
+            result[kind] = {"reference_labels": reference, "overlap_labels": overlap,
+                            "micro_recall": overlap / reference if reference else None,
+                            "macro_recall": mean(recalls) if recalls else None}
+        return result
+
+    established = {"EGFR", "TP53", "KRAS", "BRAF", "BRCA1", "ALK", "EML4::ALK"}
+    groups = {}
+    for name, genes in {
+        "established": [g for g in data["genes"] if g in established],
+        "negative_controls": [g for g in data["genes"] if g not in established],
+    }.items():
+        if not genes:
+            continue
+        pairs = {gene: data["per_gene"][gene] for gene in genes}
+        groups[name] = {"genes": genes, "summary": summarize(pairs),
+                        "agreement": agreement([row for row in rows if row["gene"] in genes]),
+                        "card_guideline_totals": {
+                            model: sum(len(pair[model]["distilled"]["guidelines"])
+                                       for pair in pairs.values()
+                                       if pair[model]["status"] == "success")
+                            for model in data["models"]}}
+    return {"summary": summaries, "per_gene": rows,
+            "agreement": agreement(rows), "groups": groups,
+            "paid_call_attempts": data["paid_call_attempts"]}
 
 
 if __name__ == "__main__":

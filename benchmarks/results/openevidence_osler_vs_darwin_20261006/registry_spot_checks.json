@@ -1,0 +1,181 @@
+{
+  "NCT03855371": {
+    "url": "https://clinicaltrials.gov/study/NCT03855371",
+    "title": "Mutant p53-based Personalized Trial Using Decitabine and Arsenic Trioxide on AML/MDS",
+    "conditions": [
+      "P53 Mutation",
+      "Myeloid Malignancy",
+      "MDS",
+      "Aml"
+    ],
+    "interventions": [
+      {
+        "type": "DRUG",
+        "name": "Decitabine",
+        "description": "20mg/m2/d, intravenously, d1-d5, q4w",
+        "armGroupLabels": [
+          "Decitabine plus arsenic trioxide"
+        ],
+        "otherNames": [
+          "DAC"
+        ]
+      },
+      {
+        "type": "DRUG",
+        "name": "Arsenic Trioxide",
+        "description": "0.16mg/kg/d, intravenously, d1-d5, q4w(maximum dose: 10mg/d)",
+        "armGroupLabels": [
+          "Decitabine plus arsenic trioxide"
+        ],
+        "otherNames": [
+          "ATO"
+        ]
+      }
+    ],
+    "phases": [
+      "PHASE1"
+    ],
+    "overall_status": "UNKNOWN"
+  },
+  "NCT04585750": {
+    "url": "https://clinicaltrials.gov/study/NCT04585750",
+    "title": "The Evaluation of PC14586 in Patients With Advanced Solid Tumors Harboring a TP53 Y220C Mutation (PYNNACLE)",
+    "conditions": [
+      "Advanced Solid Tumor",
+      "Advanced Malignant Neoplasm",
+      "Metastatic Cancer",
+      "Metastatic Solid Tumor",
+      "Lung Cancer",
+      "Ovarian Cancer",
+      "Endometrial Cancer",
+      "Prostate Cancer",
+      "Colorectal Cancer",
+      "Breast Cancer",
+      "Other Cancer",
+      "Locally Advanced",
+      "Head and Neck Cancer",
+      "Gall Bladder Cancer",
+      "Small Cell Lung Cancer",
+      "Small Cell Lung Cancer ( SCLC )",
+      "Small Cell Lung Carcinoma",
+      "NSCLC",
+      "NSCLC (Non-small Cell Lung Cancer)",
+      "SCLC",
+      "Non-Small Cell Lung Carcinoma",
+      "Triple Negative Breast Cancer",
+      "TNBC",
+      "HER2+ Breast Cancer",
+      "Non-Small Cell Lung Cancer",
+      "ER/PR Positive Breast Cancer",
+      "HER2- Breast Cancer",
+      "HER2-positive Breast Cancer",
+      "HER2-negative Breast Cancer",
+      "ER/PR(+), Her2(-) Breast Cancer"
+    ],
+    "interventions": [
+      {
+        "type": "DRUG",
+        "name": "rezatapopt",
+        "description": "First-in-class, oral, small molecule p53 reactivator selective for the TP53 Y220C mutation.",
+        "armGroupLabels": [
+          "Phase 1 Monotherapy Dose Escalation",
+          "Phase 1b Combination Therapy Dose Escalation, Part 1",
+          "Phase 1b Combination Therapy Dose Expansion, PD(L)-1 naive patients",
+          "Phase 1b Combination Therapy Dose Expansion, PD(L)-1 relapsed/refractory patients",
+          "Phase 2 Monotherapy Dose Expansion, Breast Cancer Cohort",
+          "Phase 2 Monotherapy Dose Expansion, Endometrial Cancer Cohort",
+          "Phase 2 Monotherapy Dose Expansion, Lung Cancer Cohort",
+          "Phase 2 Monotherapy Dose Expansion, Other Solid Tumors Cohort",
+          "Phase 2 Monotherapy Dose Expansion, Ovarian Cancer Cohort"
+        ],
+        "otherNames": [
+          "PC14586"
+        ]
+      },
+      {
+        "type": "DRUG",
+        "name": "pembrolizumab",
+        "description": "Participants receive pembrolizumab 200 mg by intravenous (IV) infusion over 30 minutes.",
+        "armGroupLabels": [
+          "Phase 1b Combination Therapy Dose Escalation, Part 1",
+          "Phase 1b Combination Therapy Dose Expansion, PD(L)-1 naive patients",
+          "Phase 1b Combination Therapy Dose Expansion, PD(L)-1 relapsed/refractory patients"
+        ],
+        "otherNames": [
+          "KEYTRUDA\u00ae",
+          "MK-3475",
+          "KEYNOTE-D79",
+          "MK-3475-D79"
+        ]
+      }
+    ],
+    "phases": [
+      "PHASE1",
+      "PHASE2"
+    ],
+    "overall_status": "RECRUITING"
+  },
+  "NCT07001384": {
+    "url": "https://clinicaltrials.gov/study/NCT07001384",
+    "title": "A Study of Alectinib and Duvelisib in People With Anaplastic Lymphoma Kinase-Positive Anaplastic Large Cell Lymphoma (ALK+ALCL)",
+    "conditions": [
+      "Anaplastic Lymphoma Kinase",
+      "Anaplastic Large Cell Lymphoma"
+    ],
+    "interventions": [
+      {
+        "type": "DRUG",
+        "name": "Alectinib",
+        "description": "All patients will receive a lead-in cycle (28 days) of alectinib.",
+        "armGroupLabels": [
+          "Alectinib and Duvelisib"
+        ]
+      },
+      {
+        "type": "DRUG",
+        "name": "Duvelisib",
+        "description": "After the lead-in cycle of alectinib, in the absence of progressive disease as assessed by PET/CT scan, all patients will then receive two 28-day cycles of alectinib plus duvelisib.",
+        "armGroupLabels": [
+          "Alectinib and Duvelisib"
+        ]
+      }
+    ],
+    "phases": [
+      "PHASE1"
+    ],
+    "overall_status": "RECRUITING"
+  },
+  "NCT06765109": {
+    "url": "https://clinicaltrials.gov/study/NCT06765109",
+    "title": "Neladalkib (NVL-655) for TKI-naive Patients With Advanced ALK-Positive NSCLC",
+    "conditions": [
+      "Non-small Cell Lung Cancer",
+      "Anaplastic Lymphoma Kinase-positive"
+    ],
+    "interventions": [
+      {
+        "type": "DRUG",
+        "name": "Neladalkib (NVL-655)",
+        "description": "Oral tablet of Neladalkib (NVL-655)",
+        "armGroupLabels": [
+          "Neladalkib (NVL-655)"
+        ]
+      },
+      {
+        "type": "DRUG",
+        "name": "Alectinib",
+        "description": "Oral capsule of alectinib",
+        "armGroupLabels": [
+          "Alectinib"
+        ],
+        "otherNames": [
+          "Alecensa"
+        ]
+      }
+    ],
+    "phases": [
+      "PHASE3"
+    ],
+    "overall_status": "RECRUITING"
+  }
+}

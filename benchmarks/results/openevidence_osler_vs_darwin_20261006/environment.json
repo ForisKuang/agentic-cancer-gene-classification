@@ -1,0 +1,24 @@
+{
+  "base_commit": "5cece15e0c3d9223e2929dfb8c6517b1f046c2e6",
+  "branch": "feat/openevidence-osler-benchmark",
+  "python": "3.14.2",
+  "packages": {
+    "httpx": "0.28.1",
+    "pydantic": "2.13.5",
+    "tenacity": "9.1.4",
+    "anthropic": "1.11.0",
+    "pytest": "9.1.1",
+    "ruff": "0.16.10"
+  },
+  "source_sha256": {
+    "benchmarks/results/openevidence_pointed_20260908/disabled.json": "60acc8ee5ade6a62f8010da2db98369f05d598550e99624c71bfdcc67b081be9",
+    "benchmarks/results/openevidence_pointed_20260908/eml4_alk_fusion_qualitative.json": "ff6f0272acc22f344d6c2bd032f6f5cec0719bb61504253176debe4b56e8a151"
+  },
+  "open_evidence_planned_calls": 34,
+  "judge_planned_calls": 1,
+  "command": "uv run python -m benchmarks.run_openevidence_benchmark --compare-models osler darwin --timeout 900 --concurrency 3 --output benchmarks/results/openevidence_osler_vs_darwin_20261006",
+  "ttft_definition": "First nonempty non-whole-widget text SSE event, excluding citation-only markers; fragmented widget metadata may be counted. Not guaranteed first clinical prose token.",
+  "actual_openevidence_calls": 34,
+  "actual_judge_attempts": 10,
+  "total_api_attempts": 44
+}

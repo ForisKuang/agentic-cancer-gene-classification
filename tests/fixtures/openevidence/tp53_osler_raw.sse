@@ -1,0 +1,268 @@
+event: request-id
+data: REDACTED-REQUEST-ID
+
+event: analysis-id
+data: 00000000-0000-0000-0000-000000000000
+
+data: {"text": "REACTCOMPONENT!:!InlineGenerationStep!:!{\"steps\": [{\"kind\": \"reasoning\", \"label\": \"Analyzing query\", \"id\": \"analyzing"}
+
+data: {"text": "query\", \"active\": true, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 0, \"metadata\": {}}], \"done\": false, \"summary\": \"Analyzing query\"}"}
+
+data: {"text": "5803\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"search"}
+
+data: {"text": "medical"}
+
+data: {"text": "literature\", \"active\": true, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 0, \"metadata\": {}, \"queries\": []}, {\"call"}
+
+data: {"text": "id\": \"8fc467de-9fdd-4527-8b06-69f78000e967\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"search"}
+
+data: {"text": "medical"}
+
+data: {"text": "literature\", \"active\": true, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n"}
+
+data: {"text": "\n\n"}
+
+data: {"text": "No TP53-directed targeted therapy is currently approved or endorsed by NCCN, ASCO, or ESMO guidelines"}
+
+data: {"text": ", and TP53 mutation does not yet have a companion targeted drug in routine practice. Guideline recommendations instead use TP53 status as a negative predictive biomarker \u2014 to steer patients "}
+
+data: {"text": "away"}
+
+data: {"text": " from ther"}
+
+data: {"text": "apies that depend on an intact p53 apoptotic pathway (chemoimmunotherapy in CLL, intensive/HMA chemotherapy in myeloid disease) and toward p53-independent agents or clinical trials. The most important recent clinical-trial development is the first-in-human demonstration of direct pharmacologic p53 reactivation with the allele-selective agent rezatapopt in T"}
+
+data: {"text": "P53 Y220C\u2013mutated solid tumors."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "Dumbrava EE, Shapiro GI, Parikh AR, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2508820?utm_source=openevidence&utm_medium=referral\">Phase 1 Study of Rezatapopt, a P53 Reactivator, in TP53 Y220c-Mutated Tumors</a>. The New England Journal of Medicine. 2026;394(9):872-883. doi:10.1056/NEJMoa2508820.", "reference_detail": {"title": "Phase 1 Study of Rezatapopt, a p53 Reactivator, in TP53 Y220C\u2013Mutated Tumors", "authors_string": "Dumbrava EE, Shapiro GI, Parikh AR, et al.", "publication_info_string": "The New England Journal of Medicine. 2026;394(9):872-883. doi:10.1056/NEJMoa2508820.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2026-02-26", "doi": "10.1056/NEJMoa2508820", "url": "https://doi.org/10.1056/nejmoa2508820?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": " The therapeutic landscape is best divided into three domains.\n"}
+
+data: {"text": "1. Mutant-p53 reactivators (investigational; no approvals)"}
+
+data: {"text": "\n- "}
+
+data: {"text": "Rezatapopt (PC14586) \u2014 TP53 Y220C solid tumors."}
+
+data: {"text": " The strongest and most recent trial evidence is the phase "}
+
+data: {"text": "1 PYNNACLE study (NCT04585750) reported in the "}
+
+data: {"text": "New England Journal of Medicine"}
+
+data: {"text": " (2026). Rezatapopt is a first-in-class, orally administered, selective small molecule that binds the unique crevice created by the Y220C mutation and refolds p53 into a wild-type conformation. In heavily pretreated patients, single-agent confir"}
+
+data: {"text": "med responses occurred across ovarian, endometrial, breast, prostate, head and neck, and small-cell lung cancers; in Y220C/KRAS\u2013wild-type tumors the ORR was 38% (6/16 evaluable). No responses occurred when a KRAS single-nucleotide variant co-occurred. The recommended phase 2 dose is 2000 mg once daily with food, and the phase 2 PYNNACLE cohort is ongoing"}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "Dumbrava EE, Shapiro GI, Parikh AR, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2508820?utm_source=openevidence&utm_medium=referral\">Phase 1 Study of Rezatapopt, a P53 Reactivator, in TP53 Y220c-Mutated Tumors</a>. The New England Journal of Medicine. 2026;394(9):872-883. doi:10.1056/NEJMoa2508820.", "reference_detail": {"title": "Phase 1 Study of Rezatapopt, a p53 Reactivator, in TP53 Y220C\u2013Mutated Tumors", "authors_string": "Dumbrava EE, Shapiro GI, Parikh AR, et al.", "publication_info_string": "The New England Journal of Medicine. 2026;394(9):872-883. doi:10.1056/NEJMoa2508820.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2026-02-26", "doi": "10.1056/NEJMoa2508820", "url": "https://doi.org/10.1056/nejmoa2508820?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Peuget S, Zhou X, Selivanova G. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41568-023-00658-3\">Translating P53-Based Therapies for Cancer Into the Clinic</a>. Nature Reviews. Cancer. 2024;24(3):192-215. doi:10.1038/s41568-023-00658-3.", "reference_detail": {"title": "Translating p53-based therapies for cancer into the clinic", "authors_string": "Peuget S, Zhou X, Selivanova G.", "publication_info_string": "Nature Reviews. Cancer. 2024;24(3):192-215. doi:10.1038/s41568-023-00658-3.", "journal_name": "Nature Reviews. Cancer", "journal_short_name": "Nat Rev Cancer", "publication_date": "2024-03-01", "doi": "10.1038/s41568-023-00658-3", "url": "https://doi.org/10.1038/s41568-023-00658-3"}, "source_texts": []}}
+
+data: {"text": ". Y220C occurs in roughly 1%\u20132% of all tumors."}
+
+data: {"text": "[[3]]", "reference": {"citation_key": 3, "reference_text": "Klas G. Wiman. <a target=\"_blank\" href=\"https://doi.org/10.1038/s43018-026-01254-8\">A breakthrough in p53-targeted therapy</a>. Nature cancer. 2026.", "reference_detail": {"title": "A breakthrough in p53-targeted therapy", "authors_string": "Klas G. Wiman", "publication_info_string": "Nature cancer. 2026.", "journal_name": "Nature cancer", "journal_short_name": "Nature cancer", "publication_date": "2026-10-01", "doi": "10.1038/s43018-026-01254-8", "url": "https://doi.org/10.1038/s43018-026-01254-8"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "Eprenetapopt (APR-246) \u2014 TP53-mutant MDS/AML."}
+
+data: {"text": " The most clinically advanced reactivator overall. A phase Ib/II study of eprenetapopt plus azacitidine (NCT03"}
+
+data: {"text": "072043, published in "}
+
+data: {"text": "Journal of Clinical Oncology"}
+
+data: {"text": ") in 55 patients with TP53-mutant MDS/AML achieved an ORR of 71% and CR of 44%, with significant reductions in TP53 VAF. However, the confirmatory phase 3 trial (NCT03745716) in TP53-mutant MDS "}
+
+data: {"text": "did not meet its primary endpoint"}
+
+data: {"text": " \u2014 CR 33.3% with the combination versus 22.4% with azacitidine alone (P = 0.13"}
+
+data: {"text": "[[4]]", "reference": {"citation_key": 4, "reference_text": "Sallman DA, DeZern AE, Garcia-Manero G, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/33449813\">Eprenetapopt (APR-246) and Azacitidine in TP53-Mutant Myelodysplastic Syndromes</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2021;39(14):1584-1594. doi:10.1200/JCO.20.02341.", "reference_detail": {"title": "Eprenetapopt (APR-246) and Azacitidine in TP53-Mutant Myelodysplastic Syndromes", "authors_string": "Sallman DA, DeZern AE, Garcia-Manero G, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2021;39(14):1584-1594. doi:10.1200/JCO.20.02341.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2021-05-10", "doi": "10.1200/JCO.20.02341", "url": "https://pubmed.ncbi.nlm.nih.gov/33449813"}, "source_texts": []}}
+
+data: {"text": ") \u2014 halting development for this indication. Other combinations (with venetoclax \u00b1 azacitidine, NCT04214860; post-transplant maintenance, NCT03931291) have been explored."}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Peuget S, Zhou X, Selivanova G. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41568-023-00658-3\">Translating P53-Based Therapies for Cancer Into the Clinic</a>. Nature Reviews. Cancer. 2024;24(3):192-215. doi:10.1038/s41568-023-00658-3.", "reference_detail": {"title": "Translating p53-based therapies for cancer into the clinic", "authors_string": "Peuget S, Zhou X, Selivanova G.", "publication_info_string": "Nature Reviews. Cancer. 2024;24(3):192-215. doi:10.1038/s41568-023-00658-3.", "journal_name": "Nature Reviews. Cancer", "journal_short_name": "Nat Rev Cancer", "publication_date": "2024-03-01", "doi": "10.1038/s41568-023-00658-3", "url": "https://doi.org/10.1038/s41568-023-00658-3"}, "source_texts": []}}
+
+data: {"text": "[[5]]", "reference": {"citation_key": 5, "reference_text": "Patel SA. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41375-024-02417-1\">Managing the Unmanageable: Evidence-Driven Approaches to Real-World Patient Prototypes of TP53-mutant Myelodysplastic Neoplasms and Acute Myeloid Leukemia</a>. Leukemia. 2024;38(12):2544-2551. doi:10.1038/s41375-024-02417-1.", "reference_detail": {"title": "Managing the unmanageable: evidence-driven approaches to real-world patient prototypes of TP53-mutant myelodysplastic neoplasms and acute myeloid leukemia", "authors_string": "Patel SA.", "publication_info_string": "Leukemia. 2024;38(12):2544-2551. doi:10.1038/s41375-024-02417-1.", "journal_name": "Leukemia", "journal_short_name": "Leukemia", "publication_date": "2024-12-01", "doi": "10.1038/s41375-024-02417-1", "url": "https://doi.org/10.1038/s41375-024-02417-1"}, "source_texts": []}}
+
+data: {"text": "[[6]]", "reference": {"citation_key": 6, "reference_text": "Hassin O, Oren M. <a target=\"_blank\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9549847/\">Drugging P53 in Cancer: One Protein, Many Targets</a>. Nature Reviews. Drug Discovery. 2023;22(2):127-144. doi:10.1038/s41573-022-00571-8.", "reference_detail": {"title": "Drugging p53 in cancer: one protein, many targets", "authors_string": "Hassin O, Oren M.", "publication_info_string": "Nature Reviews. Drug Discovery. 2023;22(2):127-144. doi:10.1038/s41573-022-00571-8.", "journal_name": "Nature Reviews. Drug Discovery", "journal_short_name": "Nat Rev Drug Discov", "publication_date": "2023-02-01", "doi": "10.1038/s41573-022-00571-8", "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9549847/"}, "source_texts": []}}
+
+data: {"text": "[[7]]", "reference": {"citation_key": 7, "reference_text": "Venugopal S, Shoukier M, Konopleva M, et al. <a target=\"_blank\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12132598/\">Outcomes in Patients With Newly Diagnosed TP53-mutated Acute Myeloid Leukemia With or Without Venetoclax-Based Therapy</a>. Cancer. 2021;127(19):3541-3551. doi:10.1002/cncr.33675.", "reference_detail": {"title": "Outcomes in Patients with Newly Diagnosed TP53 -Mutated Acute Myeloid Leukemia with or without Venetoclax-Based Therapy", "authors_string": "Venugopal S, Shoukier M, Konopleva M, et al.", "publication_info_string": "Cancer. 2021;127(19):3541-3551. doi:10.1002/cncr.33675.", "journal_name": "Cancer", "journal_short_name": "Cancer", "publication_date": "2021-10-01", "doi": "10.1002/cncr.33675", "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12132598/"}, "source_texts": []}}
+
+data: {"text": "[[8]]", "reference": {"citation_key": 8, "reference_text": "Pereira MP, Herrity E, Kim DDH. <a target=\"_blank\" href=\"https://doi.org/10.1007/s00277-023-05462-5\">TP53-mutated Acute Myeloid Leukemia and Myelodysplastic Syndrome: Biology, Treatment Challenges, and Upcoming Approaches</a>. Annals of Hematology. 2024;103(4):1049-1067. doi:10.1007/s00277-023-05462-5.", "reference_detail": {"title": "TP53-mutated acute myeloid leukemia and myelodysplastic syndrome: biology, treatment challenges, and upcoming approaches", "authors_string": "Pereira MP, Herrity E, Kim DDH.", "publication_info_string": "Annals of Hematology. 2024;103(4):1049-1067. doi:10.1007/s00277-023-05462-5.", "journal_name": "Annals of Hematology", "journal_short_name": "Ann Hematol", "publication_date": "2024-04-01", "doi": "10.1007/s00277-023-05462-5", "url": "https://doi.org/10.1007/s00277-023-05462-5"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "Arsenic trioxide (ATO)"}
+
+data: {"text": " reactivates structural m"}
+
+data: {"text": "utants by binding zinc-finger cysteines and is being tested as monotherapy in solid tumors (NCT04869475) and with decitabine in TP53-mutant AML/MDS (NCT03855371), with early signals but very small numbers. "}
+
+data: {"text": "COTI-2"}
+
+data: {"text": " (a thiosemicarbazone) and "}
+
+data: {"text": "PEITC"}
+
+data: {"text": " are in early-phase testing"}
+
+data: {"text": "[[3]]", "reference": {"citation_key": 3, "reference_text": "Klas G. Wiman. <a target=\"_blank\" href=\"https://doi.org/10.1038/s43018-026-01254-8\">A breakthrough in p53-targeted therapy</a>. Nature cancer. 2026.", "reference_detail": {"title": "A breakthrough in p53-targeted therapy", "authors_string": "Klas G. Wiman", "publication_info_string": "Nature cancer. 2026.", "journal_name": "Nature cancer", "journal_short_name": "Nature cancer", "publication_date": "2026-10-01", "doi": "10.1038/s43018-026-01254-8", "url": "https://doi.org/10.1038/s43018-026-01254-8"}, "source_texts": []}}
+
+data: {"text": "[[9]]", "reference": {"citation_key": 9, "reference_text": "Lu X. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejme2516747?utm_source=openevidence&utm_medium=referral\">Restoring Function to a Variant of P53 in Solid Tumors</a>. The New England Journal of Medicine. 2026;394(9):922-925. doi:10.1056/NEJMe2516747.", "reference_detail": {"title": "Restoring Function to a Variant of p53 in Solid Tumors", "authors_string": "Lu X.", "publication_info_string": "The New England Journal of Medicine. 2026;394(9):922-925. doi:10.1056/NEJMe2516747.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2026-02-26", "doi": "10.1056/NEJMe2516747", "url": "https://doi.org/10.1056/nejme2516747?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "."}
+
+data: {"text": "[[10]]", "reference": {"citation_key": 10, "reference_text": "Duffy MJ, Synnott NC, O'Grady S, Crown J. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/32741700\">Targeting P53 for the Treatment of Cancer</a>. Seminars in Cancer Biology. 2022;79:58-67. doi:10.1016/j.semcancer.2020.07.005.", "reference_detail": {"title": "Targeting P53 for the Treatment of Cancer", "authors_string": "Duffy MJ, Synnott NC, O'Grady S, Crown J.", "publication_info_string": "Seminars in Cancer Biology. 2022;79:58-67. doi:10.1016/j.semcancer.2020.07.005.", "journal_name": "Seminars in Cancer Biology", "journal_short_name": "Semin Cancer Biol", "publication_date": "2022-02-01", "doi": "10.1016/j.semcancer.2020.07.005", "url": "https://pubmed.ncbi.nlm.nih.gov/32741700"}, "source_texts": []}}
+
+data: {"text": "[[11]]", "reference": {"citation_key": 11, "reference_text": "Duffy MJ, Tang M, Rajaram S, O'Grady S, Crown J. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/36139658\">Targeting Mutant P53 for Cancer Treatment: Moving Closer to Clinical Use?</a>. Cancers. 2022;14(18):4499. doi:10.3390/cancers14184499.", "reference_detail": {"title": "Targeting Mutant P53 for Cancer Treatment: Moving Closer to Clinical Use?", "authors_string": "Duffy MJ, Tang M, Rajaram S, O'Grady S, Crown J.", "publication_info_string": "Cancers. 2022;14(18):4499. doi:10.3390/cancers14184499.", "journal_name": "Cancers", "journal_short_name": "Cancers (Basel)", "publication_date": "2022-09-16", "doi": "10.3390/cancers14184499", "url": "https://pubmed.ncbi.nlm.nih.gov/36139658"}, "source_texts": []}}
+
+data: {"text": "\nThe following figure maps these reactivation strategies by mutation class, showing which compound targets which mutant p53 structural defect:"}
+
+data: {"text": "\n"}
+
+data: {"image": {"url": "https://storage.googleapis.com/springer-journal-multimedia/cms/10.1038_s41571-023-00842-2/asset/ed1e798f-17cf-4ec7-9df6-17a266dbcf0c/assets/images/large/41571_2023_842_Fig5_HTML.jpg", "name": "Figure 5", "caption": "Therapeutic strategies for TP53-mutant cancers. a, The main compounds targeting missense mutant p53. Straight lines represent covalent bonds. Cysteine residues targeted by 2-methylene quinuclidin-3-one (MQ, the active metabolite of eprenetapopt), arsenic trioxide (ATO) or KG13 are indicated. Mutant p53 reactivation can restore the proper folding and specific DNA binding capabilities of wild-type p53, enabling transactivation of p53 target genes and possibly also p53 transcription-independent activities, leading to the elimination of cancer cells. MQ binds covalently to several cysteine residues located in the core domain of p53, thereby increasing its thermostability. MQ binding to the C277 residue also increases the stability of the protein\u2013DNA interface. ATO binds and coordinates the indicated cysteine residues and reactivates structural p53 mutants. The compounds PK7088 and PC14586 bind to a crevice that is unique to p53 Y220C. The azaindole molecule KG13 binds covalently to C220 in p53 Y220C with high specificity, representing a different approach for targeting the same mutant. b, Schematic representation (not to scale) of translational readthrough of nonsense-mutant TP53 transcripts. Start and stop codons are depicted in green and red, respectively. The ribosome is stalled at a premature termination codon (PTC) in the TP53 mRNA and release factors eRF1 and eRF3 are recruited, leading to premature termination of translation and synthesis of truncated p53. Compounds that induce translational readthrough (yellow) enable continued translation and expression of full-length p53. FUr, 5-fluorouridine. Natural stop codons are less prone to translational readthrough owing to downstream sequences that increase the efficiency of translation termination and owing to their close proximity to the poly(A) tail and poly(A)-binding proteins."}}
+
+data: {"text": "[[12]]", "reference": {"citation_key": 12, "reference_text": "Tuval A, Strandgren C, Heldin A, Palomar-Siles M, Wiman KG. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41571-023-00842-2\">Pharmacological Reactivation of P53 in the Era of Precision Anticancer Medicine</a>. Nature Reviews. Clinical Oncology. 2024;21(2):106-120. doi:10.1038/s41571-023-00842-2.", "reference_detail": {"title": "Pharmacological reactivation of p53 in the era of precision anticancer medicine", "authors_string": "Tuval A, Strandgren C, Heldin A, Palomar-Siles M, Wiman KG.", "publication_info_string": "Nature Reviews. Clinical Oncology. 2024;21(2):106-120. doi:10.1038/s41571-023-00842-2.", "journal_name": "Nature Reviews. Clinical Oncology", "journal_short_name": "Nat Rev Clin Oncol", "publication_date": "2024-02-01", "doi": "10.1038/s41571-023-00842-2", "url": "https://doi.org/10.1038/s41571-023-00842-2"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "2. Synthetic-lethal targeting of TP53 loss (WEE1 and DDR inhibitors)"}
+
+data: {"text": "\nTP53 loss abr"}
+
+data: {"text": "ogates the G1/S checkpoint, creating dependence on the G2/M and intra-S checkpoints \u2014 a synthetic-lethal vulnerability exploited by WEE1, ATR, and CHK1 inhibitors."}
+
+data: {"text": "[[13]]", "reference": {"citation_key": 13, "reference_text": "Tjeerdsma RB, Ng TF, Roorda M, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41467-025-66514-0\">WEE1 Inhibitors Trigger GCN2-mediated Activation of the Integrated Stress Response</a>. Nature Communications. 2025;16(1):11598. doi:10.1038/s41467-025-66514-0.", "reference_detail": {"title": "WEE1 inhibitors trigger GCN2-mediated activation of the integrated stress response", "authors_string": "Tjeerdsma RB, Ng TF, Roorda M, et al.", "publication_info_string": "Nature Communications. 2025;16(1):11598. doi:10.1038/s41467-025-66514-0.", "journal_name": "Nature Communications", "journal_short_name": "Nat Commun", "publication_date": "2025-11-24", "doi": "10.1038/s41467-025-66514-0", "url": "https://doi.org/10.1038/s41467-025-66514-0"}, "source_texts": []}}
+
+data: {"text": "[[14]]", "reference": {"citation_key": 14, "reference_text": "Pili\u00e9 PG, Tang C, Mills GB, Yap TA. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41571-018-0114-z\">State-of-the-Art Strategies for Targeting the DNA Damage Response in Cancer</a>. Nature Reviews. Clinical Oncology. 2019;16(2):81-104. doi:10.1038/s41571-018-0114-z.", "reference_detail": {"title": "State-of-the-art strategies for targeting the DNA damage response in cancer", "authors_string": "Pili\u00e9 PG, Tang C, Mills GB, Yap TA.", "publication_info_string": "Nature Reviews. Clinical Oncology. 2019;16(2):81-104. doi:10.1038/s41571-018-0114-z.", "journal_name": "Nature Reviews. Clinical Oncology", "journal_short_name": "Nat Rev Clin Oncol", "publication_date": "2019-02-01", "doi": "10.1038/s41571-018-0114-z", "url": "https://doi.org/10.1038/s41571-018-0114-z"}, "source_texts": []}}
+
+data: {"text": "[[15]]", "reference": {"citation_key": 15, "reference_text": "Chao Y, Chen Y, Zheng W, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41388-024-02939-z\">Synthetic Lethal Combination of CHK1 and WEE1 Inhibition for Treatment of Castration-Resistant Prostate Cancer</a>. Oncogene. 2024;43(11):789-803. doi:10.1038/s41388-024-02939-z.", "reference_detail": {"title": "Synthetic lethal combination of CHK1 and WEE1 inhibition for treatment of castration-resistant prostate cancer", "authors_string": "Chao Y, Chen Y, Zheng W, et al.", "publication_info_string": "Oncogene. 2024;43(11):789-803. doi:10.1038/s41388-024-02939-z.", "journal_name": "Oncogene", "journal_short_name": "Oncogene", "publication_date": "2024-03-01", "doi": "10.1038/s41388-024-02939-z", "url": "https://doi.org/10.1038/s41388-024-02939-z"}, "source_texts": []}}
+
+data: {"text": " The key randomized evidence is "}
+
+data: {"text": "FOCUS4-C"}
+
+data: {"text": " ("}
+
+data: {"text": "Journal of Clinical Oncology"}
+
+data: {"text": ", 2021), a phase II trial in which the WEE1 inhibitor "}
+
+data: {"text": "adavosertib ("}
+
+data: {"text": "AZD1775) improved progression-free survival versus active monitoring in RAS- and TP53-mutant metastatic colorectal cancer."}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Peuget S, Zhou X, Selivanova G. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41568-023-00658-3\">Translating P53-Based Therapies for Cancer Into the Clinic</a>. Nature Reviews. Cancer. 2024;24(3):192-215. doi:10.1038/s41568-023-00658-3.", "reference_detail": {"title": "Translating p53-based therapies for cancer into the clinic", "authors_string": "Peuget S, Zhou X, Selivanova G.", "publication_info_string": "Nature Reviews. Cancer. 2024;24(3):192-215. doi:10.1038/s41568-023-00658-3.", "journal_name": "Nature Reviews. Cancer", "journal_short_name": "Nat Rev Cancer", "publication_date": "2024-03-01", "doi": "10.1038/s41568-023-00658-3", "url": "https://doi.org/10.1038/s41568-023-00658-3"}, "source_texts": []}}
+
+data: {"text": "[[16]]", "reference": {"citation_key": 16, "reference_text": "Seligmann JF, Fisher DJ, Brown LC, et al. <a target=\"_blank\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8601321/\">Inhibition of WEE1 Is Effective in TP53- And RAS-Mutant Metastatic Colorectal Cancer: A Randomized Trial (FOCUS4-C) Comparing Adavosertib (AZD1775) With Active Monitoring</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2021;39(33):3705-3715. doi:10.1200/JCO.21.01435.", "reference_detail": {"title": "Inhibition of WEE1 Is Effective in TP53 - and RAS -Mutant Metastatic Colorectal Cancer: A Randomized Trial (FOCUS4-C) Comparing Adavosertib (AZD1775) With Active Monitoring", "authors_string": "Seligmann JF, Fisher DJ, Brown LC, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2021;39(33):3705-3715. doi:10.1200/JCO.21.01435.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2021-11-20", "doi": "10.1200/JCO.21.01435", "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8601321/"}, "source_texts": []}}
+
+data: {"text": " In TP53-mutant ovarian cancer, adavosertib plus carboplatin produced ORRs of ~41%\u201343%, though with substantial hematologic and GI toxicity."}
+
+data: {"text": "[[14]]", "reference": {"citation_key": 14, "reference_text": "Pili\u00e9 PG, Tang C, Mills GB, Yap TA. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41571-018-0114-z\">State-of-the-Art Strategies for Targeting the DNA Damage Response in Cancer</a>. Nature Reviews. Clinical Oncology. 2019;16(2):81-104. doi:10.1038/s41571-018-0114-z.", "reference_detail": {"title": "State-of-the-art strategies for targeting the DNA damage response in cancer", "authors_string": "Pili\u00e9 PG, Tang C, Mills GB, Yap TA.", "publication_info_string": "Nature Reviews. Clinical Oncology. 2019;16(2):81-104. doi:10.1038/s41571-018-0114-z.", "journal_name": "Nature Reviews. Clinical Oncology", "journal_short_name": "Nat Rev Clin Oncol", "publication_date": "2019-02-01", "doi": "10.1038/s41571-018-0114-z", "url": "https://doi.org/10.1038/s41571-018-0114-z"}, "source_texts": []}}
+
+data: {"text": "[[17]]", "reference": {"citation_key": 17, "reference_text": "Ngoi NYL, Gallo D, Torrado C, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41571-024-00966-z\">Synthetic Lethal Strategies for the Development of Cancer Therapeutics</a>. Nature Reviews. Clinical Oncology. 2025;22(1):46-64. doi:10.1038/s41571-024-00966-z.", "reference_detail": {"title": "Synthetic lethal strategies for the development of cancer therapeutics", "authors_string": "Ngoi NYL, Gallo D, Torrado C, et al.", "publication_info_string": "Nature Reviews. Clinical Oncology. 2025;22(1):46-64. doi:10.1038/s41571-024-00966-z.", "journal_name": "Nature Reviews. Clinical Oncology", "journal_short_name": "Nat Rev Clin Oncol", "publication_date": "2025-01-01", "doi": "10.1038/s41571-024-00966-z", "url": "https://doi.org/10.1038/s41571-024-00966-z"}, "source_texts": []}}
+
+data: {"text": " No WEE1 inhibit"}
+
+data: {"text": "or is yet guideline-recommended or approved; TP53 mutation remains an investigational predictive biomarker, and some data show activity is partly independent of p53 status."}
+
+data: {"text": "[[18]]", "reference": {"citation_key": 18, "reference_text": "da Costa AABA, Chowdhury D, Shapiro GI, D'Andrea AD, Konstantinopoulos PA. <a target=\"_blank\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11132912/\">Targeting Replication Stress in Cancer Therapy</a>. Nature Reviews. Drug Discovery. 2023;22(1):38-58. doi:10.1038/s41573-022-00558-5.", "reference_detail": {"title": "Targeting replication stress in cancer therapy", "authors_string": "da Costa AABA, Chowdhury D, Shapiro GI, D'Andrea AD, Konstantinopoulos PA.", "publication_info_string": "Nature Reviews. Drug Discovery. 2023;22(1):38-58. doi:10.1038/s41573-022-00558-5.", "journal_name": "Nature Reviews. Drug Discovery", "journal_short_name": "Nat Rev Drug Discov", "publication_date": "2023-01-01", "doi": "10.1038/s41573-022-00558-5", "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11132912/"}, "source_texts": []}}
+
+data: {"text": "[[19]]", "reference": {"citation_key": 19, "reference_text": "Ghelli Luserna di Ror\u00e0 A, Cerchione C, Martinelli G, Simonetti G. <a target=\"_blank\" href=\"https://doi.org/10.1186/s13045-020-00959-2\">A WEE1 Family Business: Regulation of Mitosis, Cancer Progression, and Therapeutic Target</a>. Journal of Hematology & Oncology. 2020;13(1):126. doi:10.1186/s13045-020-00959-2.", "reference_detail": {"title": "A WEE1 family business: regulation of mitosis, cancer progression, and therapeutic target", "authors_string": "Ghelli Luserna di Ror\u00e0 A, Cerchione C, Martinelli G, Simonetti G.", "publication_info_string": "Journal of Hematology & Oncology. 2020;13(1):126. doi:10.1186/s13045-020-00959-2.", "journal_name": "Journal of Hematology & Oncology", "journal_short_name": "J Hematol Oncol", "publication_date": "2020-09-21", "doi": "10.1186/s13045-020-00959-2", "url": "https://doi.org/10.1186/s13045-020-00959-2"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "3. TP53 as a biomarker in guideline-directed treatment selection"}
+
+data: {"text": "\nThis is where NCCN and ESMO guidelines make the most concrete, actionable recommendations about TP53 \u2014 not to target it, but to avoid p"}
+
+data: {"text": "53-dependent therapy:"}
+
+data: {"text": "\n"}
+
+data: {"table": {"rows": [{"Disease": "<strong>CLL/SLL</strong>", "Guideline/evidence": "NCCN Guidelines (v2.2027); ESMO; ERIC recommendations", "Role of TP53 alteration": "TP53 mutation and/or del(17p) predict resistance to chemoimmunotherapy; BTK inhibitors (preferred)"}]}}
+
+data: {"table": {"rows": [{"Disease": "<strong>CLL/SLL</strong>", "Guideline/evidence": "NCCN Guidelines (v2.2027); ESMO; ERIC recommendations", "Role of TP53 alteration": "TP53 mutation and/or del(17p) predict resistance to chemoimmunotherapy; BTK inhibitors (preferred) or venetoclax-based regimens are used instead. TP53/del(17p) testing is mandated before each line of therapy [1-4]"}, {"Disease": "<strong>AML</strong>", "Guideline/evidence": "NCCN Guidelines (v5.2026); ELN 2022", "Role of TP53 alteration": "TP53 mutation (VAF \u226510%, mono- or biallelic) defines the adverse-"}]}}
+
+data: {"table": {"rows": [{"Disease": "<strong>CLL/SLL</strong>", "Guideline/evidence": "NCCN Guidelines (v2.2027); ESMO; ERIC recommendations", "Role of TP53 alteration": "TP53 mutation and/or del(17p) predict resistance to chemoimmunotherapy; BTK inhibitors (preferred) or venetoclax-based regimens are used instead. TP53/del(17p) testing is mandated before each line of therapy [1-4]"}, {"Disease": "<strong>AML</strong>", "Guideline/evidence": "NCCN Guidelines (v5.2026); ELN 2022", "Role of TP53 alteration": "TP53 mutation (VAF \u226510%, mono- or biallelic) defines the adverse-risk category; associated with poor response to intensive chemo,"}]}}
+
+data: {"table": {"rows": [{"Disease": "<strong>CLL/SLL</strong>", "Guideline/evidence": "NCCN Guidelines (v2.2027); ESMO; ERIC recommendations", "Role of TP53 alteration": "TP53 mutation and/or del(17p) predict resistance to chemoimmunotherapy; BTK inhibitors (preferred) or venetoclax-based regimens are used instead. TP53/del(17p) testing is mandated before each line of therapy [1-4]"}, {"Disease": "<strong>AML</strong>", "Guideline/evidence": "NCCN Guidelines (v5.2026); ELN 2022", "Role of TP53 alteration": "TP53 mutation (VAF \u226510%, mono- or biallelic) defines the adverse-risk category; associated with poor response to intensive chemo, HMA, and venetoclax; clinical trial enrollment is encouraged [5-6]"}, {"Disease": "<strong>MDS</strong>", "Guideline/evidence": "WHO 2022/ICC; IPSS-M", "Role of TP53 alteration": "Multi-hit/biallelic TP53 is a distinct, poor-prognosis entity; HMA \u00b1 venetoclax with consideration of allo-HCT; trial enrollment favored [7-9]"}]}}
+
+data: {"text": "[[20]]", "reference": {"citation_key": 20, "reference_text": "Malcikova J, Tausch E, Rossi D, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41375-017-0007-7\">ERIC Recommendations for TP53 Mutation Analysis in Chronic Lymphocytic Leukemia-Update on Methodological Approaches and Results Interpretation</a>. Leukemia. 2018;32(5):1070-1080. doi:10.1038/s41375-017-0007-7.", "reference_detail": {"title": "ERIC recommendations for TP53 mutation analysis in chronic lymphocytic leukemia\u2014update on methodological approaches and results interpretation", "authors_string": "Malcikova J, Tausch E, Rossi D, et al.", "publication_info_string": "Leukemia. 2018;32(5):1070-1080. doi:10.1038/s41375-017-0007-7.", "journal_name": "Leukemia", "journal_short_name": "Leukemia", "publication_date": "2018-05-01", "doi": "10.1038/s41375-017-0007-7", "url": "https://doi.org/10.1038/s41375-017-0007-7"}, "source_texts": []}}
+
+data: {"text": "[[21]]", "reference": {"citation_key": 21, "reference_text": "Shadman M. <a target=\"_blank\" href=\"https://jamanetwork.com/journals/jama/fullarticle/10.1001/jama.2023.1946?utm_source=openevidence&utm_medium=referral\">Diagnosis and Treatment of Chronic Lymphocytic Leukemia: A Review</a>. Jama. 2023;329(11):918-932. doi:10.1001/jama.2023.1946.", "reference_detail": {"title": "Diagnosis and Treatment of Chronic Lymphocytic Leukemia: A Review", "authors_string": "Shadman M.", "publication_info_string": "JAMA. 2023;329(11):918-932. doi:10.1001/jama.2023.1946.", "journal_name": "The Journal of the American Medical Association", "journal_short_name": "JAMA", "publication_date": "2023-03-21", "doi": "10.1001/jama.2023.1946", "url": "https://jamanetwork.com/journals/jama/fullarticle/10.1001/jama.2023.1946?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "[[22]]", "reference": {"citation_key": 22, "reference_text": "National Comprehensive Cancer Network. Chronic Lymphocytic Leukemia/Small Lymphocytic Lymphoma.", "reference_detail": {"title": "Chronic Lymphocytic Leukemia/Small Lymphocytic Lymphoma", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-28", "publication_date": "2026-09-28", "url": "https://www.nccn.org/professionals/physician_gls/pdf/cll.pdf#page=16"}, "source_texts": []}}
+
+data: {"text": "[[23]]", "reference": {"citation_key": 23, "reference_text": "Malcikova J, Pavlova S, Baliakas P, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41375-024-02267-x\">ERIC Recommendations for TP53 Mutation Analysis in Chronic Lymphocytic Leukemia-2024 Update</a>. Leukemia. 2024;38(7):1455-1468. doi:10.1038/s41375-024-02267-x.", "reference_detail": {"title": "ERIC recommendations for TP53 mutation analysis in chronic lymphocytic leukemia\u20142024 update", "authors_string": "Malcikova J, Pavlova S, Baliakas P, et al.", "publication_info_string": "Leukemia. 2024;38(7):1455-1468. doi:10.1038/s41375-024-02267-x.", "journal_name": "Leukemia", "journal_short_name": "Leukemia", "publication_date": "2024-07-01", "doi": "10.1038/s41375-024-02267-x", "url": "https://doi.org/10.1038/s41375-024-02267-x"}, "source_texts": []}}
+
+data: {"text": "[[24]]", "reference": {"citation_key": 24, "reference_text": "National Comprehensive Cancer Network. Acute Myeloid Leukemia.", "reference_detail": {"title": "Acute Myeloid Leukemia", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-07-15", "publication_date": "2026-07-15", "url": "https://www.nccn.org/professionals/physician_gls/pdf/aml.pdf#page=44"}, "source_texts": []}}
+
+data: {"text": "[[25]]", "reference": {"citation_key": 25, "reference_text": "Shallis RM, Daver NG, Altman JK, et al. <a target=\"_blank\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11938810/\">TP53-altered Acute Myeloid Leukemia and Myelodysplastic Syndrome With Excess Blasts Should Be Approached as a Single Entity</a>. Cancer. 2023;129(2):175-180. doi:10.1002/cncr.34535.", "reference_detail": {"title": "TP53 -altered acute myeloid leukemia and myelodysplastic syndrome with excess blasts should be approached as a single entity", "authors_string": "Shallis RM, Daver NG, Altman JK, et al.", "publication_info_string": "Cancer. 2023;129(2):175-180. doi:10.1002/cncr.34535.", "journal_name": "Cancer", "journal_short_name": "Cancer", "publication_date": "2023-01-15", "doi": "10.1002/cncr.34535", "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11938810/"}, "source_texts": []}}
+
+data: {"text": "[[26]]", "reference": {"citation_key": 26, "reference_text": "Urrutia S, Wong TN, Link DC. <a target=\"_blank\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12983017/\">A Clinical Guide to TP53 Mutations in Myeloid Neoplasms</a>. Blood. 2025;146(18):2157-2167. doi:10.1182/blood.2025029691.", "reference_detail": {"title": "A clinical guide to TP53 mutations in myeloid neoplasms", "authors_string": "Urrutia S, Wong TN, Link DC.", "publication_info_string": "Blood. 2025;146(18):2157-2167. doi:10.1182/blood.2025029691.", "journal_name": "Blood", "journal_short_name": "Blood", "publication_date": "2025-10-30", "doi": "10.1182/blood.2025029691", "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12983017/"}, "source_texts": []}}
+
+data: {"text": "[[27]]", "reference": {"citation_key": 27, "reference_text": "Galanopoulos AG, Papi C. <a target=\"_blank\" href=\"https://doi.org/10.1111/ejh.70146\">\u039d\u03bfvel Therapies in High-Risk Myelodysplastic Syndromes</a>. European Journal of Haematology. 2026;116(6):744-758. doi:10.1111/ejh.70146.", "reference_detail": {"title": "\u039d\u03bfvel Therapies in High\u2010Risk Myelodysplastic Syndromes", "authors_string": "Galanopoulos AG, Papi C.", "publication_info_string": "European Journal of Haematology. 2026;116(6):744-758. doi:10.1111/ejh.70146.", "journal_name": "European Journal of Haematology", "journal_short_name": "Eur J Haematol", "publication_date": "2026-06-01", "doi": "10.1111/ejh.70146", "url": "https://doi.org/10.1111/ejh.70146"}, "source_texts": []}}
+
+data: {"text": "[[28]]", "reference": {"citation_key": 28, "reference_text": "Shah MV, Arber DA, Hiwase DK. <a target=\"_blank\" href=\"https://doi.org/10.1002/ajh.27655\">TP53 -Mutated Myeloid Neoplasms: 2024 Update On\u00a0Diagnosis, Risk-Stratification, and Management</a>. American Journal of Hematology. 2025;100 Suppl 4:88-115. doi:10.1002/ajh.27655.", "reference_detail": {"title": "TP53\u2010Mutated Myeloid Neoplasms: 2024 Update on Diagnosis, Risk\u2010Stratification, and Management", "authors_string": "Shah MV, Arber DA, Hiwase DK.", "publication_info_string": "American Journal of Hematology. 2025;100 Suppl 4:88-115. doi:10.1002/ajh.27655.", "journal_name": "American Journal of Hematology", "journal_short_name": "Am J Hematol", "publication_date": "2025-06-01", "doi": "10.1002/ajh.27655", "url": "https://doi.org/10.1002/ajh.27655"}, "source_texts": []}}
+
+data: {"text": "\nIn CLL, the NCCN prognostic-variable table explicitly lists TP53 mutation (with or without del"}
+
+data: {"text": "17p]) as conferring shorter PFS/OS and increased resistance to both chemoimmunotherapy and targeted agents, and notes low-burden variants (<10% VAF) may behave like wild type."}
+
+data: {"text": "[[22]]", "reference": {"citation_key": 22, "reference_text": "National Comprehensive Cancer Network. Chronic Lymphocytic Leukemia/Small Lymphocytic Lymphoma.", "reference_detail": {"title": "Chronic Lymphocytic Leukemia/Small Lymphocytic Lymphoma", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-28", "publication_date": "2026-09-28", "url": "https://www.nccn.org/professionals/physician_gls/pdf/cll.pdf#page=17"}, "source_texts": []}}
+
+data: {"text": " In TP53-mutant AML/MDS, allogeneic HCT remains the only pot"}
+
+data: {"text": "entially curative option, though outcomes remain poor (2-year OS ~19%)."}
+
+data: {"text": "[[28]]", "reference": {"citation_key": 28, "reference_text": "Shah MV, Arber DA, Hiwase DK. <a target=\"_blank\" href=\"https://doi.org/10.1002/ajh.27655\">TP53 -Mutated Myeloid Neoplasms: 2024 Update On\u00a0Diagnosis, Risk-Stratification, and Management</a>. American Journal of Hematology. 2025;100 Suppl 4:88-115. doi:10.1002/ajh.27655.", "reference_detail": {"title": "TP53\u2010Mutated Myeloid Neoplasms: 2024 Update on Diagnosis, Risk\u2010Stratification, and Management", "authors_string": "Shah MV, Arber DA, Hiwase DK.", "publication_info_string": "American Journal of Hematology. 2025;100 Suppl 4:88-115. doi:10.1002/ajh.27655.", "journal_name": "American Journal of Hematology", "journal_short_name": "Am J Hematol", "publication_date": "2025-06-01", "doi": "10.1002/ajh.27655", "url": "https://doi.org/10.1002/ajh.27655"}, "source_texts": []}}
+
+data: {"text": "[[29]]", "reference": {"citation_key": 29, "reference_text": "Winter L, Pawlowsky L, Muth A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41375-026-02991-6\">TP53 Deficiency in AML Induces Resistance to T-Cell Engagers Through an Immunosuppressive Secretome</a>. Leukemia. 2026;40(8):1624-1635. doi:10.1038/s41375-026-02991-6.", "reference_detail": {"title": "TP53 deficiency in AML induces resistance to T-cell engagers through an immunosuppressive secretome", "authors_string": "Winter L, Pawlowsky L, Muth A, et al.", "publication_info_string": "Leukemia. 2026;40(8):1624-1635. doi:10.1038/s41375-026-02991-6.", "journal_name": "Leukemia", "journal_short_name": "Leukemia", "publication_date": "2026-08-01", "doi": "10.1038/s41375-026-02991-6", "url": "https://doi.org/10.1038/s41375-026-02991-6"}, "source_texts": []}}
+
+data: {"text": "[[30]]", "reference": {"citation_key": 30, "reference_text": "Reuss M, Meyer T, Ingelfinger F, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41409-026-03029-2\">Characterisation of TP53 Mutational Features and Outcomes of Acute Myeloid Leukaemia After Allogeneic Haematopoietic Cell Transplantation</a>. Bone Marrow Transplantation. 2026;:10.1038/s41409-026-03029-2. doi:10.1038/s41409-026-03029-2.", "reference_detail": {"title": "Characterisation of TP53 mutational features and outcomes of acute myeloid leukaemia after allogeneic haematopoietic cell transplantation", "authors_string": "Reuss M, Meyer T, Ingelfinger F, et al.", "publication_info_string": "Bone Marrow Transplantation. 2026;:10.1038/s41409-026-03029-2. doi:10.1038/s41409-026-03029-2.", "journal_name": "Bone Marrow Transplantation", "journal_short_name": "Bone Marrow Transplant", "publication_date": "2026-09-04", "doi": "10.1038/s41409-026-03029-2", "url": "https://doi.org/10.1038/s41409-026-03029-2"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "Important caveats."}
+
+data: {"text": " Outside the Y220C-selective rezatapopt data, clinical translation of p53-targeted therapy has been largely disappointing, reflecting the biologic heterogeneity of TP53 mutations (missense vs nonsense, structural vs cont"}
+
+data: {"text": "act, allelic burden, co-mutations such as KRAS)."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "Dumbrava EE, Shapiro GI, Parikh AR, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2508820?utm_source=openevidence&utm_medium=referral\">Phase 1 Study of Rezatapopt, a P53 Reactivator, in TP53 Y220c-Mutated Tumors</a>. The New England Journal of Medicine. 2026;394(9):872-883. doi:10.1056/NEJMoa2508820.", "reference_detail": {"title": "Phase 1 Study of Rezatapopt, a p53 Reactivator, in TP53 Y220C\u2013Mutated Tumors", "authors_string": "Dumbrava EE, Shapiro GI, Parikh AR, et al.", "publication_info_string": "The New England Journal of Medicine. 2026;394(9):872-883. doi:10.1056/NEJMoa2508820.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2026-02-26", "doi": "10.1056/NEJMoa2508820", "url": "https://doi.org/10.1056/nejmoa2508820?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "[[31]]", "reference": {"citation_key": 31, "reference_text": "Saunders A, Barkin J, Karnezis A, Chien J. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/42352396\">Targeting P53 in Cancer: Functional States, Therapeutic Strategies, and Clinical Progress</a>. Cancers. 2026;18(12):1861. doi:10.3390/cancers18121861.", "reference_detail": {"title": "Targeting P53 in Cancer: Functional States, Therapeutic Strategies, and Clinical Progress", "authors_string": "Saunders A, Barkin J, Karnezis A, Chien J.", "publication_info_string": "Cancers. 2026;18(12):1861. doi:10.3390/cancers18121861.", "journal_name": "Cancers", "journal_short_name": "Cancers (Basel)", "publication_date": "2026-06-06", "doi": "10.3390/cancers18121861", "url": "https://pubmed.ncbi.nlm.nih.gov/42352396"}, "source_texts": []}}
+
+data: {"text": "[[32]]", "reference": {"citation_key": 32, "reference_text": "Al-Zoubi RM, Elaarag M, Zarour AA, et al. <a target=\"_blank\" href=\"https://doi.org/10.1002/ddr.70246\">Innovative Drug and Prodrug Candidates in Cancer Treatment Targeting TP53 Mutations: Challenge and Hope</a>. Drug Development Research. 2026;87(2):e70246. doi:10.1002/ddr.70246.", "reference_detail": {"title": "Innovative Drug and Prodrug Candidates in Cancer Treatment Targeting TP53 Mutations: Challenge and Hope", "authors_string": "Al-Zoubi RM, Elaarag M, Zarour AA, et al.", "publication_info_string": "Drug Development Research. 2026;87(2):e70246. doi:10.1002/ddr.70246.", "journal_name": "Drug Development Research", "journal_short_name": "Drug Dev Res", "publication_date": "2026-04-01", "doi": "10.1002/ddr.70246", "url": "https://doi.org/10.1002/ddr.70246"}, "source_texts": []}}
+
+data: {"text": " MDM2/MDM4 antagonists (e.g., idasanutlin, navtemadlin) require "}
+
+data: {"text": "wild-type"}
+
+data: {"text": " p53 and are ineffective in TP53-mutant tumors \u2014 an important distinction when \"targeting p53\" is discussed."}
+
+data: {"text": "[[10]]", "reference": {"citation_key": 10, "reference_text": "Duffy MJ, Synnott NC, O'Grady S, Crown J. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/32741700\">Targeting P53 for the Treatment of Cancer</a>. Seminars in Cancer Biology. 2022;79:58-67. doi:10.1016/j.semcancer.2020.07.005.", "reference_detail": {"title": "Targeting P53 for the Treatment of Cancer", "authors_string": "Duffy MJ, Synnott NC, O'Grady S, Crown J.", "publication_info_string": "Seminars in Cancer Biology. 2022;79:58-67. doi:10.1016/j.semcancer.2020.07.005.", "journal_name": "Seminars in Cancer Biology", "journal_short_name": "Semin Cancer Biol", "publication_date": "2022-02-01", "doi": "10.1016/j.semcancer.2020.07.005", "url": "https://pubmed.ncbi.nlm.nih.gov/32741700"}, "source_texts": []}}
+
+data: {"text": "[[32]]", "reference": {"citation_key": 32, "reference_text": "Al-Zoubi RM, Elaarag M, Zarour AA, et al. <a target=\"_blank\" href=\"https://doi.org/10.1002/ddr.70246\">Innovative Drug and Prodrug Candidates in Cancer Treatment Targeting TP53 Mutations: Challenge and Hope</a>. Drug Development Research. 2026;87(2):e70246. doi:10.1002/ddr.70246.", "reference_detail": {"title": "Innovative Drug and Prodrug Candidates in Cancer Treatment Targeting TP53 Mutations: Challenge and Hope", "authors_string": "Al-Zoubi RM, Elaarag M, Zarour AA, et al.", "publication_info_string": "Drug Development Research. 2026;87(2):e70246. doi:10.1002/ddr.70246.", "journal_name": "Drug Development Research", "journal_short_name": "Drug Dev Res", "publication_date": "2026-04-01", "doi": "10.1002/ddr.70246", "url": "https://doi.org/10.1002/ddr.70246"}, "source_texts": []}}
+
+data: {"text": " At present, the pract"}
+
+data: {"text": "ical guideline message remains that TP53 status should be assessed to inform prognosis and to select p53-independent regimens or trials, not because an approved TP53-directed drug exists."}
+
+data: {"text": "\n"}
+
+data: {"text": "\n\n"}
+
+data: {"text": "Would you like to explore the latest efficacy data for rezatapopt in the ongoing phase 2 PYNNACLE trial?"}
+
+data: [DONE]
+

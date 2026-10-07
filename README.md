@@ -118,7 +118,7 @@ Turning on OpenEvidence also needs these (see `.env.example`):
 | --- | --- | --- |
 | `OPENEVIDENCE_API_KEY` | _(empty)_ | Required for live calls; org-provisioned access (see https://github.com/oncokb/oe-api-exp). Cached results are served without it. |
 | `OPENEVIDENCE_BASE_URL` | `https://api.openevidence.com` | API base URL. |
-| `OPENEVIDENCE_MODEL` | `darwin` | OpenEvidence model name; also part of the cache key. |
+| `OPENEVIDENCE_MODEL` | `osler` | OpenEvidence model name; also part of the cache key. |
 | `OPENEVIDENCE_TIMEOUT_SECONDS` | `60` | Per-call timeout; a timeout is not retried and just hides the card. |
 | `OPENEVIDENCE_CACHE_TTL_SECONDS` | `604800` | Redis TTL for cached analyses (one week). |
 | `OPENEVIDENCE_SIDECAR_CONCURRENCY` | `3` | Max concurrent live OpenEvidence calls across all sidecar requests. |
@@ -128,6 +128,77 @@ Turning on OpenEvidence also needs these (see `.env.example`):
 | `OPENEVIDENCE_SIDECAR_FAILED_TTL_SECONDS` | `300` | How long a failed lookup answers `status: "failed"` instead of re-calling the paid API. Failures are never cached. |
 | `OPENEVIDENCE_SIDECAR_LOOKUP_TIMEOUT_SECONDS` | `900` | Overall budget for one background lookup, excluding queue time. It is never applied below `OPENEVIDENCE_TIMEOUT_SECONDS` × 1.25 (that setting is only a per-read inactivity timeout). Keep it under the UI's 20-minute polling deadline. |
 | `OPENEVIDENCE_WARMUP_CONCURRENCY` | `5` | Concurrency for the offline `benchmarks/warm_openevidence_cache.py` warmup. |
+
+## ACGC API Keys (for scripts)
+
+When `AUTH_ENABLED=true`, scripts can call the `/v1/*` API with a personal
+ACGC API key instead of a browser session. (The section above is about
+*third-party* keys ACGC itself uses; this one is about keys for calling ACGC.)
+
+- Keys look like `acgc_<43 random characters>` and are sent as
+  `Authorization: Bearer acgc_...`. Every endpoint protected by sign-in accepts
+  them and acts as the key's owner.
+- Key management (create, list, revoke) is **browser-session only**: each user
+  manages their own keys, and a request authenticated with an API key gets
+  `403` on every `/v1/api-keys` endpoint, so a leaked key can't mint, list, or
+  revoke keys.
+- The plaintext key is shown **once**, in the create response. ACGC stores only
+  its SHA-256 hash (and looks keys up by that hash); keys are identified in
+  listings and logs by their non-secret `id` and `name`. A lost key cannot be
+  recovered — revoke it and create a new one.
+- A key stops working when it is revoked, when it expires (optional
+  `expires_in_days`, max `API_KEY_MAX_EXPIRES_IN_DAYS`), or when its owner no
+  longer passes `ALLOWED_EMAIL_DOMAINS` / `ALLOWED_EMAILS`.
+- Each key is limited to `API_KEY_RATE_LIMIT_PER_MINUTE` requests per minute
+  (default 60, shared across workers via Redis; per-process in-memory fallback
+  if Redis is unreachable). Over the limit you get `429` with `Retry-After`.
+- Admins (signed in via browser session) can list everyone's keys with
+  `GET /v1/api-keys?all=true` and revoke any key.
+
+Create a key while signed in — e.g. from the browser devtools console on the
+ACGC page (uses your session cookie):
+
+```js
+await (await fetch("/v1/api-keys", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ name: "nightly triage script", expires_in_days: 90 }),
+})).json()   // -> { id, name, key: "acgc_...", ... }  copy `key` now
+```
+
+or with curl, passing your session cookie (`agcg_session`, from devtools →
+Application → Cookies):
+
+```bash
+curl -s -X POST https://acgc.oncokb.org/v1/api-keys \
+  -H "Cookie: agcg_session=$ACGC_SESSION" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "nightly triage script", "expires_in_days": 90}'
+```
+
+Then use it from scripts (keep it in an env var or secret store, never in git):
+
+```bash
+export ACGC_API_KEY=acgc_...
+
+curl -s -X POST https://acgc.oncokb.org/v1/annotate \
+  -H "Authorization: Bearer $ACGC_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"fusions": ["EML4::ALK"]}'
+```
+
+List (secrets are never returned) and revoke keys with your session, not the
+key itself:
+
+```bash
+curl -s https://acgc.oncokb.org/v1/api-keys -H "Cookie: agcg_session=$ACGC_SESSION"
+curl -s -X DELETE https://acgc.oncokb.org/v1/api-keys/<key-id> \
+  -H "Cookie: agcg_session=$ACGC_SESSION"
+```
+
+API-key requests are attributed to the owner in Datadog (`usr.id` = owner
+email); spans and application log lines also carry `acgc.auth_method`
+(`api_key` / `session`) and `acgc.api_key_id`.
 
 ## Run With Anthropic SDK
 
@@ -219,7 +290,8 @@ The response is one `GeneAnnotation` object with fields such as `gene`,
 `cancer_association_rationale`, `cancer_type_prevalence`, `gene_class`,
 `signaling_pathways`, `gene_summary`, `citations`, `supporting_quotes`,
 `retrieval_count`, `retrieved_pmids`, `evidence_support_score`, and cache
-metadata.
+metadata, plus the saved run's `run_id` and a `view_url` that opens it in the
+UI. For a slim, rationale-only response, see [Gene query API](#gene-query-api).
 
 For batch runs or mixed genes and fusions, use `/v1/annotate`:
 
@@ -317,6 +389,104 @@ replaced with Bedrock model IDs via `BEDROCK_SYNTHESIS_MODEL`,
 `BEDROCK_RETRIEVAL_MODEL`, or by setting `SYNTHESIS_MODEL`,
 `SYNTHESIS_FAST_MODEL`, `SELECTION_MODEL`, and `RETRIEVAL_MODEL` to Bedrock IDs
 directly.
+
+## Gene query API
+
+Slim endpoints for scripts that only need a gene's classification and
+rationale. Each response links to the full report (evidence cards, abstracts,
+quotes, clinical actionability) in the ACGC UI via `view_url`; opening it
+requires an ACGC login. Cached annotations are reused when fresh, so repeat
+queries are cheap; `force_refresh: true` recomputes and triggers new LLM runs.
+
+Authenticate with an API key (`Authorization: Bearer $ACGC_API_KEY`; keys come
+from the API-keys feature) or an existing ACGC session cookie.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /v1/genes/query` | Classify up to `GENE_QUERY_MAX_GENES` genes (default 50); saves one run |
+| `GET /v1/genes/{symbol}?tumor_type=&force_refresh=` | Same response for a single gene |
+| `POST /v1/genes/query/jobs` | Start the same query in the background for long batches |
+| `GET /v1/genes/query/jobs/{job_id}` | Poll a background query |
+
+`genes` accepts symbols or `{"gene": ..., "tumor_type": ...}` objects.
+Duplicate symbols (case-insensitive) are collapsed. A symbol may contain only
+letters, digits, `-` and `.`, and must start and end with a letter or digit
+(e.g. `ALK`, `HLA-A`, `C1orf112`, `ENSG00000141510.17`); anything else, including
+fusions and dangling separators like `ALK::`, returns 422 (use `/v1/annotate`
+for fusions). Lists longer than the cap also return 422.
+
+Each result's `tumor_type` is the tumor type the classification actually ran
+with, or `null` if none. When several inputs resolve to the same gene (an alias
+and its symbol, or an Ensembl ID and its symbol) with different tumor types,
+the pipeline picks one and the response reports that one.
+
+A symbol that HGNC/Ensembl confirm doesn't exist comes back in the batch
+`POST` with `error: "Gene symbol could not be resolved."`; `GET
+/v1/genes/{symbol}` returns 404 (`"Gene symbol not found."`) instead. If the
+lookup itself fails (e.g. an Ensembl timeout or 5xx), the batch `POST` reports
+`error: "Gene symbol lookup is temporarily unavailable; please retry."` and the
+`GET` returns 503 with that message, so a temporary outage is never reported
+as "not found". The run is saved in every case.
+
+A response is only returned once its run is saved, so `view_url` always
+resolves; if the run can't be saved, the request returns 500 (or the job
+fails) with a generic message.
+
+```bash
+export ACGC=https://acgc.oncokb.org
+curl -X POST "$ACGC/v1/genes/query" \
+  -H "Authorization: Bearer $ACGC_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"genes": ["ALK", {"gene": "TP53", "tumor_type": "LUAD"}]}'
+
+curl "$ACGC/v1/genes/BRAF?tumor_type=Melanoma" \
+  -H "Authorization: Bearer $ACGC_API_KEY"
+```
+
+Example response:
+
+```json
+{
+  "run_id": "0b8f3c2e-5d1a-4c3e-9f57-2a6c1d9e4b10",
+  "view_url": "https://acgc.oncokb.org/?run=0b8f3c2e-5d1a-4c3e-9f57-2a6c1d9e4b10",
+  "results": [
+    {
+      "gene": "ALK",
+      "tumor_type": null,
+      "cancer_associated": true,
+      "gene_class": "Receptor tyrosine kinase",
+      "in_oncokb": true,
+      "rationale": "ALK rearrangements are established oncogenic drivers ...",
+      "gene_summary": "ALK encodes a receptor tyrosine kinase ...",
+      "citation_pmids": ["17625570", "20979469"],
+      "evidence_support_score": 0.92,
+      "quality_flags": [],
+      "cache_status": "reused",
+      "cached_at": "2026-10-01T14:03:11+00:00",
+      "error": null
+    }
+  ]
+}
+```
+
+For long batches, start a job and poll it. `run_id`, `view_url`, and the full
+`results` are set once `status` is `complete`. On failure, `error` holds a
+generic message and the details stay in the server logs.
+
+```bash
+curl -X POST "$ACGC/v1/genes/query/jobs" \
+  -H "Authorization: Bearer $ACGC_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"genes": ["ALK", "TP53", "BRAF"]}'
+# {"job_id": "...", "status_url": "/v1/genes/query/jobs/..."}
+
+curl "$ACGC/v1/genes/query/jobs/$JOB_ID" -H "Authorization: Bearer $ACGC_API_KEY"
+# {"job_id": "...", "status": "complete", "genes_completed": 3, "genes_total": 3,
+#  "run_id": "...", "view_url": "https://acgc.oncokb.org/?run=...", "results": [...], "error": null}
+```
+
+`view_url` is built from `PUBLIC_APP_BASE_URL`, or from the request's base URL
+when that is unset.
 
 ## Latency Comparison
 

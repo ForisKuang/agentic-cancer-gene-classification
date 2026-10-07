@@ -1,0 +1,12 @@
+{
+  "darwin": {
+    "factual_correctness": 4.764705882352941,
+    "specificity": 5,
+    "hallucination_safety": 4.764705882352941
+  },
+  "osler": {
+    "factual_correctness": 4.647058823529412,
+    "specificity": 4.764705882352941,
+    "hallucination_safety": 4.588235294117647
+  }
+}

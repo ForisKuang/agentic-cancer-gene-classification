@@ -1,0 +1,681 @@
+{
+  "benchmark_date": "2026-10-06",
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "pairs": [
+    {
+      "gene": "BRCA1",
+      "A": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for BRCA1 alterations in cancer? Cite the specific guideline or trial.",
+        "text": "110a\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"a7cc3852-000b-403a-9dcd-cbb149f9bc16\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"b1fa3041-c137-4c8a-97fb-43c923ef106c\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nPARP inhibition is the only established targeted therapy for BRCA1 alterations, and every guideline recommendation and registrational trial treats BRCA1 and BRCA2 together as a single biomarker \u2014 there is no BRCA1-specific indication, and no tumor-agnostic BRCA approval. Actionability is confined to pathogenic/likely pathogenic variants in four diseases: HER2-negative breast cancer, epithelial ovarian/fallopian tube/primary peritoneal cancer, metastatic pancreatic adenocarcinoma, and metastatic prostate cancer.[[1]][[2]] BRCA1 alterations also predict platinum sensitivity, which guidelines exploit directly (first-line platinum in gBRCA TNBC) and indirectly (platinum response as the gate to PARP inhibitor maintenance in pancreatic and ovarian cancer).[[3]][[4]][[5]]\nBreast cancer (HER2-negative)\nNCCN recommends 1 year of adjuvant olaparib (category 1) for germline BRCA1/2 pathogenic variants in high-risk early disease, both after upfront surgery and after neoadjuvant chemotherapy with residual disease.[[4]] NCCN defines high risk using the OlympiA criteria: TNBC with node-positive disease or invasive primary \u22652 cm after adjuvant chemotherapy, or any residual invasive disease after neoadjuvant chemotherapy; HR-positive disease with \u22654 positive nodes after adjuvant chemotherapy, or residual disease with CPS+EG \u22653 after neoadjuvant chemotherapy.[[2]] Olaparib should follow completion of radiation.[[4]] There are no data on sequencing or combining olaparib with adjuvant capecitabine or pembrolizumab in patients eligible for more than one.[[4]]\nASCO guidelines recommend the same: 1 year of adjuvant olaparib after (neo)adjuvant chemotherapy and local therapy, with the identical risk criteria.[[6]] For metastatic disease, ASCO guidelines recommend olaparib or talazoparib as an alternative to chemotherapy in the first through third line for gBRCA1/2 carriers, including both TNBC and HR-positive/endocrine-refractory disease.[[3]][[6]][[7]]\nNCCN places PARPi (olaparib or talazoparib) as category 1, preferred first-line in gBRCA1/2 PV TNBC with PD-L1 CPS <10 (platinum is an equally ranked category 1 preferred option in that branch) and second-line category 1 preferred in TNBC regardless of PD-L1; in HR-positive/HER2-negative disease with visceral crisis or endocrine refractoriness, PARPi is category 1 preferred first-line.[[4]] NCCN advises germline BRCA1/2 assessment in all patients with recurrent or metastatic breast cancer and notes PARPi appears more effective used earlier.[[4]]\n[[3]][[7]][[8]][[9]][[10]][[11]][[12]]\nOlympiA found no evidence of heterogeneity of effect by BRCA1 versus BRCA2 or by hormone receptor status.[[8]][[10]]\nOvarian cancer\nNCCN recommends PARP inhibitor maintenance after CR/PR to first-line platinum for germline or somatic BRCA1/2 P/LP variants: olaparib (category 1), niraparib (category 1), or rucaparib if bevacizumab was not used; olaparib + bevacizumab (category 1) if bevacizumab was given during primary chemotherapy.[[13]] In the recurrence setting, PARPi maintenance is restricted to BRCA1/2-mutated disease, category 1 if not previously used, and is not recommended if disease progressed on a prior PARPi; PARPi + bevacizumab is not recommended as post-recurrence maintenance.[[13]]\nDosing and duration per NCCN differ by setting: olaparib 300 mg PO BID (up to 2 years post-primary, until progression post-recurrence); niraparib 300 mg daily, reduced to 200 mg if baseline weight <77 kg and/or platelets <150,000/mm\u00b3 (up to 3 years post-primary); rucaparib 600 mg BID (up to 2 years post-primary).[[13]] NCCN cautions that PARPi maintenance beyond 2 years in the recurrent setting may increase MDS/AML risk, and requires monitoring of blood counts, renal and hepatic function, and blood pressure (required for niraparib).[[13]]\nASCO guidelines recommend offering maintenance olaparib (germline or somatic BRCA1/2) or niraparib (all patients) for stage III\u2013IV high-grade serous or endometrioid disease in CR/PR to first-line platinum, and recommend against PARPi in stage I\u2013II disease.[[14]][[15]] Olaparib added to bevacizumab maintenance may be offered for BRCA1/2 variants and/or genomic instability.[[15]]\nSupporting trials: SOLO-1 (germline/somatic BRCA1/2) median PFS 56.0 vs 13.8 months (HR 0.33), with 7-year OS 67.0% vs 46.5% (HR 0.55); SOLO2 PFS 19.1 vs 5.5 months (HR 0.30), with MDS/AML 8% vs 4%; Study 19 BRCAm PFS 11.2 vs 4.3 months; PAOLA-1 confirmed benefit concentrated in BRCA-mutated and HRD-positive subgroups with[[16]][[17]][[18]] none in HRD-negative tumors (HR 1.00).[[15]]\nPancreatic adenocarcinoma\nNCCN lists olaparib as the preferred maintenance option for germline BRCA1/2 mutations only, after 4\u20136 months of platinum-based chemotherapy with response or stable disease; rucaparib is \"useful in certain circumstances\" for germline or somatic BRCA1/2 or PALB2 mutations in patients who did not progress on their most recent platinum regimen.[[5]] ASCO guidelines frame this as a choice between continued chemotherapy or olaparib after \u226516 weeks of platinum without progression, and explicitly require shared decision-making given the absence of an OS benefit.[[19]][[20]]\nPOLO (n=154) showed PFS 7.4 vs 3.8 months (HR 0.53) with no OS difference (19.0 vs 19.2 months, HR 0.83), though 3-year survival was 33.9% vs 17.8% and time to first subsequent therapy strongly favored olaparib (HR 0.44).[[21]][[22]][[23]] Germline testing is recommended for all patients with pancreatic adenocarcinoma regardless of family history.[[2]][[24]]\nProstate cancer\nASCO guidelines for mCRPC stratify by prior therapy and are among the few that name BRCA1/2 explicitly:\n- No prior ARPI: HRR testing before systemic therapy; if BRCA1/2-altered, preferred options are niraparib + abiraterone, olaparib + abiraterone, or talazoparib + enzalutamide (pooled meta-analysis PFS HR 0.28, OS HR 0.47).[[25]]\n- Prior ARPI: olaparib monotherapy (PROfound: PFS HR 0.22, OS HR 0.63 in BRCA1/2); rucaparib is an alternative based on TRITON-3 (PFS HR 0.50; OS HR 0.81, not significant).[[25]]\n- Prior ARPI + docetaxel: olaparib monotherapy for HRR alterations (PROfound PFS HR 0.49; OS HR 0.79, not significant).[[25]]\nADT must continue indefinitely, and the abiraterone-based combinations require prednisone or prednisolone.[[1]][[25]] NCCN tabulates the corresponding approvals: olaparib (PROfound; 14 HRR genes including BRCA1), rucaparib (TRITON2; BRCA1/2), olaparib/abiraterone (PROpel; BRCA1/2), talazoparib/enzalutamide (TALAPRO-2), and niraparib/abiraterone (MAGNITUDE; BRCA1/2).[[26]] More recently, TALAPRO-3 and AMPLITUDE moved PARPi + ARPI into metastatic castration-sensitive (androgen pathway modulation\u2013sensitive) disease with HRR alterations, with iPFS benefit concentrated in BRCA-altered patients and OS data still immature.[[27]][[28]]\nBRCA1 versus BRCA2 is not interchangeable in prostate cancer. BRCA1 accounted for only ~9% of BRCA alterations in PROfound, and the efficacy signal is driven by BRCA2 (rucaparib PSA50 15% for BRCA1 vs 60% for BRCA2; ORR 33% vs 45%).[[29]] The guideline hazard ratios above are pooled BRCA1/2 estimates and are not BRCA1-specific.\nBRCA1 versus BRCA2 across tumors\nA meta-analysis of 11 RCTs (1544 BRCA1, 1191 BRCA2 carriers) found pooled PFS HR 0.42 for BRCA1 and 0.35 for BRCA2 with no significant interaction, supporting benefit in both.[[30]] This is an absence of a demonstrated difference rather than proven equivalence \u2014 most trials were not powered for the comparison. A single-center ovarian cohort found shorter PFS on maintenance PARPi for BRCA1 versus BRCA2 carriers (adjusted HR 0.34 favoring BRCA2), and the prostate data above show a consistent attenuation for BRCA1.[[31]]\nGermline versus somatic and what counts as an actionable alteration\nThe distinction is label-determinative, not academic:\n- Breast: olaparib and talazoparib approvals require a germline BRCA1/2 mutation (blood testing).[[1]][[32]]\n- Ovarian: olaparib first-line and recurrent maintenance cover germline or somatic; niraparib's recurrent-maintenance indication is limited to germline BRCA1/2.[[1]][[13]]\n- Pancreatic: olaparib maintenance requires a germline mutation; NCCN permits rucaparib for germline or somatic BRCA1/2 or PALB2.[[1]][[5]]\n- Prostate: olaparib monotherapy covers germline or somatic HRR alterations (tumor tissue, blood, or ctDNA); olaparib + abiraterone covers BRCA-mutated disease by tumor, blood, or plasma.[[1]][[32]]\nOnly a pathogenic or likely pathogenic variant qualifies. A VUS, isolated loss of heterozygosity, low BRCA1 expression, or BRCA1 promoter methylation does not establish eligibility for PARP inhibitor therapy under these indications.[[2]][[33]] A BRCA1 P/LP variant found on tumor-only sequencing should trigger confirmatory germline testing in a CLIA-certified germline laboratory \u2014 ASCO places BRCA1 on the list of genes where tumor-detected pathogenic variants should always prompt germline testing, ESMO's Precision Medicine Working Group found a germline conversion rate >80% for BRCA1/2, and tumor-only sequencing misses roughly 8\u201310% of actionable germline variants (large deletions, duplications, splicing variants).[[2]][[34]][[35]][[36]] Conversely, germline testing should not be withheld because tumor sequencing was negative.[[36]][[37]]\nESMO recommends BRCA1/2 testing (restricted to BRCA1/2 rather than broader panels) in breast cancer, classifies germline BRCA1/2 as ESCAT level IA in breast cancer, and recommends olaparib or talazoparib first-line for gBRCA-positive metastatic breast cancer; these are described in secondary sources rather than the primary ESMO guideline text, which was not retrieved.[[38]][[39]][[40]]\nSafety considerations across all settings: myelosuppression (anemia is the dominant grade \u22653 toxicity), with required CBC monitoring; renal and hepatic monitoring; hypertension monitoring mandated with niraparib; and MDS/AML risk, which was not increased over placebo in OlympiA at 6.1 years (0.4% vs 0.7%) but reached 8% versus 4% with until-progression olaparib in SOLO2.[[10]][[13]][[18]] Olaparib is dose-reduced to 200 mg twice daily for moderate renal impairment.[[32]] Persistent cytopenias warrant treatment interruption and hematologic evaluation rather than dose continuation.\n\n\nWould you like to explore how to sequence adjuvant olaparib against pembrolizumab, capecitabine, or abemaciclib in BRCA1 carriers with residual disease?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "FDA Orange Book",
+            "authors": "",
+            "journal": "FDA Orange Book",
+            "date": "2026-10-06",
+            "doi": "",
+            "url": "https://www.fda.gov/drugs/drug-approvals-and-databases/approved-drug-products-therapeutic-equivalence-evaluations-orange-book"
+          },
+          {
+            "citation_key": "2",
+            "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-08-31",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=28"
+          },
+          {
+            "citation_key": "3",
+            "title": "Chemotherapy and Targeted Therapy for Endocrine-Pretreated or Hormone Receptor\u2013Negative Metastatic Breast Cancer: ASCO Guideline Rapid Recommendation Update",
+            "authors": "Moy B, Rumble RB, Carey LA, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2023-02-20",
+            "doi": "10.1200/JCO.22.02807",
+            "url": "https://doi.org/10.1200/jco.22.02807"
+          },
+          {
+            "citation_key": "4",
+            "title": "Breast Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-25",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=92"
+          },
+          {
+            "citation_key": "5",
+            "title": "Pancreatic Adenocarcinoma",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-11",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/pancreatic.pdf#page=59"
+          },
+          {
+            "citation_key": "6",
+            "title": "Adjuvant PARP Inhibitors in Patients With High-Risk Early-Stage HER2-Negative Breast Cancer and Germline BRCA Mutations: ASCO Hereditary Breast Cancer Guideline Rapid Recommendation Update",
+            "authors": "Tung NM, Zakalik D, Somerfield MR, Hereditary Breast Cancer Guideline Expert Panel.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2021-09-10",
+            "doi": "10.1200/JCO.21.01532",
+            "url": "https://doi.org/10.1200/jco.21.01532"
+          },
+          {
+            "citation_key": "7",
+            "title": "Endocrine and Targeted Therapy for Hormone Receptor\u2013Positive, Human Epidermal Growth Factor Receptor 2\u2013Negative Metastatic Breast Cancer\u2014Capivasertib-Fulvestrant: ASCO Rapid Recommendation Update",
+            "authors": "Burstein HJ, DeMichele A, Fallowfield L, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2024-04-20",
+            "doi": "10.1200/JCO.24.00248",
+            "url": "https://doi.org/10.1200/jco.24.00248"
+          },
+          {
+            "citation_key": "8",
+            "title": "Adjuvant Olaparib for Patients with BRCA1- or BRCA2-Mutated Breast Cancer",
+            "authors": "Tutt ANJ, Garber JE, Kaufman B, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2021-06-24",
+            "doi": "10.1056/NEJMoa2105215",
+            "url": "https://doi.org/10.1056/nejmoa2105215?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "9",
+            "title": "Overall Survival in the OlympiA Phase III Trial of Adjuvant Olaparib in Patients With Germline Pathogenic Variants in BRCA1/2 and High-Risk, Early\u00a0breast Cancer",
+            "authors": "Geyer CE, Garber JE, Gelber RD, et al.",
+            "journal": "Annals of Oncology : Official Journal of the European Society for Medical Oncology",
+            "date": "2022-12-01",
+            "doi": "10.1016/j.annonc.2022.09.159",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36228963"
+          },
+          {
+            "citation_key": "10",
+            "title": "Sustained Benefit of Adjuvant Olaparib in Women With Germline BRCA1- And BRCA2-associated High-Risk HER2-negative Early Breast Cancer: Updated Results From the OlympiA Phase III Trial",
+            "authors": "Garber JE, Cameron D, Campbell C, et al.",
+            "journal": "Annals of Oncology : Official Journal of the European Society for Medical Oncology",
+            "date": "2026-08-24",
+            "doi": "10.1016/j.annonc.2026.08.002",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42636977"
+          },
+          {
+            "citation_key": "11",
+            "title": "Germline Testing in Patients With Breast Cancer: ASCO-Society of Surgical Oncology Guideline",
+            "authors": "Bedrosian I, Somerfield MR, Achatz MI, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2024-02-10",
+            "doi": "10.1200/JCO.23.02225",
+            "url": "https://ascopubs.org/doi/10.1200/JCO.23.02225?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed"
+          },
+          {
+            "citation_key": "12",
+            "title": "PARP inhibition with olaparib and talazoparib for HER2-negative advanced breast cancer\u2014Results from the prospective PRAEGNANT registry",
+            "authors": "H\u00f6rner M, Hartkopf A, John N, et al.",
+            "journal": "NPJ Breast Cancer",
+            "date": "2026-04-11",
+            "doi": "10.1038/s41523-026-00947-8",
+            "url": "https://doi.org/10.1038/s41523-026-00947-8"
+          },
+          {
+            "citation_key": "13",
+            "title": "Ovarian Cancer Including Fallopian Tube Cancer and Primary Peritoneal Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-10",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/ovarian.pdf#page=11"
+          },
+          {
+            "citation_key": "14",
+            "title": "PARP Inhibitors in the Management of Ovarian Cancer: ASCO Guideline",
+            "authors": "Tew WP, Lacchetti C, Ellis A, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2020-10-20",
+            "doi": "10.1200/JCO.20.01924",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8942301/"
+          },
+          {
+            "citation_key": "15",
+            "title": "Poly(ADP-Ribose) Polymerase Inhibitors in the Management of Ovarian Cancer: ASCO Guideline Rapid Recommendation Update",
+            "authors": "Tew WP, Lacchetti C, Kohn EC, PARP Inhibitors in the Management of Ovarian Cancer Guideline Expert Panel.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2022-11-20",
+            "doi": "10.1200/JCO.22.01934",
+            "url": "https://doi.org/10.1200/jco.22.01934"
+          },
+          {
+            "citation_key": "16",
+            "title": "Ovarian cancer",
+            "authors": "Scott CL, Banerjee S, Joly F, et al.",
+            "journal": "Nature Reviews. Disease Primers",
+            "date": "2026-03-05",
+            "doi": "10.1038/s41572-026-00686-x",
+            "url": "https://doi.org/10.1038/s41572-026-00686-x"
+          },
+          {
+            "citation_key": "17",
+            "title": "Ovarian Cancer: A Review",
+            "authors": "Caruso G, Weroha SJ, Cliby W.",
+            "journal": "The Journal of the American Medical Association",
+            "date": "2025-10-14",
+            "doi": "10.1001/jama.2025.9495",
+            "url": "https://jamanetwork.com/journals/jama/fullarticle/10.1001/jama.2025.9495?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "18",
+            "title": "Updates in US Food and Drug Administration Approvals for Poly-Adp-Ribose Polymerase Inhibitors in Ovarian Cancer: A Society of Gynecologic Oncology Clinical Practice Review",
+            "authors": "Washington C, Pothuri B, Cadoo K, et al.",
+            "journal": "Gynecologic Oncology",
+            "date": "2026-01-01",
+            "doi": "10.1016/j.ygyno.2025.11.020",
+            "url": "https://linkinghub.elsevier.com/retrieve/pii/S0090-8258(25)01115-1"
+          },
+          {
+            "citation_key": "19",
+            "title": "Metastatic Pancreatic Cancer: ASCO Guideline Update",
+            "authors": "Sohal DPS, Kennedy EB, Cinar P, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2020-09-20",
+            "doi": "10.1200/JCO.20.01364",
+            "url": "https://doi.org/10.1200/jco.20.01364"
+          },
+          {
+            "citation_key": "20",
+            "title": "Metastatic Pancreatic Cancer: ASCO Guideline Update",
+            "authors": "Sohal DPS, Kennedy EB, Cinar P, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2020-09-20",
+            "doi": "10.1200/JCO.20.01364",
+            "url": "https://ascopubs.org/doi/10.1200/JCO.20.01364?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed"
+          },
+          {
+            "citation_key": "21",
+            "title": "Overall Survival Results From the POLO Trial: A Phase III Study of Active Maintenance Olaparib Versus Placebo for Germline BRCA-Mutated Metastatic Pancreatic Cancer",
+            "authors": "Kindler HL, Hammel P, Reni M, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2022-12-01",
+            "doi": "10.1200/JCO.21.01604",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/35834777"
+          },
+          {
+            "citation_key": "22",
+            "title": "Treating Pancreatic Ductal Adenocarcinoma: The Targeted Revolution is Here",
+            "authors": "May MS, Park W, O'Reilly EM.",
+            "journal": "Drugs",
+            "date": "2026-04-01",
+            "doi": "10.1007/s40265-026-02295-0",
+            "url": "https://doi.org/10.1007/s40265-026-02295-0"
+          },
+          {
+            "citation_key": "23",
+            "title": "Therapeutic developments in pancreatic cancer",
+            "authors": "Hu ZI, O'Reilly EM.",
+            "journal": "Nature Reviews. Gastroenterology & Hepatology",
+            "date": "2024-01-01",
+            "doi": "10.1038/s41575-023-00840-w",
+            "url": "https://doi.org/10.1038/s41575-023-00840-w"
+          },
+          {
+            "citation_key": "24",
+            "title": "Germline genetic testing among patients with pancreatic adenocarcinoma: A Pancreatic Cancer Action Network patient survey",
+            "authors": "Grewal US, Patel RR, Loeffler BT, et al.",
+            "journal": "Cancer",
+            "date": "2026-05-15",
+            "doi": "10.1002/cncr.70446",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC13166122/"
+          },
+          {
+            "citation_key": "25",
+            "title": "Systemic Therapy for Metastatic Castration Res. Prostate Cancer",
+            "authors": "Taplin ME, Riaz IB, Rumble RB, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-02-20",
+            "doi": "10.1200/JCO-25-02693",
+            "url": "https://doi.org/10.1200/jco-25-02693"
+          },
+          {
+            "citation_key": "26",
+            "title": "Prostate Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-08-27",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/prostate.pdf#page=97"
+          },
+          {
+            "citation_key": "27",
+            "title": "PARP and Androgen-Signaling Inhibition plus ADT in Metastatic Prostate Cancer",
+            "authors": "Agarwal N, Matsubara N, Azad AA, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2026-07-30",
+            "doi": "10.1056/NEJMoa2604126",
+            "url": "https://doi.org/10.1056/nejmoa2604126?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "28",
+            "title": "Precision Intensification in Metastatic Prostate Cancer",
+            "authors": "McKay RR.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2026-07-30",
+            "doi": "10.1056/NEJMe2605582",
+            "url": "https://doi.org/10.1056/nejme2605582?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "29",
+            "title": "Therapeutic implications of homologous repair deficiency testing in patients with prostate cancer (Part 2 of 2)",
+            "authors": "Serritella AV, Taylor A, Haffner MC, et al.",
+            "journal": "Prostate Cancer and Prostatic Diseases",
+            "date": "2025-09-01",
+            "doi": "10.1038/s41391-024-00887-z",
+            "url": "https://doi.org/10.1038/s41391-024-00887-z"
+          },
+          {
+            "citation_key": "30",
+            "title": "BRCA1 Versus BRCA2 and PARP Inhibitors Efficacy in Solid Tumors:A Meta-Analysis of Randomized Controlled Trials",
+            "authors": "Li S, Tao L, Dai H, et al.",
+            "journal": "Frontiers in Oncology",
+            "date": "2021-11-16",
+            "doi": "10.3389/fonc.2021.718871",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/34778033"
+          },
+          {
+            "citation_key": "31",
+            "title": "The Impact of Pathogenic Variants of BRCA1, BRCA2, and Other DNA-Repair Genes on the Survival Benefits Conferred by PARP Inhibitors-Single-Centre Experience From Quebec",
+            "authors": "Zeng X, Levin G, Shahbazian L, et al.",
+            "journal": "Journal of Obstetrics and Gynaecology Canada : JOGC = Journal d'Obstetrique Et Gynecologie Du Canada : JOGC",
+            "date": "2026-07-03",
+            "doi": "10.1016/j.jogc.2026.103447",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42398909"
+          },
+          {
+            "citation_key": "32",
+            "title": "Lynparza",
+            "authors": "Food and Drug Administration",
+            "journal": "",
+            "date": "2025-07-10",
+            "doi": "",
+            "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=741ff3e3-dc1a-45a6-84e5-2481b27131aa"
+          },
+          {
+            "citation_key": "33",
+            "title": "Testing for Homologous Recombination Repair or Homologous Recombination Deficiency for Poly (ADP-ribose) Polymerase Inhibitors: A Current Perspective",
+            "authors": "Herzog TJ, Vergote I, Gomella LG, et al.",
+            "journal": "European Journal of Cancer ",
+            "date": "2023-01-01",
+            "doi": "10.1016/j.ejca.2022.10.021",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36563604"
+          },
+          {
+            "citation_key": "34",
+            "title": "Selection of Germline Genetic Testing Panels in Patients With Cancer: ASCO Guideline",
+            "authors": "Tung N, Ricker C, Messersmith H, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2024-07-20",
+            "doi": "10.1200/JCO.24.00662",
+            "url": "https://doi.org/10.1200/jco.24.00662"
+          },
+          {
+            "citation_key": "35",
+            "title": "Germline-Focused Analysis of Tumour-Detected Variants in 49,264 Cancer Patients: ESMO Precision Medicine Working Group Recommendations",
+            "authors": "Kuzbari Z, Bandlamudi C, Loveday C, et al.",
+            "journal": "Annals of Oncology : Official Journal of the European Society for Medical Oncology",
+            "date": "2023-03-01",
+            "doi": "10.1016/j.annonc.2022.12.003",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36529447"
+          },
+          {
+            "citation_key": "36",
+            "title": "Somatic Genomic Testing in Patients With Metastatic or Advanced Cancer: ASCO Provisional Clinical Opinion",
+            "authors": "Chakravarty D, Johnson A, Sklar J, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2022-04-10",
+            "doi": "10.1200/JCO.21.02767",
+            "url": "https://doi.org/10.1200/jco.21.02767"
+          },
+          {
+            "citation_key": "37",
+            "title": "Germline and Somatic Tumor Testing in Epithelial Ovarian Cancer: ASCO Guideline",
+            "authors": "Konstantinopoulos PA, Norquist B, Lacchetti C, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2020-04-10",
+            "doi": "10.1200/JCO.19.02960",
+            "url": "https://doi.org/10.1200/jco.19.02960"
+          },
+          {
+            "citation_key": "38",
+            "title": "Updated Guidelines on When to Consider Germline Testing for Patients With Breast Cancer",
+            "authors": "Botty van den Bruele A, Weiss A, Society of Surgical Oncology Breast Disease Site Work Group.",
+            "journal": "Annals of Surgical Oncology",
+            "date": "2024-09-01",
+            "doi": "10.1245/s10434-024-15638-6",
+            "url": "https://dx.doi.org/10.1245/s10434-024-15638-6"
+          },
+          {
+            "citation_key": "39",
+            "title": "Next\u2010generation sequencing in breast pathology: real impact on routine practice over a decade since its introduction",
+            "authors": "Nourieh M, Vibert R, Saint-Ghislain M, Cyrta J, Vincent-Salomon A.",
+            "journal": "Histopathology",
+            "date": "2023-01-01",
+            "doi": "10.1111/his.14794",
+            "url": "https://doi.org/10.1111/his.14794"
+          },
+          {
+            "citation_key": "40",
+            "title": "Targeted Treatment of Metastatic Triple\u2010Negative Breast Cancer: A Systematic Review",
+            "authors": "Hammersh\u00f8i Madsen AM, L\u00f8vendahl Eefsen RH, Nielsen D, K\u00fcmler I.",
+            "journal": "The Breast Journal",
+            "date": "2023-12-12",
+            "doi": "10.1155/2024/9083055",
+            "url": "https://doi.org/10.1155/2024/9083055"
+          }
+        ]
+      },
+      "B": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for BRCA1 alterations in cancer? Cite the specific guideline or trial.",
+        "text": "f7c8\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nPARP inhibitors are the targeted therapy for BRCA1 (and BRCA2) alterations, exploiting synthetic lethality between PARP inhibition and homologous recombination deficiency caused by BRCA loss.[[1]][[2]] NCCN, ASCO, and ESMO all endorse PARP inhibitors across four tumor types with BRCA alterations \u2014 breast, ovarian, pancreatic, and prostate cancer \u2014 each supported by specific pivotal trials. A critical distinction runs throughout: in breast and pancreatic cancer the approvals/recommendations are keyed to germline BRCA1/2 variants, whereas in ovarian and prostate cancer both germline and somatic alterations qualify.[[3]][[4]][[5]] The following summarizes the guideline-anchored recommendations and the trials behind them.\n[[5]][[6]][[7]][[8]][[9]][[10]][[11]][[12]][[13]][[14]][[15]][[16]]\nBreast cancer \u2014 For high-risk, HER2-negative early breast cancer with germline BRCA1/2 pathogenic variants, NCCN recommends 1 year of adjuvant olaparib as category 1, given after completion of chemotherapy and radiation.[[6]] This rests on the OlympiA trial, in which 72% of patients carried a BRCA1 mutation and adjuvant olaparib improved 3-year invasive disease-free survival to 85.9% versus 77.1% with placebo (HR 0.58) with a later OS benefit.[[17]][[18]] ASCO's rapid recommendation update mirrors this, specifying the eligibility thresholds by TNBC/HR status and residual disease.[[7]] In the metastatic HER2-negative setting, the ASCO/ASTRO/SSO hereditary breast cancer guideline recommends olaparib or talazoparib as an alternative to chemotherapy in the first- to third-line setting for germline carriers, based on OlympiAD (olaparib, PFS 7.0 vs 4.2 months) and EMBRACA (talazoparib, PFS 8.6 vs 5.6 months).[[8]][[9]]\nOvarian cancer \u2014 For newly diagnosed stage II\u2013IV disease with germline or somatic BRCA1/2 variants achieving CR/PR to platinum-based therapy, NCCN recommends maintenance olaparib (category 1), niraparib (category 1), or rucaparib.[[10]] The SOLO1 trial \u2014 restricted to BRCA1/2-mutated patients \u2014 showed olaparib reduced progression or death by 70% (HR 0.30).[[2]][[19]] ASCO guidelines emphasize that across all frontline and recurrent maintenance trials, the magnitude of PFS benefit is greatest in BRCA-mutated tumors (HR 0.18\u20130.3)[[11]].[[19]] In platinum-sensitive recurrent disease, SOLO2 (olaparib PFS 19.1 vs 5.5 months) and ARIEL3 support maintenance, and ARIEL4 established rucaparib as treatment versus chemotherapy in BRCA-mutated relapse.[[11]][[20]]\nPancreatic cancer \u2014 For metastatic pancreatic adenocarcinoma with a germline BRCA1/2 mutation whose disease has not progressed after \u226516 weeks of first-line platinum-based chemotherapy, the ASCO guideline lists maintenance olaparib as an option (moderate strength).[[13]][[14]] This derives from the phase 3 POLO trial, which met its primary PFS endpoint (7.4 vs 3.8 months; HR 0.53) but showed no statistically significant OS benefit (19.0 vs 19.2 months; HR 0.83) \u2014 a limitation ASCO explicitly incorporates into shared decision-making.[[21]][[22]]\nProstate cancer \u2014 For metastatic castration-resistant prostate cancer with BRCA1/2 alterations (germline or somatic), ASCO recommends olaparib monotherapy (strong recommendation) after prior ARPI, based on PROfound, which showed both rPFS (HR 0.22) and OS (HR 0.63) benefit in the BRCA1/2 subgroup[[5]][[16]].[[23]] NCCN lists multiple options: olaparib (PROfound), rucaparib (TRITON2), and ARPI combinations \u2014 olaparib/abiraterone (PROpel), talazoparib/enzalutamide (TALAPRO-2), and niraparib/abiraterone (MAGNITUDE).[[15]] A notable caveat specific to BRCA1: subgroup analyses (e.g., the rucaparib TRITON3 trial) show substantially greater benefit in BRCA2 than BRCA1, with BRCA1 confidence intervals sometimes crossing unity.[[24]]\nBRCA1 vs BRCA2 and germline vs somatic nuances \u2014 Most pivotal trials pool BRCA1 and BRCA2, and the breast cancer OlympiA analysis found no evidence of heterogeneity by gene.[[17]] However, in prostate cancer the predictive value appears stronger for BRCA2, and BRCA1-specific benefit is less certain.[[24]] In breast and pancreatic cancer, labeled indications and guideline recommendations are restricted to germline BRCA, with emerging (not yet guideline-endorsed in the US) evidence for somatic BRCA breast cancer; in ovarian and prostate cancer both germline and somatic alterations are actionable.[[4]][[8]][[10]][[15]]\nHere is the NCCN ovarian cancer maintenance algorithm showing BRCA1/2-directed PARP inhibitor selection:\n[[10]]\nThe pivotal PROfound trial Kaplan-Meier curves demonstrate the olaparib benefit in BRCA1/BRCA2/ATM-altered mCRPC:\n[[25]]\n\n\nWould you like to explore how PARP inhibitor efficacy differs specifically between BRCA1 and BRCA2 alterations across these tumor types?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "Targeting DNA damage response pathways in cancer",
+            "authors": "Groelly FJ, Fawkes M, Dagg RA, Blackford AN, Tarsounas M.",
+            "journal": "Nature Reviews. Cancer",
+            "date": "2023-02-01",
+            "doi": "10.1038/s41568-022-00535-5",
+            "url": "https://doi.org/10.1038/s41568-022-00535-5"
+          },
+          {
+            "citation_key": "2",
+            "title": "High-throughput approaches for precision medicine in high-grade serous ovarian cancer",
+            "authors": "Govindarajan M, Wohlmuth C, Waas M, Bernardini MQ, Kislinger T.",
+            "journal": "Journal of Hematology & Oncology",
+            "date": "2020-10-09",
+            "doi": "10.1186/s13045-020-00971-6",
+            "url": "https://doi.org/10.1186/s13045-020-00971-6"
+          },
+          {
+            "citation_key": "3",
+            "title": "FDA Orange Book",
+            "authors": "",
+            "journal": "FDA Orange Book",
+            "date": "2026-10-06",
+            "doi": "",
+            "url": "https://www.fda.gov/drugs/drug-approvals-and-databases/approved-drug-products-therapeutic-equivalence-evaluations-orange-book"
+          },
+          {
+            "citation_key": "4",
+            "title": "Q and a on PARP Inhibitor Use in Somatic BRCA-mutated Breast Cancers",
+            "authors": "Tung N, Hollis RL, Viale G, et al.",
+            "journal": "Journal of the National Cancer Institute",
+            "date": "2025-08-09",
+            "doi": "10.1093/jnci/djaf205",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/40795806"
+          },
+          {
+            "citation_key": "5",
+            "title": "Systemic Therapy for Metastatic Castration Res. Prostate Cancer",
+            "authors": "Taplin ME, Riaz IB, Rumble RB, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-02-20",
+            "doi": "10.1200/JCO-25-02693",
+            "url": "https://doi.org/10.1200/jco-25-02693"
+          },
+          {
+            "citation_key": "6",
+            "title": "Breast Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-25",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/breast.pdf#page=29"
+          },
+          {
+            "citation_key": "7",
+            "title": "Adjuvant PARP Inhibitors in Patients With High-Risk Early-Stage HER2-Negative Breast Cancer and Germline BRCA Mutations: ASCO Hereditary Breast Cancer Guideline Rapid Recommendation Update",
+            "authors": "Tung NM, Zakalik D, Somerfield MR, Hereditary Breast Cancer Guideline Expert Panel.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2021-09-10",
+            "doi": "10.1200/JCO.21.01532",
+            "url": "https://doi.org/10.1200/jco.21.01532"
+          },
+          {
+            "citation_key": "8",
+            "title": "Management of Hereditary Breast Cancer: American Society of Clinical Oncology, American Society for Radiation Oncology, and Society of Surgical Oncology Guideline",
+            "authors": "Tung NM, Boughey JC, Pierce LJ, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2020-06-20",
+            "doi": "10.1200/JCO.20.00299",
+            "url": "https://ascopubs.org/doi/10.1200/JCO.20.00299?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed"
+          },
+          {
+            "citation_key": "9",
+            "title": "Germline Testing in Patients With Breast Cancer: ASCO\u2013Society of Surgical Oncology Guideline",
+            "authors": "Bedrosian I, Somerfield MR, Achatz MI, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2024-02-10",
+            "doi": "10.1200/JCO.23.02225",
+            "url": "https://doi.org/10.1200/jco.23.02225"
+          },
+          {
+            "citation_key": "10",
+            "title": "Ovarian Cancer Including Fallopian Tube Cancer and Primary Peritoneal Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-10",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/ovarian.pdf#page=11"
+          },
+          {
+            "citation_key": "11",
+            "title": "Poly(ADP-Ribose) Polymerase Inhibitors in the Management of Ovarian Cancer: ASCO Guideline Rapid Recommendation Update",
+            "authors": "Tew WP, Lacchetti C, Kohn EC, PARP Inhibitors in the Management of Ovarian Cancer Guideline Expert Panel.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2022-11-20",
+            "doi": "10.1200/JCO.22.01934",
+            "url": "https://doi.org/10.1200/jco.22.01934"
+          },
+          {
+            "citation_key": "12",
+            "title": "Neoadjuvant Chemotherapy for Newly Diagnosed, Advanced Ovarian Cancer: ASCO Guideline Update",
+            "authors": "Gaillard S, Lacchetti C, Armstrong DK, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2025-03-01",
+            "doi": "10.1200/JCO-24-02589",
+            "url": "https://doi.org/10.1200/jco-24-02589"
+          },
+          {
+            "citation_key": "13",
+            "title": "Metastatic Pancreatic Cancer: ASCO Guideline Update",
+            "authors": "Sohal DPS, Kennedy EB, Cinar P, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2020-09-20",
+            "doi": "10.1200/JCO.20.01364",
+            "url": "https://doi.org/10.1200/jco.20.01364"
+          },
+          {
+            "citation_key": "14",
+            "title": "Metastatic Pancreatic Cancer: ASCO Guideline Update",
+            "authors": "Sohal DPS, Kennedy EB, Cinar P, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2020-09-20",
+            "doi": "10.1200/JCO.20.01364",
+            "url": "https://ascopubs.org/doi/10.1200/JCO.20.01364?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed"
+          },
+          {
+            "citation_key": "15",
+            "title": "Prostate Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-08-27",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/prostate.pdf#page=97"
+          },
+          {
+            "citation_key": "16",
+            "title": "Germline and Somatic Genomic Testing for Metastatic Prostate Cancer: ASCO Guideline",
+            "authors": "Yu EY, Rumble RB, Agarwal N, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2025-02-20",
+            "doi": "10.1200/JCO-24-02608",
+            "url": "https://doi.org/10.1200/jco-24-02608"
+          },
+          {
+            "citation_key": "17",
+            "title": "Adjuvant Olaparib for Patients with BRCA1- or BRCA2-Mutated Breast Cancer",
+            "authors": "Tutt ANJ, Garber JE, Kaufman B, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2021-06-24",
+            "doi": "10.1056/NEJMoa2105215",
+            "url": "https://doi.org/10.1056/nejmoa2105215?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "18",
+            "title": "Emerging Targeted Therapies for Early Breast Cancer",
+            "authors": "Schlam I, Tarantino P, Morganti S, et al.",
+            "journal": "Drugs",
+            "date": "2022-09-01",
+            "doi": "10.1007/s40265-022-01781-5",
+            "url": "https://doi.org/10.1007/s40265-022-01781-5"
+          },
+          {
+            "citation_key": "19",
+            "title": "Germline and Somatic Tumor Testing in Epithelial Ovarian Cancer: ASCO Guideline",
+            "authors": "Konstantinopoulos PA, Norquist B, Lacchetti C, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2020-04-10",
+            "doi": "10.1200/JCO.19.02960",
+            "url": "https://doi.org/10.1200/jco.19.02960"
+          },
+          {
+            "citation_key": "20",
+            "title": "Rucaparib Versus Standard-of-Care Chemotherapy in Patients With Relapsed Ovarian Cancer and a Deleterious BRCA1 or BRCA2 Mutation (ARIEL4): An International, Open-Label, Randomised, Phase 3 Trial",
+            "authors": "Kristeleit R, Lisyanskaya A, Fedenko A, et al.",
+            "journal": "The Lancet. Oncology",
+            "date": "2022-04-01",
+            "doi": "10.1016/S1470-2045(22)00122-X",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/35298906"
+          },
+          {
+            "citation_key": "21",
+            "title": "Overall Survival Results From the POLO Trial: A Phase III Study of Active Maintenance Olaparib Versus Placebo for Germline BRCA-Mutated Metastatic Pancreatic Cancer",
+            "authors": "Kindler HL, Hammel P, Reni M, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2022-12-01",
+            "doi": "10.1200/JCO.21.01604",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/35834777"
+          },
+          {
+            "citation_key": "22",
+            "title": "Treating Pancreatic Ductal Adenocarcinoma: The Targeted Revolution is Here",
+            "authors": "May MS, Park W, O'Reilly EM.",
+            "journal": "Drugs",
+            "date": "2026-04-01",
+            "doi": "10.1007/s40265-026-02295-0",
+            "url": "https://doi.org/10.1007/s40265-026-02295-0"
+          },
+          {
+            "citation_key": "23",
+            "title": "Survival with Olaparib in Metastatic Castration-Resistant Prostate Cancer",
+            "authors": "Hussain M, Mateo J, Fizazi K, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2020-12-10",
+            "doi": "10.1056/NEJMoa2022485",
+            "url": "https://doi.org/10.1056/nejmoa2022485?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "24",
+            "title": "Rucaparib or Physician\u2019s Choice in Metastatic Prostate Cancer",
+            "authors": "Fizazi K, Piulats JM, Reaume MN, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2023-02-23",
+            "doi": "10.1056/NEJMoa2214676",
+            "url": "https://doi.org/10.1056/nejmoa2214676?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "25",
+            "title": "Olaparib for Metastatic Castration-Resistant Prostate Cancer",
+            "authors": "de Bono J, Mateo J, Fizazi K, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2020-05-28",
+            "doi": "10.1056/NEJMoa1911440",
+            "url": "https://doi.org/10.1056/nejmoa1911440?utm_source=openevidence&utm_medium=referral"
+          }
+        ]
+      }
+    }
+  ],
+  "primary_source_facts": [
+    {
+      "claim": "ALEX final median OS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/41110693/",
+      "verified_values": {
+        "alectinib_months": 81.1,
+        "crizotinib_months": 54.2,
+        "HR": 0.78
+      }
+    },
+    {
+      "claim": "WU-KONG28 first-line sunvozertinib",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42212913/",
+      "verified_values": {
+        "PFS_months": [
+          10.3,
+          7.5
+        ],
+        "HR": 0.65,
+        "NCT": "NCT05668988"
+      }
+    },
+    {
+      "claim": "ADAURA exploratory eight-year landmark",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42732874/",
+      "verified_values": {
+        "stage_IB_IIIA_OS_percent": [
+          79,
+          64
+        ],
+        "HR": 0.52
+      }
+    },
+    {
+      "claim": "LAURA PFS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/38828946/",
+      "verified_values": {
+        "PFS_months": [
+          39.1,
+          5.6
+        ],
+        "HR": 0.16
+      }
+    },
+    {
+      "claim": "Daraxonrasib FDA approval",
+      "source": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-daraxonrasib-metastatic-pancreatic-adenocarcinoma",
+      "verified_values": {
+        "approval_date": "2026-08-26",
+        "trial": "RASolute 302",
+        "NCT": "NCT06625320"
+      }
+    },
+    {
+      "claim": "Magrolimab ENHANCE-2 failure in TP53 AML",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/40009500/",
+      "verified_values": {
+        "nonintensive_OS_months": [
+          4.4,
+          6.6
+        ],
+        "HR": 1.132,
+        "NCT": "NCT04778397"
+      }
+    },
+    {
+      "claim": "Crizotinib ALCL approval population",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/35561013/",
+      "label_source": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2025/217581Orig1s000Lbl.pdf",
+      "verified_values": {
+        "population": "Pediatric patients >=1 year and young adults with relapsed/refractory systemic ALK-positive ALCL",
+        "limitation": "Safety and efficacy have not been established in older adults"
+      }
+    }
+  ]
+}

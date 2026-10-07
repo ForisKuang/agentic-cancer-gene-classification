@@ -1,0 +1,429 @@
+{
+  "benchmark_date": "2026-10-06",
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "pairs": [
+    {
+      "gene": "TP53",
+      "A": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for TP53 alterations in cancer? Cite the specific guideline or trial.",
+        "text": "7ef4\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"5afd2bdb-af29-4232-9c05-b390b6521cf9\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nNo targeted agent is currently approved or endorsed by NCCN, ASCO, or ESMO specifically to treat TP53-altered cancer, and no drug directly targeting mutant p53 has achieved regulatory approval in any tumor type.[[1]] Across guidelines, TP53 status functions primarily as a prognostic/risk-stratification biomarker rather than a therapeutic target, and the consistent guideline-level recommendation\u2014most explicit in myeloid neoplasms\u2014is preferential enrollment in clinical trials because standard therapies perform poorly.[[2]][[3]][[4]] All direct p53-targeting strategies remain investigational.\nNCCN guideline recommendations (myeloid neoplasms)\nThe clearest guideline statements addressing TP53 come from the NCCN AML and MDS guidelines, where TP53 defines an adverse-risk entity and steers patients toward trials rather than a specific targeted drug:\n- AML: TP53 mutation (VAF \u226510%, mono- or biallelic) is classified as poor/adverse risk per the ELN stratification adopted by NCCN. The guideline states outcomes with conventional induction remain poor and the panel prioritizes cl[[2]]inical trial enrollment; off-trial, less-intensive chemotherapy is preferred over intensive induction for most patients not on a trial.\n- MDS: NCCN notes that patients with TP53 mutations\u2014particularly biallelic\u2014have a poor prognosis even with allogeneic transplant, that such cases should be discussed with a transplant physician, and that patients should be enrolled in a clinical trial whenever possible.[[3]]\nThe NCCN AML adverse-risk table is shown below, including the footnote defining the TP53 threshold:\n[[2]]\nThe emerging/targeted strategies under investigation for TP53-mutated AML/MDS (HMA \u00b1 venetoclax backbone plus p53 reactivators or immune agents) are summarized in this schematic:\n[[5]]\nNo TP53-specific recommendation in solid-tumor guidelines\nThe retrieved NCCN, ASCO, and ESMO solid-tumor guidance does not recommend a TP53-directed targeted therapy. The one germline-focused NCCN reference (Genetic/Familial High-Risk Assessment) addresses interpreting germline TP53 P/LP variants and [Li-Fraumeni syndrome](/rare-disease/li-fraumeni-syndrome)\u2014distinguishing true germline findings from CHIP/somatic confounders\u2014rather than targeted treatment.[[6]] No ESMO document recommending a TP53-targeted agent was identified in the retrieved literature.\nClinical trial evidence by strategy\nMutant-p53 reactivators (small molecules restoring wild-type conformation):\n- Eprenetapopt (APR-246) is the most clinically advanced. A phase Ib/II trial of eprenetapopt + azacitidine in TP53-mutant MDS/AML produced an ORR of 71% with 44% CR. However, the phase 3 trial in TP53-mutant M[[7]][[8]]DS (NCT03745716) failed its primary CR endpoint (33.3% vs 22.4% with azacitidine alone, P\u22480.13), ending its development in this indication. It has also been studied as post-transplant maintenance and with venetoclax/pembrolizumab.[[1]][[9]][[10]]\n- Rezatapopt (PC14586), a Y220C-selective reactivator, showed preliminary efficacy and acceptable safety in phase 1 and is in a phase 2 basket trial for TP53 Y220C solid tumors (NCT04585750), including a combination with pembrolizumab.[[11]][[12]][[13]]\n- Arsenic trioxide (ATO) reactivates structural p53 mutants; the first-in-human PANDA-T0 pilot trial (NCT03855371) of ATO + decitabine in p53-structural-mutant AML/MDS achieved marrow CR in 4 of 5 patients.[[13]][[14]]\n- Earlier/other reactivators (COTI-2, PRIMA-1) remain in early-phase testing.[[15]][[16]][[17]]\nMDM2 inhibition (relevant to TP53 wild-type/functional tumors):\n- Idasanutlin was tested in the phase 3 MIRROS trial (idasanutlin + cytarabine in relapsed/refractory AML, enrolled regardless of TP53 status); the idasanutlin + venetoclax combination showed minimal activity in TP53-mutant disease (3/10 ORR, no CRs). MDM2 antagonists (e[[15]][[18]].g., alrizomadlin/APG-115) are being tested with pembrolizumab in solid tumors.[[12]]\nSynthetic-lethal/DNA-damage-response approaches (exploiting loss of the G1/S checkpoint):\n- The WEE1 inhibitor adavosertib (AZD1775) has been studied with TP53 stratification; the randomized phase 2 FOCUS4-C trial showed improved PFS in RAS/TP53-mutant metastatic colorectal cancer, and adavosertib + carboplatin enhanced efficacy in TP53-mutated ovarian cancer (at a cost of hematologic toxicity).[[19]]\n- ATR/CHK1, XPO1, and HDAC/antiangiogenic combinations (e.g., pazopanib + vorinostat in TP53-hotspot-mutant solid tumors, NCT01339871) have early-phase support.[[19]][[20]][[21]]\nImmune-based approaches: TP53-mutated tumors may associate with higher TMB/PD-L1 in some contexts, and ICIs (nivolumab, pembrolizumab, sabatolimab/anti-TIM-3) are being tested in TP53-mutant AML/MDS and selected solid tumors, with variable activity.[[18]][[22]]\nThe range of mechanistic strategies and the specific compound\u2013residue interactions are depicted here:\n[[23]]\nGiven that guidelines explicitly prioritize trial enrollment for TP53-altered myeloid disease, the following search identifies currently recruiting options.\nREACTCOMPONENT!:!InlineGenerationStep!:!{\"steps\": [{\"callid\": \"f7408230-a868-4636-a0e8-2fbdc747aed0\", \"kind\": \"search\", \"label\": \"Matching clinical trials\", \"id\": \"matchclinicaltrials\", \"active\": true, \"children\": [], \"paragraphindex\": 26, \"metadata\": {}}], \"done\": false, \"summary\": \"Matching clinical trials\"}REACTCOMPONENT!:!InlineGenerationStep!:!{\"steps\": [{\"callid\": \"f7408230-a868-4636-a0e8-2fbdc747aed0\", \"kind\": \"search\", \"label\": \"Matched clinical trials\", \"id\": \"matchclinicaltrials\", \"active\": false, \"children\": [], \"paragraphindex\": 26, \"metadata\": {}}], \"done\": true, \"summary\": \"Matched clinical trials\"}\n\n\n\n\nThe search returned 10 available trials, though most are molecularly-guided basket or precision-oncology registry studies rather than dedicated TP53-targeted protocols. Among the top trials in the search results above, [NCT03089554](/clinical-trials/NCT03089554) (genomic testing to assign targeted therapy) and the MD Anderson personalized cancer therapy program ([NCT01772771](/clinical-trials/NCT01772771)) can route TP53-altered patients to matched agents, and [NCT04169737](/clinical-trials/NCT04169737) evaluates acalabrutinib + venetoclax in high-risk CLL/SLL (a population enriched for TP53 aberration). Dedicated TP53-reactivator trials such as the rezatapopt Y220C study (NCT04585750) were not surfaced here and would need a Y220C-specific or solid-tumor search.\n\n\nWould you like to explore the eligibility and status of the rezatapopt (PC14586) trial for TP53 Y220C solid tumors?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "Targeting mutations in cancer",
+            "authors": "Waarts MR, Stonestrom AJ, Park YC, Levine RL.",
+            "journal": "The Journal of Clinical Investigation",
+            "date": "2022-04-15",
+            "doi": "10.1172/JCI154943",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9012285/"
+          },
+          {
+            "citation_key": "2",
+            "title": "Acute Myeloid Leukemia",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-07-15",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/aml.pdf#page=33"
+          },
+          {
+            "citation_key": "3",
+            "title": "Myelodysplastic Syndromes",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-01-12",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/mds.pdf#page=15"
+          },
+          {
+            "citation_key": "4",
+            "title": "TP53 -altered acute myeloid leukemia and myelodysplastic syndrome with excess blasts should be approached as a single entity",
+            "authors": "Shallis RM, Daver NG, Altman JK, et al.",
+            "journal": "Cancer",
+            "date": "2023-01-15",
+            "doi": "10.1002/cncr.34535",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11938810/"
+          },
+          {
+            "citation_key": "5",
+            "title": "TP53-mutated acute myeloid leukemia and myelodysplastic syndrome: biology, treatment challenges, and upcoming approaches",
+            "authors": "Pereira MP, Herrity E, Kim DDH.",
+            "journal": "Annals of Hematology",
+            "date": "2024-04-01",
+            "doi": "10.1007/s00277-023-05462-5",
+            "url": "https://doi.org/10.1007/s00277-023-05462-5"
+          },
+          {
+            "citation_key": "6",
+            "title": "Genetic/Familial High-Risk Assessment: Breast, Ovarian, Pancreatic, and Prostate",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-08-31",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/genetics_bopp.pdf#page=74"
+          },
+          {
+            "citation_key": "7",
+            "title": "Outcomes in Patients with Newly Diagnosed TP53 -Mutated Acute Myeloid Leukemia with or without Venetoclax-Based Therapy",
+            "authors": "Venugopal S, Shoukier M, Konopleva M, et al.",
+            "journal": "Cancer",
+            "date": "2021-10-01",
+            "doi": "10.1002/cncr.33675",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12132598/"
+          },
+          {
+            "citation_key": "8",
+            "title": "Targeting apoptotic pathways for cancer therapy",
+            "authors": "Tian X, Srinivasan PR, Tajiknia V, et al.",
+            "journal": "The Journal of Clinical Investigation",
+            "date": "2024-07-15",
+            "doi": "10.1172/JCI179570",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11245162/"
+          },
+          {
+            "citation_key": "9",
+            "title": "Drugging p53 in cancer: one protein, many targets",
+            "authors": "Hassin O, Oren M.",
+            "journal": "Nature Reviews. Drug Discovery",
+            "date": "2023-02-01",
+            "doi": "10.1038/s41573-022-00571-8",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9549847/"
+          },
+          {
+            "citation_key": "10",
+            "title": "A breakthrough in p53-targeted therapy",
+            "authors": "Klas G. Wiman",
+            "journal": "Nature cancer",
+            "date": "2026-10-01",
+            "doi": "10.1038/s43018-026-01254-8",
+            "url": "https://doi.org/10.1038/s43018-026-01254-8"
+          },
+          {
+            "citation_key": "11",
+            "title": "Rezatapopt: A Promising Small-Molecule \"Refolder\" Specific for TP53Y220C Mutant Tumors",
+            "authors": "Papavassiliou KA, Vassiliou AG, Papavassiliou AG.",
+            "journal": "Neoplasia ",
+            "date": "2025-09-01",
+            "doi": "10.1016/j.neo.2025.101201",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/40543428"
+          },
+          {
+            "citation_key": "12",
+            "title": "p53 at the crossroads of tumor immunity",
+            "authors": "Efe G, Rustgi AK, Prives C.",
+            "journal": "Nature Cancer",
+            "date": "2024-07-01",
+            "doi": "10.1038/s43018-024-00796-z",
+            "url": "https://doi.org/10.1038/s43018-024-00796-z"
+          },
+          {
+            "citation_key": "13",
+            "title": "Restoring Function to a Variant of p53 in Solid Tumors",
+            "authors": "Lu X.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2026-02-26",
+            "doi": "10.1056/NEJMe2516747",
+            "url": "https://doi.org/10.1056/nejme2516747?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "14",
+            "title": "Mutant P53 Reactivation and DNA Demethylation in the Treatment of AML/MDS",
+            "authors": "Song H, Chen X, Xiao S, et al.",
+            "journal": "Science Translational Medicine",
+            "date": "2026-08-12",
+            "doi": "10.1126/scitranslmed.ads9325",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42585289"
+          },
+          {
+            "citation_key": "15",
+            "title": "Targeting P53 for the Treatment of Cancer",
+            "authors": "Duffy MJ, Synnott NC, O'Grady S, Crown J.",
+            "journal": "Seminars in Cancer Biology",
+            "date": "2022-02-01",
+            "doi": "10.1016/j.semcancer.2020.07.005",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/32741700"
+          },
+          {
+            "citation_key": "16",
+            "title": "Targeting Mutant P53 for Cancer Treatment: Moving Closer to Clinical Use?",
+            "authors": "Duffy MJ, Tang M, Rajaram S, O'Grady S, Crown J.",
+            "journal": "Cancers",
+            "date": "2022-09-16",
+            "doi": "10.3390/cancers14184499",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36139658"
+          },
+          {
+            "citation_key": "17",
+            "title": "Molecular alterations and targeted therapy in pancreatic ductal adenocarcinoma",
+            "authors": "Qian Y, Gong Y, Fan Z, et al.",
+            "journal": "Journal of Hematology & Oncology",
+            "date": "2020-10-02",
+            "doi": "10.1186/s13045-020-00958-3",
+            "url": "https://doi.org/10.1186/s13045-020-00958-3"
+          },
+          {
+            "citation_key": "18",
+            "title": "TP53\u2010Mutated Myeloid Neoplasms: 2024 Update on Diagnosis, Risk\u2010Stratification, and Management",
+            "authors": "Shah MV, Arber DA, Hiwase DK.",
+            "journal": "American Journal of Hematology",
+            "date": "2025-06-01",
+            "doi": "10.1002/ajh.27655",
+            "url": "https://doi.org/10.1002/ajh.27655"
+          },
+          {
+            "citation_key": "19",
+            "title": "Translating p53-based therapies for cancer into the clinic",
+            "authors": "Peuget S, Zhou X, Selivanova G.",
+            "journal": "Nature Reviews. Cancer",
+            "date": "2024-03-01",
+            "doi": "10.1038/s41568-023-00658-3",
+            "url": "https://doi.org/10.1038/s41568-023-00658-3"
+          },
+          {
+            "citation_key": "20",
+            "title": "Phase I studies of vorinostat with ixazomib or pazopanib imply a role of antiangiogenesis-based therapy for TP53 mutant malignancies",
+            "authors": "Wang Y, Janku F, Piha-Paul S, et al.",
+            "journal": "Scientific Reports",
+            "date": "2020-02-20",
+            "doi": "10.1038/s41598-020-58366-z",
+            "url": "https://doi.org/10.1038/s41598-020-58366-z"
+          },
+          {
+            "citation_key": "21",
+            "title": "Sequential Administration of XPO1 and ATR Inhibitors Enhances Therapeutic Response in TP53-mutated Colorectal Cancer",
+            "authors": "Inoue A, Robinson FS, Minelli R, et al.",
+            "journal": "Gastroenterology",
+            "date": "2021-07-01",
+            "doi": "10.1053/j.gastro.2021.03.022",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/33745946"
+          },
+          {
+            "citation_key": "22",
+            "title": "Clinico-Molecular Characteristics and Enhanced Efficacy of Immune Checkpoint Inhibitors in TP53-mutated Advanced Biliary Tract Cancer",
+            "authors": "Shibuki T, Hoyek C, Ramaker R, et al.",
+            "journal": "Journal of Gastroenterology",
+            "date": "2026-05-25",
+            "doi": "10.1007/s00535-026-02439-9",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42185502"
+          },
+          {
+            "citation_key": "23",
+            "title": "Pharmacological reactivation of p53 in the era of precision anticancer medicine",
+            "authors": "Tuval A, Strandgren C, Heldin A, Palomar-Siles M, Wiman KG.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2024-02-01",
+            "doi": "10.1038/s41571-023-00842-2",
+            "url": "https://doi.org/10.1038/s41571-023-00842-2"
+          }
+        ]
+      },
+      "B": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for TP53 alterations in cancer? Cite the specific guideline or trial.",
+        "text": "36b1\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"ace03e8f-1834-4774-8f84-9d5d920b9dd1\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"1a8554a8-fd1f-49c3-a625-ac1f9d4dd91a\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"b770020c-7aee-4bd0-b6b0-31d39968d0f1\", \"kind\": \"reading\", \"label\": \"Read clinical evidence\", \"id\": \"readnccnpages\", \"active\": false, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"9ca981e0-130e-4a0f-b5ef-bd9ec9b6733e\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence, read clinical evidence\"}\n\n\nNo NCCN, ASCO, or ESMO guideline currently recommends a TP53-directed targeted agent as standard of care in any cancer, and no p53-targeting drug has regulatory approval. TP53 is guideline-actionable almost entirely as a negative predictive and prognostic biomarker \u2014 it redirects patients away from DNA-damaging therapy and toward targeted agents, transplant, or clinical trials \u2014 and, in the germline setting, toward intensive surveillance and radiation avoidance. The one exception in development is rezatapopt (PC14586), an allele-selective reactivator of p53 Y220C, which produced the first prospective evidence of direct pharmacologic p53 targeting in the PYNNACLE phase 1 trial.[[1]]\nRezatapopt \u2014 the only direct p53-targeted agent with clinical efficacy data\n- PYNNACLE phase 1 (NEJM 2026): 77 heavily pretreated patients with locally advanced/metastatic TP53 Y220C\u2013mutated solid tumors. Investigator-assessed and blinded central review ORR both 20% (14/71 evaluable), with 2 complete responses; confirmed responses in ovarian (7), breast (3), and one each endometrial, head and neck, prostate, and [small cell lung cancer](/rare-disease/small-cell-lung-cancer). Median DOR 7.0 months (95% CI 2.8\u201310.6), median PFS 4.3 months, median OS 11.4 months.[[1]]\n- KRAS co-mutation abolished activity: all 14 responders were KRAS wild-type, and no response occurred in tumors with both TP53 Y220C and a KRAS single-nucleotide variant. In the Y220C/KRAS\u2013wild-type population treated within the efficacious dose range, ORR was 30% (14/46).[[1]]\n- Recommended phase 2 dose: 2000 mg orally once daily with food; nausea and vomiting were the most common treatment-related adverse events, and administration with food reduced GI toxicity and pharmacokinetic variability. ctDNA Y220C variant allele frequency fell in 95% of assessable patients, supporting on-target activity.[[1]]\n- The registrational phase 2 PYNNACLE study (NCT04585750) restricts enrollment to TP53 Y220C with wild-type KRAS and has not reported. Y220C accounts for ro[[1]][[2]]ughly 1.8% of TP53 mutations.[[3]]\n- Acquired resistance is on-target: ctDNA, biopsy, and rapid-autopsy profiling at progression showed secondary TP53 alterations in cis with Y220C \u2014 DNA-binding-domain or truncating mutations that abolish transcriptional activity, and mutations within the drug-binding surface.[[4]]\nA 20\u201330% response rate in a phase 1 population does not establish clinical benefit; access should be through trial enrollment.\nPhase 3 failures that should close off other p53-directed approaches\n- Eprenetapopt (APR-246) + azacitidine: phase Ib/II in TP53-mutant MDS/oligoblastic AML gave ORR 71% and CR 44%, but the randomized phase 3 in TP53-mutant MDS missed its primary endpoint (CR 33.3% vs 22.4% with azacitidine alone, P = .13).[[5]][[6]][[7]]\n- Magrolimab (anti-CD47): ENHANCE-2 in untreated TP53-mutated AML was stopped for futility \u2014 median OS 4.4 vs 6.6 months in the non-intensive arm (HR 1.132) and 7.3 vs 11.1 months in the intensive arm. ENHANCE in higher-risk MDS was negative (CR 21.3% vs 23.6%; median OS 15.9 vs 18.6 months, HR 1.203) with more grade \u22653, serious, and fatal adverse events on magrolimab. ENHANCE-3 was terminated early for futility and excess deaths. Other anti-CD47 programs (evor[[8]][[9]][[10]][[11]]pacept) have also been terminated.[[12]]\n- WEE1 inhibition (synthetic lethality with G1/S checkpoint loss): FOCUS4-C randomized adavosertib vs active monitoring in RAS/TP53-mutant metastatic colorectal cancer \u2014 PFS 3.61 vs 1.87 months (HR 0.35, 95% CI 0.18\u20130.68, P = .0022) with no OS benefit (14.0 vs 12.8 months); benefit concentrated in left-sided tumors and KRAS codon 12/13. This remains the strongest randomized signal for a TP53-mutation-selected strategy in solid tumors, but it is not guideline-recommended, and TP53 mutation alone is not a validated predictive biomarker for WEE1 inhibition \u2014 cyclin E1/CCNE1 status appears more predictive.[[13]][[14]]\nWhere NCCN guidelines make TP53 status change management\n",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "Phase 1 Study of Rezatapopt, a p53 Reactivator, in TP53 Y220C\u2013Mutated Tumors",
+            "authors": "Dumbrava EE, Shapiro GI, Parikh AR, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2026-02-26",
+            "doi": "10.1056/NEJMoa2508820",
+            "url": "https://doi.org/10.1056/nejmoa2508820?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "2",
+            "title": "Rezatapopt: A Promising Small-Molecule \"Refolder\" Specific for TP53Y220C Mutant Tumors",
+            "authors": "Papavassiliou KA, Vassiliou AG, Papavassiliou AG.",
+            "journal": "Neoplasia ",
+            "date": "2025-09-01",
+            "doi": "10.1016/j.neo.2025.101201",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/40543428"
+          },
+          {
+            "citation_key": "3",
+            "title": "Discovery of Rezatapopt (PC14586), a First-in-Class, Small-Molecule Reactivator of P53 Y220C Mutant in Development",
+            "authors": "Vu BT, Dominique R, Fahr BJ, et al.",
+            "journal": "ACS Medicinal Chemistry Letters",
+            "date": "2025-01-09",
+            "doi": "10.1021/acsmedchemlett.4c00379",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/39811143"
+          },
+          {
+            "citation_key": "4",
+            "title": "Acquired on-Target Alterations Drive Clinical Resistance to P53-Y220c Reactivators",
+            "authors": "Fece de la Cruz F, Varkaris A, Patel PS, et al.",
+            "journal": "Cancer Discovery",
+            "date": "2026-04-01",
+            "doi": "10.1158/2159-8290.CD-25-1761",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/41504628"
+          },
+          {
+            "citation_key": "5",
+            "title": "Eprenetapopt (APR-246) and Azacitidine in TP53-Mutant Myelodysplastic Syndromes",
+            "authors": "Sallman DA, DeZern AE, Garcia-Manero G, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2021-05-10",
+            "doi": "10.1200/JCO.20.02341",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/33449813"
+          },
+          {
+            "citation_key": "6",
+            "title": "Outcomes in Patients with Newly Diagnosed TP53 -Mutated Acute Myeloid Leukemia with or without Venetoclax-Based Therapy",
+            "authors": "Venugopal S, Shoukier M, Konopleva M, et al.",
+            "journal": "Cancer",
+            "date": "2021-10-01",
+            "doi": "10.1002/cncr.33675",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12132598/"
+          },
+          {
+            "citation_key": "7",
+            "title": "Current challenges and unmet medical needs in myelodysplastic syndromes",
+            "authors": "Platzbecker U, Kubasch AS, Homer-Bouthiette C, Prebet T.",
+            "journal": "Leukemia",
+            "date": "2021-08-01",
+            "doi": "10.1038/s41375-021-01265-7",
+            "url": "https://doi.org/10.1038/s41375-021-01265-7"
+          },
+          {
+            "citation_key": "8",
+            "title": "Magrolimab Plus Azacitidine vs Physician's Choice for Untreated TP53-mutated Acute Myeloid Leukemia: The ENHANCE-2 Study",
+            "authors": "Zeidner JF, Sallman DA, R\u00e9cher C, et al.",
+            "journal": "Blood",
+            "date": "2025-02-26",
+            "doi": "10.1182/blood.2024027408",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/40009500"
+          },
+          {
+            "citation_key": "9",
+            "title": "Magrolimab Plus Azacitidine Versus Placebo Plus Azacitidine in Patients With Untreated Higher-Risk Myelodysplastic Syndromes: The Phase III ENHANCE Study",
+            "authors": "Sallman DA, Garcia-Manero G, Daver N, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-09-10",
+            "doi": "10.1200/JCO-25-00617",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42441929"
+          },
+          {
+            "citation_key": "10",
+            "title": "Azacitidine, Venetoclax and Magrolimab in Newly Diagnosed and Relapsed Refractory Acute Myeloid Leukemia: Phase 1b/2 Study and Correlative Analysis",
+            "authors": "Daver N, Senapati J, Kantarjian HM, et al.",
+            "journal": "Clinical Cancer Research : An Official Journal of the American Association for Cancer Research",
+            "date": "2025-06-13",
+            "doi": "10.1158/1078-0432.CCR-25-0229",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12165814/"
+          },
+          {
+            "citation_key": "11",
+            "title": "Acute Myeloid Leukemia: 2025 Update on Diagnosis, Risk\u2010Stratification, and Management",
+            "authors": "Shimony S, Stahl M, Stone RM.",
+            "journal": "American Journal of Hematology",
+            "date": "2025-05-01",
+            "doi": "10.1002/ajh.27625",
+            "url": "https://doi.org/10.1002/ajh.27625"
+          },
+          {
+            "citation_key": "12",
+            "title": "TP53\u2010Mutated Myeloid Neoplasms: 2024 Update on Diagnosis, Risk\u2010Stratification, and Management",
+            "authors": "Shah MV, Arber DA, Hiwase DK.",
+            "journal": "American Journal of Hematology",
+            "date": "2025-06-01",
+            "doi": "10.1002/ajh.27655",
+            "url": "https://doi.org/10.1002/ajh.27655"
+          },
+          {
+            "citation_key": "13",
+            "title": "Inhibition of WEE1 Is Effective in TP53 - and RAS -Mutant Metastatic Colorectal Cancer: A Randomized Trial (FOCUS4-C) Comparing Adavosertib (AZD1775) With Active Monitoring",
+            "authors": "Seligmann JF, Fisher DJ, Brown LC, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2021-11-20",
+            "doi": "10.1200/JCO.21.01435",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8601321/"
+          },
+          {
+            "citation_key": "14",
+            "title": "Cyclin E1 overexpression sensitizes ovarian cancer cells to WEE1 and PLK1 inhibition",
+            "authors": "Xi Q, Kunita A, Ogawa M, et al.",
+            "journal": "Oncogene",
+            "date": "2025-05-01",
+            "doi": "10.1038/s41388-025-03312-4",
+            "url": "https://doi.org/10.1038/s41388-025-03312-4"
+          }
+        ]
+      }
+    }
+  ],
+  "primary_source_facts": [
+    {
+      "claim": "ALEX final median OS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/41110693/",
+      "verified_values": {
+        "alectinib_months": 81.1,
+        "crizotinib_months": 54.2,
+        "HR": 0.78
+      }
+    },
+    {
+      "claim": "WU-KONG28 first-line sunvozertinib",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42212913/",
+      "verified_values": {
+        "PFS_months": [
+          10.3,
+          7.5
+        ],
+        "HR": 0.65,
+        "NCT": "NCT05668988"
+      }
+    },
+    {
+      "claim": "ADAURA exploratory eight-year landmark",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42732874/",
+      "verified_values": {
+        "stage_IB_IIIA_OS_percent": [
+          79,
+          64
+        ],
+        "HR": 0.52
+      }
+    },
+    {
+      "claim": "LAURA PFS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/38828946/",
+      "verified_values": {
+        "PFS_months": [
+          39.1,
+          5.6
+        ],
+        "HR": 0.16
+      }
+    },
+    {
+      "claim": "Daraxonrasib FDA approval",
+      "source": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-daraxonrasib-metastatic-pancreatic-adenocarcinoma",
+      "verified_values": {
+        "approval_date": "2026-08-26",
+        "trial": "RASolute 302",
+        "NCT": "NCT06625320"
+      }
+    },
+    {
+      "claim": "Magrolimab ENHANCE-2 failure in TP53 AML",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/40009500/",
+      "verified_values": {
+        "nonintensive_OS_months": [
+          4.4,
+          6.6
+        ],
+        "HR": 1.132,
+        "NCT": "NCT04778397"
+      }
+    },
+    {
+      "claim": "Crizotinib ALCL approval population",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/35561013/",
+      "label_source": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2025/217581Orig1s000Lbl.pdf",
+      "verified_values": {
+        "population": "Pediatric patients >=1 year and young adults with relapsed/refractory systemic ALK-positive ALCL",
+        "limitation": "Safety and efficacy have not been established in older adults"
+      }
+    }
+  ]
+}

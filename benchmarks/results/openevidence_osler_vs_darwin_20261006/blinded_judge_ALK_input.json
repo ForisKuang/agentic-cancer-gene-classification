@@ -1,0 +1,564 @@
+{
+  "benchmark_date": "2026-10-06",
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "pairs": [
+    {
+      "gene": "ALK",
+      "A": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for ALK alterations in cancer? Cite the specific guideline or trial.",
+        "text": "e313\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"233def45-3c00-4611-9fc1-36ec645e369a\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"64f0ac59-5be6-42c6-8a1e-9c7033e6dd6d\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nALK-directed tyrosine kinase inhibitors are guideline-recommended therapy in ALK fusion\u2013positive NSCLC (metastatic and resected), ALK-rearranged inflammatory myofibrooblastic tumor](/rare-disease/inflammatory-myofibroblastic-tumor), relapsed/refractory ALK-positive anaplastic large cell lymphoma, and ALK fusion\u2013positive histiocytic neoplasms \u2014 but ALK is not an FDA tumor-agnostic target, and sensitivity differs sharply between fusions (high response rates) and activating point mutations/amplifications, as in [neuroblastoma](/rare-disease/neuroblastoma) (modest, mutation-dependent).[[1]][[2]][[3]] The deepest evidence base is NSCLC, where NCCN lists alectinib, brigatinib, ensartinib, and lorlatinib as preferred first-line options (all category 1), and the 2026 ASCO living guideline recommends alectinib, brigatinib, or lorlatinib (high-quality evidence, strong recommendation).[[4]][[5]]\n[[4]][[5]][[6]][[7]][[8]][[9]][[10]][[11]][[12]][[13]][[14]][[15]][[16]][[17]][[18]]\nMetastatic NSCLC, first line\nNCCN (NSCL-27) separates two entry points: ALK fusion identified before systemic therapy (start a preferred TKI) versus discovered during first-line systemic therapy (interrupt current therapy and start alectinib, brigatinib, ensartinib, or lorlatinib, or alternatively ceritinib or crizotinib) \u2014 though if there is a good response to current therapy, continuing it is reasonable.[[4]] All six agents are listed for PS 0\u20134.[[4]]\nASCO guidelines recommend alectinib, brigatinib, or lorlatinib (Recommendation 1.8, high/strong), with ceritinib or crizotinib only if those are unavailable (1.9, high/strong).[[5]] The 2026 panel narrative names lorlatinib as an agent of choice when available, in carefully selected patients with good PS and no contraindications, while noting alectinib or brigatinib as alternatives in frail or older adults with cardiac or CNS comorbidity.[[5]] This is a shift from the 2022 version, which named alectinib the preferred first-line agent on tolerability grounds.[[19]] No randomized head-to-head trial has compared alectinib, brigatinib, and lorlatinib.[[5]]\nTrial anchors:\n- CROWN (lorlatinib vs crizotinib): at 7 years, median PFS not reached vs 9.1 months (HR 0.19); 7-year PFS 55% vs 3%; median time to intracranial progression not reached vs 16.4 months (HR 0.06), with no new intracranial progression events after 30 months. Patients progression-free at 24 months had a 79% probability of remaining progression-free at year 7. OS remains immature[[6]].[[5]]\n- ALEX final OS: median OS 81.1 vs 57.2 months with crizotinib (HR 0.78, 95% CI 0.56\u20131.08); 7-year OS 48.6% vs 38.2%. J-ALEX did not demonstrate OS superiority over crizotinib at final analysis.[[5]]\n- ALTA-1L (brigatinib): median PFS 30.8 vs 9.2 months (HR 0.43). eXalt3 (ensartinib): median PFS 25.8[[5]] months (HR 0.51).[[20]]\nLorlatinib safety that drives selection: grade 3\u20134 AEs in 77% vs 57% with crizotinib \u2014 hypertriglyceridemia 26%, weight increase 24%, hypercholesterolemia 22%, hypertension 13%, cognitive effects 3% \u2014 with only 5% treatment-related discontinuation.[[5]] Lorlatinib is contraindicated with strong CYP3A inducers because of serious hepatotoxicity (grade 3\u20134 transaminase elevation in 83% of healthy subjects co-dosed with rifampin); discontinue the inducer for 3 plasma half-lives before starting.[[21]] Avoid moderate CYP3A inducers (or increase to 125 mg daily) and strong CYP3A inhibitors (or reduce to 75 mg daily); assess fasting glucose and lipids at baseline and during therapy.[[21]]\nNSCLC after progression on an ALK TKI\nASCO guidelines recommend repeat tissue or plasma NGS at progression to identify on-target resistance (G1202R, L1196Q, I1171X).[[5]] Post-crizotinib, alectinib, brigatinib, lorlatinib, or ceritinib may all be offered (2.9, moderate/strong); after alectinib or brigatinib, lorlatinib may be offered (2.10, weak evidence/strong recommendation), with systemic ORR 32.1% after one prior second-generation TKI and 38.7% after \u22652 prior[[5]] ALK TKIs. After lorlatinib failure, transition to platinum\u2013pemetrexed chemotherapy with local therapy for oligoprogression.[[5]]\nNCCN branches on symptom status and extent (NSCL-28 for progression on alectinib/brigatinib/ceritinib/ensartinib/lorlatinib; NSCL-29 for progression on crizotinib): for asymptomatic or limited progression, consider definitive local therapy and continue the TKI; lorlatinib is specified as an option for resistance mutations such as G1202R and L1196M, except the compound L1196M/G1202R.[[4]] Beware TKI-discontinuation flare, and restart the TKI if flare occurs.[[4]] PD-1/PD-L1 monotherapy is less effective in ALK-positive NSCLC irrespective of PD-L1 expression.[[4]]\nEmerging agents: neladalkib (NVL-655), a CNS-penetrant, TRK-sparing fourth-generation inhibitor active against compound mutations including G1202R-containing pairs, showed ORR 35% after \u22652 prior ALK TKIs including lorlatinib and 57% after \u22651 lorlatinib-naive TKI in ALKOVE-1, and is now in the phase 3 first-line ALKAZAR trial against alectinib.[[22]][[23]][[24]] The ASCO guideline cites both NVL-655 and TPX-0131 as ongoing directions, but the TPX-0131 (zotizalkib) phase 1 program was terminated for an unfavorable risk\u2013benefit profile.[[5]][[24]][[25]]\nResected NSCLC\nALINA randomized 257 patients with resected stage IB (\u22654 cm)\u2013IIIA ALK-positive NSCLC to alectinib 600 mg twice daily for 24 months versus four cycles of platinum chemotherapy: DFS HR 0.24 in both the ITT and stage II\u2013IIIA populations, CNS DFS HR 0.22, with 4-year DFS 75.5% vs 47.0% (HR 0.35); OS remains immature.[[7]][[26]] Safety/HRQoL reporting showed grade 3\u20134 events led by CPK elevation (6%), fewer discontinuations than chemotherapy (5% vs 13%), and HRQoL maintained over 2 years.[[8]] NCCN lists adjuvant alectinib as category 1 for ALK fusion\u2013positive tumors \u22654 cm or node-positive, stages IB\u2013IIIA and IIIB (T2\u2013T3, N2b; T4, N2).[[4]]\nBy contrast, adjuvant crizotinib (ECOG-ACRIN E4512) did not prolong DFS (HR 1.06) \u2014 first-generation TKIs are not adequate in this setting.[[26]] ALK-positive patients are also excluded from the category 1 adjuvant/perioperative immunotherapy options (atezolizumab, pembrolizumab, durvalumab, nivolumab).[[4]]\nInflammatory myofibroblastic tumor\nNCCN soft tissue sarcoma guidelines list alectinib, brigatinib, ceritinib, crizotinib, and lorlatinib as preferred for IMT with ALK translocation; the same five agents appear as biomarker-directed options in the uterine sarcoma guideline.[[9]][[27]] EORTC 90101 CREATE reported ORR 66.7% in ALK-positive versus 14.3% in ALK-negative IMT, median PFS 18.0 months, 3-year OS 83.3%.[[10]][[28]] Crizotinib was FDA-approved on 7/14/2022 for unresectable, recurrent, or refractory ALK-positive IMT in adults and children \u22651 year (adults 250 mg twice daily; pediatric 280 mg/m\u00b2 twice daily), based on 86% ORR in 14 pediatric patients from ADVL0912.[[11]][[29]]\nALK-positive anaplastic large cell lymphoma\nFrontline therapy is not ALK-directed \u2014 adults with systemic ALCL receive brentuximab vedotin plus chemotherapy, and children receive pediatric multi-agent chemotherapy. NCCN T-cell lymphoma guidelines place ALK inhibitors (alectinib, brigatinib, ceritinib, crizotinib, lorlatinib) in the second-line and subsequent setting, under \"other recommended\" single agents and restricted to ALK-positive ALCL, with clinical trial or brentuximab vedotin as preferred \u2014 the same structure whether or not transplant is intended.[[12]] Crizotinib achieved ORR 83% (165 mg/m\u00b2) and 90% (280 mg/m\u00b2) with CR in >80% of relapsed/refractory pediatric ALK-positive ALCL in COG ADVL0912, supporting its approval for pediatric and young adult R/R disease.[[11]][[30]] In the French AcS\u00e9-crizotinib trial, median duration of response exceeded 40 months.[[13]] Crizotinib can serve as a bridge to autologous or allogeneic transplant in patients achieving CR.[[13]]\nALK fusion\u2013positive histiocytic neoplasms\nNCCN histiocytic neoplasm guidelines list crizotinib for ALK fusion as \"useful in certain circumstances\" across adult Langerhans cell histiocytosis (including CNS disease), [Rosai-Dorfman disease](/rare-disease/familial-sinus-histiocytosis-with-massive-lymphadenopathy), and malignant histiocytic neoplasms; for Erdheim-Chester disease, alectinib, brigatinib, ceritinib, and lorlatinib are listed alongside crizotinib.[[14]] In the largest ALK-positive histiocytosis series, 11 of 11 patients treated with ALK inhibition had robust, durable responses, including 10 with neurologic involvement.[[15]] NCCN advises that ALK IHC can be falsely or equivocally positive, so breakapart FISH or RNA sequencing is required to confirm a rearrangement.[[14]]\nNeuroblastoma\nHere ALK is altered by activating point mutations (R1275, F1174, F1245) and amplification, not fusion, and response rates are substantially lower.[[1]][[18]] NCCN recommends against adding an ALK inhibitor during induction outside a clinical trial, citing insufficient safety and efficacy data; for relapsed/refractory disease, repeat biomarker profiling is recommended and ALK inhibitors are noted to have activity in ALK-aberrant tumors[[16]]. Crizotinib ORR was 15% and ceritinib 20%, with responses concentrated in R1275 mutants and essentially absent with F1174 alterations or ALK amplification.[[30]][[31]] Lorlatinib showed activity across all three hotspots including after prior ALK TKI exposure, with a pediatric RP2D of 115 mg/m\u00b2 daily (roughly twice the adult NSCLC dose).[[17]] Frontline integration is under evaluation in COG ANBL1531 and SIOPEN HR-NBL2.[[18]]\nTumor-agnostic status and caveats\nThere is no tumor-agnostic FDA approval for ALK. ALK fusions occur in >50% of IMT and ALCL but in only ~0.2% of cancers outside NSCLC.[[1]][[2]] NCI-MATCH subprotocol F tested crizotinib in rare ALK-rearranged tumors with ORR 50%, but in only 5 patients (median PFS 3.8 months).[[2]] Across published reports, ALK inhibitors show activity in fusion-driven tumors of many histologies at 44\u201390% response rates, but are considerably less active against ALK amplification or point mutations.[[1]][[3]]\nAn ESMO clinical practice guideline recommendation specific to ALK was not retrieved in the searches performed, so the above reflects NCCN and ASCO guidance only.\n\n\nWould you like to explore how specific resistance mutations on repeat NGS should guide the choice of next ALK inhibitor?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "ALK fusions in the pan-cancer setting: another tumor-agnostic target?",
+            "authors": "Shreenivas A, Janku F, Gouda MA, et al.",
+            "journal": "NPJ Precision Oncology",
+            "date": "2023-09-29",
+            "doi": "10.1038/s41698-023-00449-x",
+            "url": "https://doi.org/10.1038/s41698-023-00449-x"
+          },
+          {
+            "citation_key": "2",
+            "title": "Tissue-agnostic biomarkers in solid tumors: current approvals and emerging candidates",
+            "authors": "Kim J, Kim HS, Nam M, Chae YK.",
+            "journal": "Cancer Metastasis Reviews",
+            "date": "2025-06-27",
+            "doi": "10.1007/s10555-025-10274-2",
+            "url": "https://doi.org/10.1007/s10555-025-10274-2"
+          },
+          {
+            "citation_key": "3",
+            "title": "Tumour-agnostic kinase inhibitors",
+            "authors": "Adashek JJ, Nikanjam M, Kurzrock R.",
+            "journal": "Nature Reviews. Drug Discovery",
+            "date": "2025-07-01",
+            "doi": "10.1038/s41573-025-01147-y",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12221794/"
+          },
+          {
+            "citation_key": "4",
+            "title": "Non-Small Cell Lung Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-22",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=54"
+          },
+          {
+            "citation_key": "5",
+            "title": "Therapy for Stage IV NSCLC with Driver Alterations",
+            "authors": "Reuss JE, Ismaila N, Ahluwalia A, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-06-20",
+            "doi": "10.1200/JCO-26-00843",
+            "url": "https://doi.org/10.1200/jco-26-00843"
+          },
+          {
+            "citation_key": "6",
+            "title": "Lorlatinib Versus Crizotinib as First-Line Treatment for Advanced ALK-positive Non-Small-Cell Lung Cancer: 7-Year Update From the Phase III CROWN Study",
+            "authors": "Shaw AT, Solomon BJ, Felip E, et al.",
+            "journal": "Annals of Oncology : Official Journal of the European Society for Medical Oncology",
+            "date": "2026-09-01",
+            "doi": "10.1016/j.annonc.2026.05.692",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42217582"
+          },
+          {
+            "citation_key": "7",
+            "title": "Alectinib in Resected ALK-Positive Non\u2013Small-Cell Lung Cancer",
+            "authors": "Wu YL, Dziadziuszko R, Ahn JS, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2024-04-11",
+            "doi": "10.1056/NEJMoa2310532",
+            "url": "https://doi.org/10.1056/nejmoa2310532?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "8",
+            "title": "Adjuvant Alectinib Versus Chemotherapy in Resected ALK-positive Non-Small-Cell Lung Cancer (ALINA): Health-Related Quality-of-Life and Safety Outcomes From a Randomised, Open-Label, Phase 3 Trial",
+            "authors": "Dziadziuszko R, Ahn JS, Barlesi F, et al.",
+            "journal": "The Lancet. Oncology",
+            "date": "2026-09-01",
+            "doi": "10.1016/S1470-2045(26)00283-4",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42636834"
+          },
+          {
+            "citation_key": "9",
+            "title": "Soft Tissue Sarcoma",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-07-23",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/sarcoma.pdf#page=63"
+          },
+          {
+            "citation_key": "10",
+            "title": "Long-Term Efficacy Update of Crizotinib in Patients With Advanced, Inoperable Inflammatory Myofibroblastic Tumour From EORTC Trial 90101 CREATE",
+            "authors": "Sch\u00f6ffski P, Kubickova M, Wozniak A, et al.",
+            "journal": "European Journal of Cancer ",
+            "date": "2021-10-01",
+            "doi": "10.1016/j.ejca.2021.07.016",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/34392187"
+          },
+          {
+            "citation_key": "11",
+            "title": "Targeting ALK With Crizotinib in Pediatric Anaplastic Large Cell Lymphoma and Inflammatory Myofibroblastic Tumor: A Children's Oncology Group Study",
+            "authors": "Moss\u00e9 YP, Voss SD, Lim MS, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2017-10-01",
+            "doi": "10.1200/JCO.2017.73.4830",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/28787259"
+          },
+          {
+            "citation_key": "12",
+            "title": "T-Cell Lymphomas",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-02-13",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/t-cell.pdf#page=21"
+          },
+          {
+            "citation_key": "13",
+            "title": "Exploiting ALK inhibition in anaplastic large cell lymphoma: Biological rationale and therapeutic integration",
+            "authors": "Caserta S, Martino EA, Skafi M, et al.",
+            "journal": "British Journal of Haematology",
+            "date": "2026-05-01",
+            "doi": "10.1111/bjh.70458",
+            "url": "https://doi.org/10.1111/bjh.70458"
+          },
+          {
+            "citation_key": "14",
+            "title": "Histiocytic Neoplasms",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-16",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/histiocytic_neoplasms.pdf#page=48"
+          },
+          {
+            "citation_key": "15",
+            "title": "ALK-positive\u00a0histiocytosis: A New Clinicopathologic Spectrum Highlighting Neurologic Involvement and Responses to ALK Inhibition",
+            "authors": "Kemps PG, Picarsic J, Durham BH, et al.",
+            "journal": "Blood",
+            "date": "2022-01-13",
+            "doi": "10.1182/blood.2021013338",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/34727172"
+          },
+          {
+            "citation_key": "16",
+            "title": "Neuroblastoma",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-28",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf#page=37"
+          },
+          {
+            "citation_key": "17",
+            "title": "Lorlatinib with or without chemotherapy in ALK-driven refractory/relapsed neuroblastoma: phase 1 trial results",
+            "authors": "Goldsmith KC, Park JR, Kayser K, et al.",
+            "journal": "Nature Medicine",
+            "date": "2023-05-01",
+            "doi": "10.1038/s41591-023-02297-5",
+            "url": "https://doi.org/10.1038/s41591-023-02297-5"
+          },
+          {
+            "citation_key": "18",
+            "title": "Established and Emerging Therapies for High-Risk Neuroblastoma",
+            "authors": "Xu S, Foster J, Wahba A.",
+            "journal": "Paediatric Drugs",
+            "date": "2026-03-01",
+            "doi": "10.1007/s40272-025-00731-4",
+            "url": "https://doi.org/10.1007/s40272-025-00731-4"
+          },
+          {
+            "citation_key": "19",
+            "title": "Therapy for Stage IV Non-Small-Cell Lung Cancer With Driver Alterations: ASCO Living Guideline",
+            "authors": "Singh N, Temin S, Baker S, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2022-10-01",
+            "doi": "10.1200/JCO.22.00824",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/35816666"
+          },
+          {
+            "citation_key": "20",
+            "title": "First-Line Lorlatinib or Crizotinib in Advanced ALK-Positive Lung Cancer",
+            "authors": "Shaw AT, Bauer TM, de Marinis F, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2020-11-19",
+            "doi": "10.1056/NEJMoa2027187",
+            "url": "https://doi.org/10.1056/nejmoa2027187?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "21",
+            "title": "Lorbrena",
+            "authors": "Food and Drug Administration",
+            "journal": "",
+            "date": "2026-06-26",
+            "doi": "",
+            "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=2b34d62d-e02a-4af3-bc0d-1571dd4ee76d"
+          },
+          {
+            "citation_key": "22",
+            "title": "Novel Strategies for Rare Oncogenic Drivers in Non-Small-Cell Lung Cancer: An Update From the 2024 Annual ESMO Meeting",
+            "authors": "van der Wel JWT, de Langen AJ.",
+            "journal": "Lung Cancer",
+            "date": "2025-06-01",
+            "doi": "10.1016/j.lungcan.2025.108490",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/40118657"
+          },
+          {
+            "citation_key": "23",
+            "title": "Targeted Therapies in Advanced Non-Small-Cell Lung Cancer: New Biomarkers and Treatment Strategies",
+            "authors": "Hendriks LEL, Lin JJ, Tan DSW, et al.",
+            "journal": "The Lancet. Respiratory Medicine",
+            "date": "2026-09-06",
+            "doi": "10.1016/S2213-2600(26)00253-5",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42702211"
+          },
+          {
+            "citation_key": "24",
+            "title": "ALK in cancer: from function to therapeutic targeting",
+            "authors": "Voena C, Ambrogio C, Iannelli F, Chiarle R.",
+            "journal": "Nature Reviews. Cancer",
+            "date": "2025-05-01",
+            "doi": "10.1038/s41568-025-00797-9",
+            "url": "https://doi.org/10.1038/s41568-025-00797-9"
+          },
+          {
+            "citation_key": "25",
+            "title": "ALK rearrangements and resistance mutations in non-small cell lung cancer: molecular mechanisms and therapeutic implications",
+            "authors": "Bharath P, Iyer S, Velu AV, Kumar DT.",
+            "journal": "Cancer Chemotherapy and Pharmacology",
+            "date": "2026-06-29",
+            "doi": "10.1007/s00280-026-04910-z",
+            "url": "https://doi.org/10.1007/s00280-026-04910-z"
+          },
+          {
+            "citation_key": "26",
+            "title": "Early-Stage Non-Small-Cell Lung Cancer: Emerging Treatments and Evolving Challenges",
+            "authors": "Remon J, Cascone T, Saw SPL, et al.",
+            "journal": "The Lancet. Respiratory Medicine",
+            "date": "2026-09-06",
+            "doi": "10.1016/S2213-2600(26)00221-3",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42702210"
+          },
+          {
+            "citation_key": "27",
+            "title": "Uterine Neoplasms",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-06-16",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/uterine.pdf#page=60"
+          },
+          {
+            "citation_key": "28",
+            "title": "Crizotinib in Patients With Advanced, Inoperable Inflammatory Myofibroblastic Tumours With and Without Anaplastic Lymphoma Kinase Gene Alterations (European Organisation for Research and Treatment of Cancer 90101 CREATE): A Multicentre, Single-Drug, Prospective, Non-Randomised Phase 2 Trial",
+            "authors": "Sch\u00f6ffski P, Sufliarsky J, Gelderblom H, et al.",
+            "journal": "The Lancet. Respiratory Medicine",
+            "date": "2018-06-01",
+            "doi": "10.1016/S2213-2600(18)30116-4",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/29669701"
+          },
+          {
+            "citation_key": "29",
+            "title": "FDA approves crizotinib for ALK-positive inflammatory myofibroblastic tumor | FDA",
+            "authors": "",
+            "journal": "Food and Drug Administration",
+            "date": "2022-07-14",
+            "doi": "",
+            "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-crizotinib-alk-positive-inflammatory-myofibroblastic-tumor"
+          },
+          {
+            "citation_key": "30",
+            "title": "Ceritinib in Paediatric Patients With Anaplastic Lymphoma Kinase-Positive Malignancies: An Open-Label, Multicentre, Phase 1, Dose-Escalation and Dose-Expansion Study",
+            "authors": "Fischer M, Moreno L, Ziegler DS, et al.",
+            "journal": "The Lancet. Oncology",
+            "date": "2021-12-01",
+            "doi": "10.1016/S1470-2045(21)00536-2",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/34780709"
+          },
+          {
+            "citation_key": "31",
+            "title": "Advancing therapy for neuroblastoma",
+            "authors": "Qiu B, Matthay KK.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2022-08-01",
+            "doi": "10.1038/s41571-022-00643-z",
+            "url": "https://doi.org/10.1038/s41571-022-00643-z"
+          }
+        ]
+      },
+      "B": {
+        "question": "What NCCN, ASCO, or ESMO clinical practice guideline recommendations or clinical trial evidence address targeted therapy for ALK alterations in cancer? Cite the specific guideline or trial.",
+        "text": "c554\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}, {\"callid\": \"3ee5631b-a7aa-46ea-afdb-0efdf575a461\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"searchmedicalliterature\", \"active\": true, \"children\": [], \"paragraphindex\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n\n\nALK-targeted therapy is strongly supported by guidelines and randomized trials in ALK fusion-positive NSCLC, and by guideline listings plus prospective/basket trial data for ALK-rearranged [inflammatory myofibroblastic tumor](/rare-disease/inflammatory-myofibroblastic-tumor) (IMT), ALK-positive anaplastic large cell lymphoma (ALCL), and ALK-mutated/amplified [neuroblastoma](/rare-disease/neuroblastoma). ALK alterations differ by tumor: fusions/rearrangements drive NSCLC, IMT, and ALCL (response rates ~50\u201385%), whereas neuroblastoma is driven by activating point mutations and amplifications, where responses are lower and mutation-dependent.[[1]] The evidence by disease follows.\nALK fusion-positive NSCLC \u2014 the most mature evidence\nNCCN (NSCLC v9.2026) lists six FDA-approved ALK TKIs, with first-line preferred agents being alectinib, brigatinib, ensartinib, and lorlatinib (all category 1); ceritinib and crizotinib are \"useful in certain circumstances\" (category 1).[[2]] On progression, subsequent therapy depends on symptom status, CNS vs systemic site, and extent of progression, with lorlatinib highlighted for resistance mutations such as ALK G1202R and L1196M.[[2]]\nThe NCCN first-line algorithm:\n[[2]]\nASCO (Reuss et al., Therapy for Stage IV NSCLC with Driver Alterations, 2026) gives parallel guidance:\n- Recommendation 1.8: clinicians should offer alectinib or brigatinib or lorlatinib (Evidence: high; Strong).[[3]]\n- Recommendation 1.9: if those are unavailable, offer ceritinib or crizotinib (Evidence: high; Strong).[[3]]\n- In the 2026 clinical interpretation, ASCO guidelines name lorlatinib as an agent of choice first-line given durable systemic/CNS control, while favoring alectinib or brigatinib in frail/older patients with cardiac or CNS comorbidities because of lorlatinib's higher grade \u22653 AE burden.[[3]]\n- Second-line: after crizotinib, offer alectinib, brigatinib, lorlatinib, or ceritinib (Rec 2.9); after a prior second-generation TKI, lorlatinib may be offered (Rec 2.10).[[3]]\nKey randomized trials underpinning these recommendations (all vs crizotinib):\n- CROWN (lorlatinib): 5-year median PFS not reached vs 9.1 months (HR 0.19); 5-year PFS 60% vs 8%; at 7-year follow-up median PFS still not reached with 7-year PFS 55% vs 3%, and HR 0.06 for time to intracranial progression[[4]].[[5]]\n- ALEX/J-ALEX/ALESIA (alectinib): e.g., global ALEX median OS 81.1 vs 57.2 months (HR 0.78); ALESIA median PFS 41.6 vs 11.1 months.[[3]]\n- ALTA-1L (brigatinib): median PFS 30.8 vs 9.2 months (HR 0.43).[[3]]\n- Ensartinib also showed superiority over crizotinib in a phase 3 trial, supporting its NCCN category 1 listing.[[6]][[7]]\nThe CROWN primary-endpoint data:\n[[8]]\nNo head-to-head trials compare the next-generation agents; network meta-analyses consistently rank lorlatinib best for PFS and alectinib best for tolerability/safety.[[9]][[10]]\nALK-rearranged inflammatory myofibroblastic tumor (IMT)\nNCCN (Soft Tissue Sarcoma v5.2026) lists alectinib, brigatinib, ceritinib, crizotinib, and lorlatinib as preferred systemic options for ALK-translocated IMT (locally advanced unresectable or metastatic).[[11]] Crizotinib is FDA-approved for ALK-positive IMT in adults and children.[[1]][[12]] Pivotal evidence is the COG phase I/II study (Moss\u00e9 et al.), where crizotinib produced an 86% overall response rate in relapsed/refractory or inoperable ALK-positive IMT.[[13]] The NCCN preferred list:\n[[11]]\nALK-positive anaplastic large cell lymphoma (ALCL)\nCrizotinib is FDA-approved for ALK-positive ALCL (adult and pediatric), with the COG study showing ORRs of 83\u201390% depending on dose.[[1]][[13]] In relapsed/refractory disease, crizotinib achieves ORRs of 65\u201390% with CR in ~50\u201370%; second-generation agents (ceritinib, alectinib, brigatinib) yield ORRs 60 to >80%, and a phase II study reported CR rates of 60% with alectinib and 73% with brigatinib as second-line therapy.[[14]][[15]] Lorlatinib achieves response rates exceeding 70% in small R/R series, including after multiple prior ALK TKIs.[[14]] ALK inhibitors are increasingly used as a bridge to autologous or allogeneic transplant.[[14]]\nALK-mutated/amplified neuroblastoma\nNCCN (Neuroblastoma v2026) recommends repeat biomarker profiling at relapse and notes that ALK inhibitors appear active in tumors with ALK aberrations in relapsed/refractory disease; frontline addition of an ALK inhibitor is explicitly reserved for clinical trials because robust safety/efficacy data are not yet available.[[16]] Unlike fusions, neuroblastoma ALK point mutations confer differential sensitivity: crizotinib's phase I COG activity (ORR ~15%) was confined largely to R1275Q, with F1174/F1245 mutations resistant.[[17]][[18]] Lorlatinib overcomes this, showing activity across all three hotspot mutations and being tolerable alone or with chemotherapy in the phase 1 trial (Goldsmith et al.).[[19]][[20]] It is now being tested frontline in the COG phase III ANBL1531 (NCT03126916) and SIOPEN HR-NBL2 programs for ALK-altered high-risk neuroblastoma.[[20]][[21]]\nTissue-agnostic context\nOutside NSCLC, IMT, and ALCL, ALK fusions are rare (~0.2% of cancers), but ALK inhibitors have shown activity in ALK fusion-positive histiocytosis, large B-cell lymphoma, and various solid tumors, supporting a largely tissue-agnostic role for ALK fusions \u2014 though no formal tissue-agnostic approval yet exists.[[1]]\nThe breadth of recruiting ALK-directed trials across these diseases is shown below.\nREACTCOMPONENT!:!InlineGenerationStep!:!{\"steps\": [{\"callid\": \"e7014a03-451c-43f5-8d24-80426786e9bc\", \"kind\": \"search\", \"label\": \"Matching clinical trials\", \"id\": \"matchclinicaltrials\", \"active\": true, \"children\": [], \"paragraphindex\": 28, \"metadata\": {}}], \"done\": false, \"summary\": \"Matching clinical trials\"}REACTCOMPONENT!:!InlineGenerationStep!:!{\"steps\": [{\"callid\": \"e7014a03-451c-43f5-8d24-80426786e9bc\", \"kind\": \"search\", \"label\": \"Matched clinical trials\", \"id\": \"matchclinicaltrials\", \"active\": false, \"children\": [], \"paragraphindex\": 28, \"metadata\": {}}], \"done\": true, \"summary\": \"Matched clinical trials\"}\n\n\n\n\nThe search returned 20 available trials. Among the top trials in the search results above: [NCT06765109](/clinical-trials/NCT06765109) is a phase 3 trial of neladalkib (NVL-655, a fourth-generation ALK inhibitor) versus alectinib in TKI-naive advanced ALK-positive NSCLC; [NCT07001384](/clinical-trials/NCT07001384) tests alectinib plus duvelisib in ALK-positive ALCL; [NCT07013565](/clinical-trials/NCT07013565) evaluates chemoimmunotherapy (including brentuximab vedotin) for relapsed/refractory ALK-positive ALCL; and [NCT04094610](/clinical-trials/NCT04094610) and [NCT03093116](/clinical-trials/NCT03093116) study repotrectinib in pediatric/young-adult and adult solid tumors harboring ALK, ROS1, or NTRK alterations.\n\n\nWould you like to explore resistance to lorlatinib and the emerging fourth-generation ALK inhibitors for compound ALK mutations?",
+        "citations": [
+          {
+            "citation_key": "1",
+            "title": "ALK fusions in the pan-cancer setting: another tumor-agnostic target?",
+            "authors": "Shreenivas A, Janku F, Gouda MA, et al.",
+            "journal": "NPJ Precision Oncology",
+            "date": "2023-09-29",
+            "doi": "10.1038/s41698-023-00449-x",
+            "url": "https://doi.org/10.1038/s41698-023-00449-x"
+          },
+          {
+            "citation_key": "2",
+            "title": "Non-Small Cell Lung Cancer",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-09-22",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110"
+          },
+          {
+            "citation_key": "3",
+            "title": "Therapy for Stage IV NSCLC with Driver Alterations",
+            "authors": "Reuss JE, Ismaila N, Ahluwalia A, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2026-06-20",
+            "doi": "10.1200/JCO-26-00843",
+            "url": "https://doi.org/10.1200/jco-26-00843"
+          },
+          {
+            "citation_key": "4",
+            "title": "Lorlatinib Versus Crizotinib in Patients With Advanced ALK-Positive Non-Small Cell Lung Cancer: 5-Year Outcomes From the Phase III CROWN Study",
+            "authors": "Solomon BJ, Liu G, Felip E, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2024-10-10",
+            "doi": "10.1200/JCO.24.00581",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/38819031"
+          },
+          {
+            "citation_key": "5",
+            "title": "Lorlatinib Versus Crizotinib as First-Line Treatment for Advanced ALK-positive Non-Small-Cell Lung Cancer: 7-Year Update From the Phase III CROWN Study",
+            "authors": "Shaw AT, Solomon BJ, Felip E, et al.",
+            "journal": "Annals of Oncology : Official Journal of the European Society for Medical Oncology",
+            "date": "2026-09-01",
+            "doi": "10.1016/j.annonc.2026.05.692",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42217582"
+          },
+          {
+            "citation_key": "6",
+            "title": "Targeted Therapies in Advanced Non-Small-Cell Lung Cancer: New Biomarkers and Treatment Strategies",
+            "authors": "Hendriks LEL, Lin JJ, Tan DSW, et al.",
+            "journal": "The Lancet. Respiratory Medicine",
+            "date": "2026-09-06",
+            "doi": "10.1016/S2213-2600(26)00253-5",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42702211"
+          },
+          {
+            "citation_key": "7",
+            "title": "FDA Orange Book",
+            "authors": "",
+            "journal": "FDA Orange Book",
+            "date": "2026-10-06",
+            "doi": "",
+            "url": "https://www.fda.gov/drugs/drug-approvals-and-databases/approved-drug-products-therapeutic-equivalence-evaluations-orange-book"
+          },
+          {
+            "citation_key": "8",
+            "title": "First-Line Lorlatinib or Crizotinib in Advanced ALK-Positive Lung Cancer",
+            "authors": "Shaw AT, Bauer TM, de Marinis F, et al.",
+            "journal": "The New England Journal of Medicine",
+            "date": "2020-11-19",
+            "doi": "10.1056/NEJMoa2027187",
+            "url": "https://doi.org/10.1056/nejmoa2027187?utm_source=openevidence&utm_medium=referral"
+          },
+          {
+            "citation_key": "9",
+            "title": "Efficacy and Safety of First-Line Treatments for Patients With Advanced Anaplastic Lymphoma Kinase Mutated, Non-Small Cell Cancer: A Systematic Review and Network Meta-Analysis",
+            "authors": "Peng Y, Zhao Q, Liao Z, Ma Y, Ma D.",
+            "journal": "Cancer",
+            "date": "2023-04-15",
+            "doi": "10.1002/cncr.34664",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36748799"
+          },
+          {
+            "citation_key": "10",
+            "title": "Systematic Review and Network Meta-Analysis of Lorlatinib With Comparison to Other Anaplastic Lymphoma Kinase (ALK) Tyrosine Kinase Inhibitors (TKIs) as First-Line Treatment for ALK-positive Advanced Non-Smallcell Lung Cancer (NSCLC)",
+            "authors": "Ou SH, Kilvert H, Candlish J, et al.",
+            "journal": "Lung Cancer",
+            "date": "2024-11-01",
+            "doi": "10.1016/j.lungcan.2024.107968",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/39368244"
+          },
+          {
+            "citation_key": "11",
+            "title": "Soft Tissue Sarcoma",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-07-23",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/sarcoma.pdf#page=63"
+          },
+          {
+            "citation_key": "12",
+            "title": "Tissue-agnostic biomarkers in solid tumors: current approvals and emerging candidates",
+            "authors": "Kim J, Kim HS, Nam M, Chae YK.",
+            "journal": "Cancer Metastasis Reviews",
+            "date": "2025-06-27",
+            "doi": "10.1007/s10555-025-10274-2",
+            "url": "https://doi.org/10.1007/s10555-025-10274-2"
+          },
+          {
+            "citation_key": "13",
+            "title": "Targeting ALK With Crizotinib in Pediatric Anaplastic Large Cell Lymphoma and Inflammatory Myofibroblastic Tumor: A Children's Oncology Group Study",
+            "authors": "Moss\u00e9 YP, Voss SD, Lim MS, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2017-10-01",
+            "doi": "10.1200/JCO.2017.73.4830",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/28787259"
+          },
+          {
+            "citation_key": "14",
+            "title": "Exploiting ALK inhibition in anaplastic large cell lymphoma: Biological rationale and therapeutic integration",
+            "authors": "Caserta S, Martino EA, Skafi M, et al.",
+            "journal": "British Journal of Haematology",
+            "date": "2026-05-01",
+            "doi": "10.1111/bjh.70458",
+            "url": "https://doi.org/10.1111/bjh.70458"
+          },
+          {
+            "citation_key": "15",
+            "title": "ALK in cancer: from function to therapeutic targeting",
+            "authors": "Voena C, Ambrogio C, Iannelli F, Chiarle R.",
+            "journal": "Nature Reviews. Cancer",
+            "date": "2025-05-01",
+            "doi": "10.1038/s41568-025-00797-9",
+            "url": "https://doi.org/10.1038/s41568-025-00797-9"
+          },
+          {
+            "citation_key": "16",
+            "title": "Neuroblastoma",
+            "authors": "National Comprehensive Cancer Network",
+            "journal": "",
+            "date": "2026-04-28",
+            "doi": "",
+            "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf#page=21"
+          },
+          {
+            "citation_key": "17",
+            "title": "Advancing therapy for neuroblastoma",
+            "authors": "Qiu B, Matthay KK.",
+            "journal": "Nature Reviews. Clinical Oncology",
+            "date": "2022-08-01",
+            "doi": "10.1038/s41571-022-00643-z",
+            "url": "https://doi.org/10.1038/s41571-022-00643-z"
+          },
+          {
+            "citation_key": "18",
+            "title": "Too many targets, not enough patients: rethinking neuroblastoma clinical trials",
+            "authors": "Fletcher JI, Ziegler DS, Trahair TN, et al.",
+            "journal": "Nature Reviews. Cancer",
+            "date": "2018-06-01",
+            "doi": "10.1038/s41568-018-0003-x",
+            "url": "https://doi.org/10.1038/s41568-018-0003-x"
+          },
+          {
+            "citation_key": "19",
+            "title": "Lorlatinib with or without chemotherapy in ALK-driven refractory/relapsed neuroblastoma: phase 1 trial results",
+            "authors": "Goldsmith KC, Park JR, Kayser K, et al.",
+            "journal": "Nature Medicine",
+            "date": "2023-05-01",
+            "doi": "10.1038/s41591-023-02297-5",
+            "url": "https://doi.org/10.1038/s41591-023-02297-5"
+          },
+          {
+            "citation_key": "20",
+            "title": "Established and Emerging Therapies for High-Risk Neuroblastoma",
+            "authors": "Xu S, Foster J, Wahba A.",
+            "journal": "Paediatric Drugs",
+            "date": "2026-03-01",
+            "doi": "10.1007/s40272-025-00731-4",
+            "url": "https://doi.org/10.1007/s40272-025-00731-4"
+          },
+          {
+            "citation_key": "21",
+            "title": "Frequency and Prognostic Impact of ALK Amplifications and Mutations in the European Neuroblastoma Study Group (SIOPEN) High-Risk Neuroblastoma Trial (HR-NBL1)",
+            "authors": "Bellini A, P\u00f6tschger U, Bernard V, et al.",
+            "journal": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology",
+            "date": "2021-10-20",
+            "doi": "10.1200/JCO.21.00086",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8791815/"
+          }
+        ]
+      }
+    }
+  ],
+  "primary_source_facts": [
+    {
+      "claim": "ALEX final median OS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/41110693/",
+      "verified_values": {
+        "alectinib_months": 81.1,
+        "crizotinib_months": 54.2,
+        "HR": 0.78
+      }
+    },
+    {
+      "claim": "WU-KONG28 first-line sunvozertinib",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42212913/",
+      "verified_values": {
+        "PFS_months": [
+          10.3,
+          7.5
+        ],
+        "HR": 0.65,
+        "NCT": "NCT05668988"
+      }
+    },
+    {
+      "claim": "ADAURA exploratory eight-year landmark",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/42732874/",
+      "verified_values": {
+        "stage_IB_IIIA_OS_percent": [
+          79,
+          64
+        ],
+        "HR": 0.52
+      }
+    },
+    {
+      "claim": "LAURA PFS",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/38828946/",
+      "verified_values": {
+        "PFS_months": [
+          39.1,
+          5.6
+        ],
+        "HR": 0.16
+      }
+    },
+    {
+      "claim": "Daraxonrasib FDA approval",
+      "source": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-daraxonrasib-metastatic-pancreatic-adenocarcinoma",
+      "verified_values": {
+        "approval_date": "2026-08-26",
+        "trial": "RASolute 302",
+        "NCT": "NCT06625320"
+      }
+    },
+    {
+      "claim": "Magrolimab ENHANCE-2 failure in TP53 AML",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/40009500/",
+      "verified_values": {
+        "nonintensive_OS_months": [
+          4.4,
+          6.6
+        ],
+        "HR": 1.132,
+        "NCT": "NCT04778397"
+      }
+    },
+    {
+      "claim": "Crizotinib ALCL approval population",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/35561013/",
+      "label_source": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2025/217581Orig1s000Lbl.pdf",
+      "verified_values": {
+        "population": "Pediatric patients >=1 year and young adults with relapsed/refractory systemic ALK-positive ALCL",
+        "limitation": "Safety and efficacy have not been established in older adults"
+      }
+    }
+  ]
+}

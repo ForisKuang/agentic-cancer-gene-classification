@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, PrivateAttr, model_validator
 
 LocalBackend = Literal["claude-code", "codex", "antigravity"]
 AnnotationMode = Literal["full", "core"]
@@ -29,6 +29,9 @@ class ResolvedGene(BaseModel):
     locus_type: Optional[str] = None
     resolved: bool
     unresolvable: bool = False  # bare Ensembl ID or unannotated locus
+    # True when unresolvable only because the lookup service failed (timeout,
+    # 5xx, ...), as opposed to the service confirming the symbol doesn't exist.
+    lookup_failed: bool = False
 
 
 class LiteratureRecord(BaseModel):
@@ -378,6 +381,41 @@ class GeneAnnotation(BaseModel):
     last_pubmed_checked_at: Optional[str] = None
     error: Optional[str] = None
     timings_ms: Dict[str, float] = Field(default_factory=dict)
+    # In-process only (not in any schema, never serialized or persisted): the
+    # tumor type the pipeline actually annotated this gene with, and whether
+    # symbol resolution failed because the lookup service was unavailable.
+    _analysis_tumor_type: Optional[str] = PrivateAttr(default=None)
+    _symbol_lookup_failed: bool = PrivateAttr(default=False)
+
+    @property
+    def analysis_tumor_type(self) -> Optional[str]:
+        """Tumor type run_pipeline annotated this gene with (None if none)."""
+        return self._analysis_tumor_type
+
+    @analysis_tumor_type.setter
+    def analysis_tumor_type(self, value: Optional[str]) -> None:
+        self._analysis_tumor_type = value
+
+    @property
+    def symbol_lookup_failed(self) -> bool:
+        """True when the gene symbol couldn't be resolved because the lookup failed."""
+        return self._symbol_lookup_failed
+
+    @symbol_lookup_failed.setter
+    def symbol_lookup_failed(self, value: bool) -> None:
+        self._symbol_lookup_failed = value
+
+
+class GeneAnnotationWithRun(GeneAnnotation):
+    """A GeneAnnotation plus the saved run it belongs to (POST /v1/annotate/gene)."""
+
+    run_id: Optional[str] = Field(
+        default=None, description="ID of the saved annotation run containing this gene."
+    )
+    view_url: Optional[str] = Field(
+        default=None,
+        description="Absolute link that opens the full run in the ACGC UI (requires login).",
+    )
 
 
 class FusionInput(BaseModel):

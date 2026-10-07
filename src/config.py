@@ -110,6 +110,8 @@ class Settings(BaseSettings):
     context_score_pubtype_case_report_weight: float = 0.3
     context_score_pubtype_editorial_weight: float = 0.15
     annotation_job_ttl_seconds: int = 3600
+    # Max entries accepted per gene query API request (POST /v1/genes/query[/jobs]).
+    gene_query_max_genes: int = 50
 
     redis_url: str = "redis://localhost:6379/0"
     redis_cache_ttl_seconds: int = 86400
@@ -164,7 +166,8 @@ class Settings(BaseSettings):
     openevidence_enabled: bool = False
     openevidence_api_key: str = ""
     openevidence_base_url: str = "https://api.openevidence.com"
-    openevidence_model: str = "darwin"
+    # Lower latency: benchmarks/openevidence_osler_vs_darwin_report.md (PR #103).
+    openevidence_model: str = "osler"
     # A live-verified smoke test against the real API took ~220s and still
     # hadn't finished a single moderately complex clinical question — 60s is
     # a more realistic floor than the old 30s default, but OpenEvidence may
@@ -255,6 +258,11 @@ class Settings(BaseSettings):
     jit_provisioning_enabled: bool = True
     jit_default_role: str = "curator"  # Default role for new users: curator, annotator, viewer
     jit_require_admin_approval: bool = False  # If True, new JIT users start in pending status
+
+    # ACGC API keys (scripted access: `Authorization: Bearer acgc_...`)
+    api_key_rate_limit_per_minute: int = Field(default=60, ge=1)  # Per-key request budget
+    api_key_max_expires_in_days: int = Field(default=365, ge=1)  # Upper bound for expires_in_days
+    api_key_last_used_update_seconds: int = Field(default=60, ge=0)  # Throttle for last_used_at writes
 
     @property
     def keycloak_enabled(self) -> bool:

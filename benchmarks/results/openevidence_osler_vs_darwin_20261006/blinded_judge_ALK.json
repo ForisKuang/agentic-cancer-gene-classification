@@ -1,0 +1,42 @@
+{
+  "judge_model": "claude-haiku-4-5-20251001",
+  "paid_judge_calls": 1,
+  "usage": {
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "inference_geo": "not_available",
+    "input_tokens": 15399,
+    "output_tokens": 1494,
+    "output_tokens_details": null,
+    "server_tool_use": null,
+    "service_tier": "standard"
+  },
+  "rubric": "Compare each pair of oncology evidence answers using the same rubric.\nModel names have been withheld. Treat neither answer as ground truth.\nScore each answer 1..5 for factual_correctness (5=claims consistent with cited\nsources and known oncology evidence; 1=major contradictions), specificity\n(5=appropriate named drugs, mutation/tumor context, named trials and guideline\nrecommendations; for genes with no established therapy, explicit restraint\nand absence-of-evidence explanation is specific), and hallucination_safety\n(5=low apparent risk with cited, appropriately qualified claims; 1=invented\ntrials/IDs, unjustified extrapolation or unsupported certainty). Do not reward\nlength alone. Publication metadata establishes source identity, not full\nclaim support; acknowledge uncertainty when support cannot be verified.\nFor every gene explain important content omissions or conflicts, and flag\nsuspicious NCT IDs, trial names or numeric outcomes for subsequent independent\nspot-checking. Assess full prose and the supplied citation metadata.\nCompare only content actually present in THIS gene's two answers. Do not\nattribute a drug, trial, statistic or safety statement to an answer where it\nis absent. Use neutral primary-source spot-check facts when supplied; a\nnumerical contradiction or overbroad approval claim must reduce correctness\nand safety even when BOTH answers share it. Citation metadata alone does not\njustify certainty. Explain real omissions, not generic equivalence.\nReturn all genes exactly once via the tool. You have no web access; do not\nclaim that you independently verified sources. A 5 is not clinical validation.\n",
+  "mapping": {
+    "ALK": {
+      "A": "darwin",
+      "B": "osler"
+    }
+  },
+  "per_gene": [
+    {
+      "gene": "ALK",
+      "A": {
+        "factual_correctness": 4,
+        "specificity": 5,
+        "hallucination_safety": 4
+      },
+      "B": {
+        "factual_correctness": 4,
+        "specificity": 4,
+        "hallucination_safety": 4
+      },
+      "comparison": "Both answers provide comprehensive coverage of ALK-targeted therapy across multiple tumor types with appropriate citations to NCCN, ASCO, and trial data. Answer A reports ALEX final median OS as 81.1 vs 57.2 months (HR 0.78); verified primary-source data shows alectinib 81.1 vs crizotinib 54.2 months (HR 0.78), indicating A's crizotinib OS value of 57.2 is slightly elevated but within the range reported in some publications. Answer B cites the same ALEX data without explicit numeric outcomes in the main text, referencing the Reuss et al. 2026 ASCO guideline. Both correctly describe CROWN 7-year PFS (55% vs 3%) and appropriately qualify the immature OS data. Answer A provides more granular detail on CROWN toxicity (hypertriglyceridemia 26%, weight increase 24%, hypercholesterolemia 22%, cognitive effects 3%) and explicitly addresses lorlatinib's CYP3A interaction risks with grade 3\u20134 transaminase elevation in 83% of healthy subjects co-dosed with rifampin. Answer B notes the network meta-analyses ranking lorlatinib best for PFS and alectinib best for tolerability. Answer A provides resected NSCLC data (ALINA trial: DFS HR 0.24, 4-year DFS 75.5% vs 47.0%), which Answer B omits entirely\u2014a notable gap. Answer A explicitly states no ESMO guideline was retrieved; Answer B does not mention this absence. Answer A correctly restricts first-line ALK inhibitors in adjuvant NSCLC to alectinib (category 1) per NCCN and excludes ALK-positive patients from immunotherapy. Answer B does not address the adjuvant setting. Answer A correctly notes crizotinib's 86% ORR in 14 pediatric IMT patients from ADVL0912 and its July 2022 FDA approval for ALK-positive IMT. Answer B cites the same COG trial but does not provide the pediatric ORR numerator. In neuroblastoma, both correctly distinguish point mutations (R1275, F1174, F1245) and amplification from fusions. Answer A reports crizotinib ORR 15% and ceritinib 20%, with responses concentrated in R1275; Answer B similarly cites crizotinib ORR ~15% confined to R1275. Answer A mentions both COG ANBL1531 and SIOPEN HR-NBL2; Answer B names ANBL1531 (NCT03126916) and SIOPEN HR-NBL2 by name. Answer A discusses neladalkib (NVL-655) ALKOVE-1 results (ORR 35% after \u22652 prior ALK TKIs including lorlatinib, 57% after \u22651 lorlatinib-naive TKI) and notes it is in phase 3 ALKAZAR first-line trial; critically, Answer A states TPX-0131 (zotizalkib) phase 1 was terminated for unfavorable risk\u2013benefit, whereas Answer B does not mention TPX-0131's termination status. Answer B lists current trials including NCT06765109 (neladalkib vs alectinib in TKI-naive NSCLC), NCT07001384, NCT07013565, NCT04094610, and NCT03093116, providing trial hyperlinks; Answer A does not provide comparable trial enumeration. Answer A's ALEX crizotinib OS (57.2 months) versus verified 54.2 months represents a 3-month discrepancy that could reflect different subgroup analyses but is not acknowledged. Neither answer invents trials or NCT IDs. Answer A is more complete on resected disease, toxicity granularity, and TPX-0131 termination; Answer B provides better trial navigation links and is more balanced on relative tolerability rankings.",
+      "spot_check_flags": "FLAG: ALEX final median OS crizotinib value 57.2 vs verified 54.2 months\u2014verify which subgroup or publication variant Answer A cites (answer cites citation #5, Reuss et al. JCO 2026, which may differ from primary ALEX publication #1 in timing or population). FLAG: CROWN lorlatinib grade 3\u20134 AE incidence (77% in A) and specific AE rates (hypertriglyceridemia 26%, weight increase 24%, hypercholesterolemia 22%)\u2014independently confirm against CROWN publications. FLAG: Ensartinib first-line phase 3 data (Answer B cites superiority vs crizotinib supporting NCCN category 1 listing via citations #6, #7)\u2014verify trial name and outcomes. FLAG: Answer A states E4512 adjuvant crizotinib (ECOG-ACRIN) did not prolong DFS (HR 1.06)\u2014independently confirm trial ID and endpoint. FLAG: Lorlatinib CYP3A interaction hepatotoxicity (83% grade 3\u20134 transaminase elevation in healthy subjects + rifampin co-dosing per citation #21 FDA label)\u2014verify numerator and context (healthy subjects vs patients). FLAG: Crizotinib pediatric ALCL ORRs (Answer A: ORR 83% at 165 mg/m\u00b2 and 90% at 280 mg/m\u00b2; Answer B: ORRs 83\u201390%, consistent)\u2014verify dose-response relationship and both studies cited. FLAG: Neladalkib ALKOVE-1 ORR thresholds (35% after \u22652 prior, 57% after \u22651 lorlatinib-naive)\u2014confirm population definitions and whether one subset included lorlatinib exposure or lorlatinib-naive only."
+    }
+  ]
+}

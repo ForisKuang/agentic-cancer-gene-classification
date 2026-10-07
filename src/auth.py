@@ -26,6 +26,16 @@ import httpx
 from fastapi import HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
+from src.api_keys import (
+    api_key_inactive_reason,
+    api_key_matches,
+    bearer_token,
+    check_api_key_rate_limit,
+    hash_api_key,
+    looks_like_api_key,
+    parse_api_key,
+    should_touch_last_used,
+)
 from src.config import settings
 
 logger = logging.getLogger(__name__)
@@ -54,6 +64,9 @@ class AuthenticatedUser(BaseModel):
     status: str = "active"
     provider: str = "google"
     groups: List[str] = Field(default_factory=list)
+    # "session" (cookie / session bearer token) or "api_key" (Authorization: Bearer acgc_...)
+    auth_method: str = "session"
+    api_key_id: Optional[str] = None
 
 
 class UserProfile(BaseModel):
@@ -413,6 +426,19 @@ def decode_session_token(token: str) -> Optional[AuthenticatedUser]:
         return None
 
 
+def validate_redirect_to(value: Any) -> str:
+    """Accept only local absolute paths, never browser-normalized external URLs."""
+    if (
+        not isinstance(value, str)
+        or not value.startswith("/")
+        or value.startswith("//")
+        or "\\" in value
+        or any(ord(char) < 32 or ord(char) == 127 for char in value)
+    ):
+        return "/"
+    return value
+
+
 def create_oauth_state(redirect_to: str = "/") -> str:
     """
     Generates a tamper-proof state token for CSRF protection during OAuth / SAML flow.
@@ -420,7 +446,7 @@ def create_oauth_state(redirect_to: str = "/") -> str:
     now = int(time.time())
     payload = {
         "nonce": secrets.token_hex(16),
-        "redirect_to": redirect_to or "/",
+        "redirect_to": validate_redirect_to(redirect_to),
         "iat": now,
         "exp": now + 900,  # 15 minutes
     }
@@ -550,7 +576,7 @@ def build_saml_authn_request(acs_url: str, relay_state: str = "/") -> Tuple[str,
 
     deflated = zlib.compress(xml.encode("utf-8"))[2:-4]
     b64_request = base64.b64encode(deflated).decode("utf-8")
-    params = {"SAMLRequest": b64_request, "RelayState": relay_state}
+    params = {"SAMLRequest": b64_request, "RelayState": validate_redirect_to(relay_state)}
     redirect_url = f"{destination}?{urlencode(params)}"
     return request_id, redirect_url
 
@@ -688,12 +714,32 @@ def clear_session_cookie(response: Response) -> None:
     response.delete_cookie(key=settings.auth_cookie_name, path="/")
 
 
+def _uses_api_key(request: Request) -> bool:
+    """True when the request authenticates with an ACGC API key rather than a session.
+
+    A session cookie takes precedence, matching get_current_user's lookup order.
+    """
+    if request.cookies.get(settings.auth_cookie_name):
+        return False
+    return looks_like_api_key(bearer_token(request.headers.get("Authorization")))
+
+
+# request.state attribute caching the API-key resolution for the current request,
+# so the observability middleware and require_auth share a single DB lookup.
+_API_KEY_STATE_ATTR = "acgc_api_key_auth"
+_API_KEY_RATE_CHECKED_ATTR = "acgc_api_key_rate_checked"
+
+
 def get_current_user(request: Request) -> Optional[AuthenticatedUser]:
+    if _uses_api_key(request):
+        # API keys need an async DB lookup; this sync helper only sees a key
+        # that resolve_api_key_user() already verified for this request.
+        cached = getattr(request.state, _API_KEY_STATE_ATTR, None)
+        return cached[0] if cached else None
+
     token = request.cookies.get(settings.auth_cookie_name)
     if not token:
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header[7:].strip()
+        token = bearer_token(request.headers.get("Authorization"))
 
     if not token:
         return None
@@ -701,7 +747,103 @@ def get_current_user(request: Request) -> Optional[AuthenticatedUser]:
     return decode_session_token(token)
 
 
-def require_auth(request: Request) -> AuthenticatedUser:
+async def _verify_api_key(request: Request, plaintext: str) -> Tuple[Optional[AuthenticatedUser], Optional[str]]:
+    store = getattr(request.app.state, "run_store", None)
+    if store is None:
+        return None, "unavailable"
+    try:
+        # Every well-formed key takes the same path: one indexed lookup by its
+        # full SHA-256, so the lookup reveals nothing about partial matches.
+        record = await store.get_api_key_by_hash(hash_api_key(plaintext))
+    except Exception:
+        logger.exception("API key lookup failed")
+        return None, "unavailable"
+
+    if record is None or not api_key_matches(plaintext, record):
+        logger.warning("API key rejected: unknown key")
+        return None, "invalid"
+
+    inactive = api_key_inactive_reason(record)
+    if inactive:
+        logger.warning("API key %s rejected: %s", record.id, inactive)
+        return None, "invalid"
+
+    # Re-check the owner against the live allowlist so offboarded users and
+    # domains lose access even though their key was never revoked.
+    owner_email = record.owner_email.strip().lower()
+    allowed, reason = is_email_allowed(owner_email)
+    if not allowed:
+        logger.warning("API key %s rejected for %s: %s", record.id, owner_email, reason)
+        return None, "invalid"
+
+    now = datetime.now(timezone.utc)
+    if should_touch_last_used(record.last_used_at, settings.api_key_last_used_update_seconds, now):
+        try:
+            await store.touch_api_key(record.id, now)
+        except Exception as exc:
+            logger.warning("Failed to update last_used_at for API key %s: %s", record.id, exc)
+
+    profile = await get_user_profile(owner_email)
+    return (
+        AuthenticatedUser(
+            email=owner_email,
+            name=(profile.name if profile else None) or owner_email,
+            picture=profile.picture if profile else None,
+            domain=owner_email.split("@")[-1],
+            role=profile.role if profile else settings.jit_default_role,
+            status=profile.status if profile else "active",
+            provider="api_key",
+            groups=list(profile.groups) if profile else [],
+            auth_method="api_key",
+            api_key_id=record.id,
+        ),
+        None,
+    )
+
+
+async def resolve_api_key_user(request: Request) -> Optional[AuthenticatedUser]:
+    """Verify an `Authorization: Bearer acgc_...` key (once per request, cached).
+
+    Returns the key owner's identity, or None when auth is disabled, the request
+    doesn't carry an API key, or the key is unknown/revoked/expired/disallowed.
+    """
+    if not settings.auth_enabled or not _uses_api_key(request):
+        return None
+    cached = getattr(request.state, _API_KEY_STATE_ATTR, None)
+    if cached is None:
+        plaintext = parse_api_key(bearer_token(request.headers.get("Authorization")))
+        if plaintext is None:
+            cached = (None, "invalid")
+        else:
+            cached = await _verify_api_key(request, plaintext)
+        setattr(request.state, _API_KEY_STATE_ATTR, cached)
+    return cached[0]
+
+
+async def get_request_user(request: Request) -> Optional[AuthenticatedUser]:
+    """Async counterpart of get_current_user that also resolves API keys."""
+    await resolve_api_key_user(request)
+    return get_current_user(request)
+
+
+async def _enforce_api_key_rate_limit(request: Request, user: AuthenticatedUser) -> None:
+    if not user.api_key_id or getattr(request.state, _API_KEY_RATE_CHECKED_ATTR, False):
+        return
+    setattr(request.state, _API_KEY_RATE_CHECKED_ATTR, True)
+    allowed, retry_after = await check_api_key_rate_limit(
+        user.api_key_id,
+        settings.api_key_rate_limit_per_minute,
+        redis_client=await _get_auth_redis_client(),
+    )
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="API key rate limit exceeded. Please slow down and retry later.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+async def require_auth(request: Request) -> AuthenticatedUser:
     if not settings.auth_enabled:
         return AuthenticatedUser(
             email="local@internal",
@@ -712,7 +854,22 @@ def require_auth(request: Request) -> AuthenticatedUser:
             groups=["Admins"],
         )
 
-    user = get_current_user(request)
+    uses_api_key = _uses_api_key(request)
+    if uses_api_key:
+        user = await resolve_api_key_user(request)
+        if not user and getattr(request.state, _API_KEY_STATE_ATTR, (None, None))[1] == "unavailable":
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="API key verification is temporarily unavailable.",
+            )
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid, revoked, or expired API key.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    else:
+        user = get_current_user(request)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -726,11 +883,15 @@ def require_auth(request: Request) -> AuthenticatedUser:
             detail="Your account is pending administrator approval. Please contact your AGCG administrator.",
         )
 
+    if uses_api_key:
+        await _enforce_api_key_rate_limit(request, user)
+        logger.debug("Request authenticated with API key %s for %s", user.api_key_id, user.email)
+
     return user
 
 
-def require_admin(request: Request) -> AuthenticatedUser:
-    user = require_auth(request)
+async def require_admin(request: Request) -> AuthenticatedUser:
+    user = await require_auth(request)
     if user.role != "admin" and not settings.agcg_dev_mode:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

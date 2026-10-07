@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 
 import aiomysql
 
+from src.api_keys import ApiKeyRecord
 from src.config import settings
 from src.models.schema import GeneAnnotation, PMIDEvidenceRecord
 
@@ -79,6 +80,28 @@ CREATE TABLE IF NOT EXISTS feedback (
     INDEX idx_feedback_run_id (run_id)
 )
 """
+
+
+# Only the SHA-256 of the key is stored, and keys are looked up by that hash;
+# nothing derived from the secret is kept in the clear. See src/api_keys.py.
+_CREATE_API_KEYS_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS api_keys (
+    id VARCHAR(36) PRIMARY KEY,
+    key_hash CHAR(64) NOT NULL,
+    owner_email VARCHAR(255) NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    created_at DATETIME NOT NULL,
+    last_used_at DATETIME NULL,
+    revoked_at DATETIME NULL,
+    expires_at DATETIME NULL,
+    UNIQUE INDEX idx_api_keys_key_hash (key_hash),
+    INDEX idx_api_keys_owner_email (owner_email)
+)
+"""
+
+_API_KEY_COLUMNS = (
+    "id, key_hash, owner_email, name, created_at, last_used_at, revoked_at, expires_at"
+)
 
 
 def _to_utc_datetime(value: str | datetime) -> datetime:
@@ -159,6 +182,7 @@ class RunStore:
                 if settings.pmid_distillation_enabled:
                     await cursor.execute(_CREATE_PMID_EVIDENCE_TABLE_SQL)
                 await cursor.execute(_CREATE_FEEDBACK_TABLE_SQL)
+                await cursor.execute(_CREATE_API_KEYS_TABLE_SQL)
 
     async def _ensure_gene_annotation_schema(self, cursor) -> None:
         """Migrate older gene-only annotation caches to gene + tumor-type keys."""
@@ -435,6 +459,88 @@ class RunStore:
                         page_url,
                         user_agent,
                     ),
+                )
+
+    # -- API keys ------------------------------------------------------------
+
+    @staticmethod
+    def _api_key_from_row(row) -> ApiKeyRecord:
+        return ApiKeyRecord(
+            id=row[0],
+            key_hash=row[1],
+            owner_email=row[2],
+            name=row[3],
+            created_at=_from_mysql_datetime(row[4]),
+            last_used_at=_from_mysql_datetime(row[5]),
+            revoked_at=_from_mysql_datetime(row[6]),
+            expires_at=_from_mysql_datetime(row[7]),
+        )
+
+    async def create_api_key(self, record: ApiKeyRecord) -> None:
+        async with self._pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(
+                    f"INSERT INTO api_keys ({_API_KEY_COLUMNS}) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                    (
+                        record.id,
+                        record.key_hash,
+                        record.owner_email,
+                        record.name,
+                        _to_utc_datetime(record.created_at),
+                        _to_utc_datetime(record.last_used_at) if record.last_used_at else None,
+                        _to_utc_datetime(record.revoked_at) if record.revoked_at else None,
+                        _to_utc_datetime(record.expires_at) if record.expires_at else None,
+                    ),
+                )
+
+    async def get_api_key_by_hash(self, key_hash: str) -> Optional[ApiKeyRecord]:
+        async with self._pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(
+                    f"SELECT {_API_KEY_COLUMNS} FROM api_keys WHERE key_hash = %s",
+                    (key_hash,),
+                )
+                row = await cursor.fetchone()
+        return self._api_key_from_row(row) if row else None
+
+    async def get_api_key(self, key_id: str) -> Optional[ApiKeyRecord]:
+        async with self._pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(
+                    f"SELECT {_API_KEY_COLUMNS} FROM api_keys WHERE id = %s", (key_id,)
+                )
+                row = await cursor.fetchone()
+        return self._api_key_from_row(row) if row else None
+
+    async def list_api_keys(self, owner_email: Optional[str] = None) -> List[ApiKeyRecord]:
+        """List keys for one owner, or every key when owner_email is None."""
+        sql = f"SELECT {_API_KEY_COLUMNS} FROM api_keys"
+        params: tuple = ()
+        if owner_email is not None:
+            sql += " WHERE owner_email = %s"
+            params = (owner_email,)
+        sql += " ORDER BY created_at DESC"
+        async with self._pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(sql, params)
+                rows = await cursor.fetchall()
+        return [self._api_key_from_row(row) for row in rows]
+
+    async def revoke_api_key(self, key_id: str, revoked_at: datetime) -> None:
+        async with self._pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(
+                    "UPDATE api_keys SET revoked_at = %s WHERE id = %s AND revoked_at IS NULL",
+                    (_to_utc_datetime(revoked_at), key_id),
+                )
+
+    async def touch_api_key(self, key_id: str, used_at: datetime) -> None:
+        async with self._pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(
+                    "UPDATE api_keys SET last_used_at = %s WHERE id = %s",
+                    (_to_utc_datetime(used_at), key_id),
                 )
 
     async def close(self) -> None:
