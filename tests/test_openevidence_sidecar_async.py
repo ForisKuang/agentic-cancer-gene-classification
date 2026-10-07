@@ -22,6 +22,7 @@ from typing import Dict, List, Optional, Tuple
 import httpx
 import pytest
 from fastapi import Response
+from fastapi.testclient import TestClient
 
 from src import main
 from src.config import Settings
@@ -951,3 +952,48 @@ async def test_sidecar_leases_and_failed_markers_use_the_osler_cache_key(monkeyp
     await _request("ALK", tumor_type="NSCLC", fusion="EML4::ALK")
     await _wait_for_background_lookups()
     assert len(upstream.calls) == 2
+
+
+@pytest.mark.parametrize(
+    ("lookup_timeout", "read_timeout"),
+    [(0.0, 0.0), (-5.0, 0.0), (0.0, -1.0), (float("nan"), float("nan"))],
+)
+def test_nonpositive_lookup_budget_falls_back_to_900s_with_a_warning(
+    monkeypatch, caplog, lookup_timeout, read_timeout
+):
+    monkeypatch.setattr(main.settings, "openevidence_sidecar_lookup_timeout_seconds", lookup_timeout)
+    monkeypatch.setattr(main.settings, "openevidence_timeout_seconds", read_timeout)
+    caplog.set_level("WARNING", logger="src.main")
+
+    assert main._openevidence_sidecar_lookup_budget_seconds() == 900.0
+    assert any(
+        "lookup budget derived as" in r.getMessage() and "900s default" in r.getMessage()
+        for r in caplog.records
+        if r.levelname == "WARNING"
+    )
+
+
+async def test_nonpositive_lookup_budget_does_not_fail_lookups_instantly(monkeypatch, fake_redis, upstream):
+    monkeypatch.setattr(main.settings, "openevidence_sidecar_lookup_timeout_seconds", 0.0)
+    monkeypatch.setattr(main.settings, "openevidence_timeout_seconds", 0.0)
+    first, _ = await _request("ALK")
+    assert first.status == "pending"  # not an instant "failed"
+    upstream.release()
+    await _wait_for_background_lookups()
+    result, _ = await _request("ALK")
+    assert result.status == "ready"
+    assert len(upstream.calls) == 1
+
+
+def test_cors_preflight_allows_the_openevidence_poll_header():
+    response = TestClient(main.app).options(
+        "/v1/genes/ALK/openevidence",
+        headers={
+            "Origin": "https://example.org",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "x-openevidence-poll",
+        },
+    )
+    assert response.status_code == 200
+    allowed = [h.strip().lower() for h in response.headers["access-control-allow-headers"].split(",")]
+    assert "x-openevidence-poll" in allowed

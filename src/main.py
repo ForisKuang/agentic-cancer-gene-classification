@@ -189,7 +189,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["GET", "POST", "DELETE"],
-    allow_headers=["Content-Type", "Authorization"],
+    # X-OpenEvidence-Poll: sent by app.js on every OpenEvidence sidecar
+    # request (see get_gene_openevidence); without it a cross-origin
+    # frontend's preflight would fail and the card would silently vanish.
+    allow_headers=["Content-Type", "Authorization", "X-OpenEvidence-Poll"],
 )
 app.include_router(api_keys_router)
 
@@ -451,17 +454,33 @@ _OPENEVIDENCE_SIDECAR_MEMO_MAX = 256
 # (openevidence_timeout_seconds, an inactivity timeout) plus this margin, so a
 # call the HTTP client would still let finish is never cut short by the budget.
 _OPENEVIDENCE_LOOKUP_BUDGET_READ_TIMEOUT_FACTOR = 1.25
+# Used when the configured settings derive a budget <= 0, which would
+# otherwise fail every lookup the instant it starts. Matches the default of
+# settings.openevidence_sidecar_lookup_timeout_seconds.
+_OPENEVIDENCE_LOOKUP_BUDGET_FALLBACK_SECONDS = 900.0
 
 
 def _openevidence_sidecar_lookup_budget_seconds() -> float:
     """Overall wall-clock cap on one background lookup's upstream call:
     settings.openevidence_sidecar_lookup_timeout_seconds, raised if needed
     to openevidence_timeout_seconds x 1.25 (e.g. 600s read timeout -> at
-    least 750s)."""
-    return max(
+    least 750s). Falls back to 900s, with a warning, if both are
+    misconfigured so the result would be <= 0."""
+    budget = max(
         float(settings.openevidence_sidecar_lookup_timeout_seconds),
         float(settings.openevidence_timeout_seconds) * _OPENEVIDENCE_LOOKUP_BUDGET_READ_TIMEOUT_FACTOR,
     )
+    if not budget > 0:  # also catches NaN
+        logger.warning(
+            "OpenEvidence sidecar lookup budget derived as %s from OPENEVIDENCE_SIDECAR_LOOKUP_TIMEOUT_SECONDS=%s "
+            "and OPENEVIDENCE_TIMEOUT_SECONDS=%s; using the %gs default instead",
+            budget,
+            settings.openevidence_sidecar_lookup_timeout_seconds,
+            settings.openevidence_timeout_seconds,
+            _OPENEVIDENCE_LOOKUP_BUDGET_FALLBACK_SECONDS,
+        )
+        return _OPENEVIDENCE_LOOKUP_BUDGET_FALLBACK_SECONDS
+    return budget
 
 
 def _reset_openevidence_sidecar_state() -> None:
