@@ -63,17 +63,20 @@ def _without_trailing_marker_prefix(text: str) -> str:
     return text
 
 
-def has_prose(text: str) -> bool:
-    """Whether accumulated OpenEvidence answer text contains real prose yet.
+def prose_state(text: str) -> str:
+    """Classify accumulated OpenEvidence answer text: 'prose', 'pending' or 'none'.
 
     Widgets are split across SSE events at arbitrary points, so this is
-    judged on the joined text so far, not per event. After the shared widget
-    strip, a marker whose JSON decodes is dropped; one whose JSON is still
-    open, or a trailing partial marker, truncates the text there (rest of the
-    widget hasn't arrived). Citation markers alone are not prose.
+    judged on the joined text so far, not per event. 'pending' means the only
+    non-widget text is a possible unfinished headless tail (see
+    _is_pending_headless_tail): it's prose from the moment it appeared unless
+    it later completes into a tail. Otherwise, after the shared widget strip,
+    a marker whose JSON decodes is dropped; one whose JSON is still open, or
+    a trailing partial marker, truncates the text there (rest of the widget
+    hasn't arrived). Citation markers alone are not prose.
     """
     if _is_pending_headless_tail(text):
-        return False
+        return "pending"
     stripped = oe._strip_generation_step_widgets(text)
     kept, position = [], 0
     while (start := stripped.find(oe._GENERATION_STEP_MARKER, position)) >= 0:
@@ -84,13 +87,25 @@ def has_prose(text: str) -> bool:
         except json.JSONDecodeError:
             position = len(stripped)
     kept.append(_without_trailing_marker_prefix(stripped[position:]))
-    return bool(oe._CITATION_MARKER_PATTERN.sub("", "".join(kept)).strip())
+    return "prose" if oe._CITATION_MARKER_PATTERN.sub("", "".join(kept)).strip() else "none"
+
+
+def has_prose(text: str) -> bool:
+    """Whether accumulated OpenEvidence answer text definitely contains prose yet."""
+    return prose_state(text) == "prose"
 
 
 class ObservedStream(httpx.AsyncByteStream):
     def __init__(self, stream, attempt):
         self.stream = stream
         self.attempt = attempt
+        # When a still-ambiguous headless-tail candidate first appeared; if it
+        # turns out to be prose, that's when the first token arrived.
+        self.pending_since = None
+
+    def _settle_pending(self):
+        if self.attempt["ttft_seconds"] is None and self.pending_since is not None:
+            self.attempt["ttft_seconds"] = self.pending_since - self.attempt["start"]
 
     async def __aiter__(self):
         buffered = b""
@@ -116,11 +131,20 @@ class ObservedStream(httpx.AsyncByteStream):
                 for event in events:
                     if event.get("text") and "table" not in event:
                         text_parts.append(event["text"])
-                if events and has_prose("".join(text_parts)):
-                    self.attempt["ttft_seconds"] = perf_counter() - self.attempt["start"]
+                if events:
+                    now = perf_counter()
+                    state = prose_state("".join(text_parts))
+                    if state == "none":
+                        self.pending_since = None
+                    elif self.pending_since is None:
+                        self.pending_since = now
+                    if state == "prose":
+                        self._settle_pending()
             yield chunk
+        self._settle_pending()
 
     async def aclose(self):
+        self._settle_pending()
         await self.stream.aclose()
 
 

@@ -418,3 +418,70 @@ def test_has_prose_hex_prose_not_after_leading_widget():
                      + "\n\nFDA")
     assert not has_prose("REACTCOMPONENT!:!")
     assert has_prose("Real answer. REACT")
+
+
+async def _ttft_with_clock(monkeypatch, events, exhaust=True):
+    """Replay events with event i arriving at clock time i + 1 (start = 0); return ttft_seconds."""
+    import httpx
+    from benchmarks import openevidence_model_benchmark as model_benchmark
+
+    clock = [0.0]
+    monkeypatch.setattr(model_benchmark, "perf_counter", lambda: clock[0])
+    attempt = {"start": 0.0, "start_byte": 0.0, "first_byte_seconds": None, "ttft_seconds": None}
+
+    class EventStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            for index, event in enumerate(events):
+                clock[0] = float(index + 1)
+                yield event
+
+        async def aclose(self):
+            pass
+
+    observed = model_benchmark.ObservedStream(EventStream(), attempt)
+    if exhaust:
+        async for _ in observed:
+            pass
+    else:
+        iterator = observed.__aiter__()
+        for _ in events:
+            await iterator.__anext__()
+        clock[0] = 99.0
+        await observed.aclose()
+    return attempt["ttft_seconds"]
+
+
+async def test_observed_stream_ttft_backdates_to_when_ambiguous_prose_appeared(monkeypatch):
+    events = [_sse(_COMPLETE_WIDGET), _sse("de"), _sse("ca"), _sse("de"), _sse("-long efficacy")]
+    assert await _ttft_with_clock(monkeypatch, events) == 2.0
+    events = [_sse(_COMPLETE_WIDGET), _sse("a"), _sse(" therapy")]
+    assert await _ttft_with_clock(monkeypatch, events) == 2.0
+
+
+async def test_observed_stream_ttft_settles_pending_candidate_at_stream_end(monkeypatch):
+    events = [_sse(_COMPLETE_WIDGET), _sse("dead"), b'data: {"done": true}\n\n']
+    assert await _ttft_with_clock(monkeypatch, events) == 2.0
+    assert await _ttft_with_clock(monkeypatch, events[:2], exhaust=False) == 2.0
+
+
+async def test_observed_stream_ttft_egfr_tail_split_mid_callid_waits_for_prose(monkeypatch):
+    from pathlib import Path
+    from src.pipeline import openevidence as oe
+
+    raw = (Path(__file__).parent / "fixtures/openevidence/egfr_osler_raw.sse").read_text()
+    texts = [event["text"] for event in oe._parse_sse_events(raw) if event.get("text")]
+    tail = next(i for i, text in enumerate(texts) if text.startswith("a9ac"))
+    texts[tail:tail + 1] = ["a9", texts[tail][2:]]
+    first_prose = next(i for i, text in enumerate(texts) if "Targeted therapy for EGFR" in text)
+    assert await _ttft_with_clock(monkeypatch, [_sse(text) for text in texts]) == first_prose + 1
+
+
+def test_prose_state_classifies_pending_tail_candidates():
+    from benchmarks.openevidence_model_benchmark import prose_state
+
+    assert prose_state(_COMPLETE_WIDGET) == "none"
+    assert prose_state(_COMPLETE_WIDGET + "dead") == "pending"
+    assert prose_state(_COMPLETE_WIDGET + 'a9ac", "kind": "search') == "pending"
+    assert prose_state(_COMPLETE_WIDGET + 'a9ac", "kind": "search"}], "done": true, "summary": "S"}') == "none"
+    assert prose_state(_COMPLETE_WIDGET + "decade-long efficacy") == "prose"
+    assert prose_state(_COMPLETE_WIDGET + "FDA") == "prose"
