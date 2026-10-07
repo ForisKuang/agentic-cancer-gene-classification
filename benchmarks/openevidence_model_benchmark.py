@@ -5,6 +5,7 @@ import asyncio
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import re
 from time import perf_counter
 from unittest.mock import patch
 
@@ -20,6 +21,45 @@ class CallBudgetExceeded(RuntimeError):
     pass
 
 
+_ORPHAN_TAIL_KEY = '", "kind": "'
+
+
+def _is_pending_orphan_tail(text: str) -> bool:
+    """Whether `text` may be the start of a headless widget tail still streaming.
+
+    A complete tail is removed by oe._strip_generation_step_widgets; an
+    incomplete one (or a fragment cut before its `", "kind": "` key) is kept.
+    """
+    if oe._ORPHAN_WIDGET_TAIL_START.match(text):
+        return True
+    hex_prefix = re.match(r"[0-9a-fA-F-]{1,36}", text)
+    return bool(hex_prefix) and _ORPHAN_TAIL_KEY.startswith(text[hex_prefix.end():])
+
+
+def has_prose(text: str) -> bool:
+    """Whether accumulated OpenEvidence answer text contains real prose yet.
+
+    Widgets are split across SSE events at arbitrary points, so this is
+    judged on the joined text so far, not per event. After the shared widget
+    strip, a marker whose JSON decodes is dropped; one whose JSON is still
+    open truncates the text there (rest of the widget hasn't arrived).
+    """
+    stripped = oe._strip_generation_step_widgets(text)
+    kept, position = [], 0
+    while (start := stripped.find(oe._GENERATION_STEP_MARKER, position)) >= 0:
+        kept.append(stripped[position:start])
+        try:
+            _, position = oe._JSON_DECODER.raw_decode(
+                stripped, start + len(oe._GENERATION_STEP_MARKER))
+        except json.JSONDecodeError:
+            position = len(stripped)
+    kept.append(stripped[position:])
+    remainder = oe._CITATION_MARKER_PATTERN.sub("", "".join(kept)).strip()
+    if oe._GENERATION_STEP_MARKER in text and _is_pending_orphan_tail(remainder):
+        return False
+    return bool(remainder)
+
+
 class ObservedStream(httpx.AsyncByteStream):
     def __init__(self, stream, attempt):
         self.stream = stream
@@ -27,11 +67,13 @@ class ObservedStream(httpx.AsyncByteStream):
 
     async def __aiter__(self):
         buffered = b""
+        text_parts = []
         async for chunk in self.stream:
             if self.attempt["first_byte_seconds"] is None:
                 self.attempt["first_byte_seconds"] = perf_counter() - self.attempt.pop("start_byte")
             buffered = (buffered + chunk).replace(b"\r\n", b"\n")
-            # Only complete SSE events count; exclude the generation-step widget.
+            # Only complete SSE events count; TTFT is the first one after which the
+            # accumulated text (widgets excluded) holds prose — see has_prose.
             complete = buffered.rsplit(b"\n\n", 1)
             events = []
             if len(complete) == 2:
@@ -43,13 +85,12 @@ class ObservedStream(httpx.AsyncByteStream):
                         continue
                     if isinstance(event, dict):
                         events.append(event)
-            if self.attempt["ttft_seconds"] is None and any(
-                event.get("text") and oe._strip_generation_step_widgets(event["text"]).strip()
-                and not event["text"].lstrip().startswith("REACTCOMPONENT!")
-                and not oe._CITATION_MARKER_PATTERN.fullmatch(event["text"].strip())
-                for event in events
-            ):
-                self.attempt["ttft_seconds"] = perf_counter() - self.attempt["start"]
+            if self.attempt["ttft_seconds"] is None:
+                for event in events:
+                    if event.get("text") and "table" not in event:
+                        text_parts.append(event["text"])
+                if events and has_prose("".join(text_parts)):
+                    self.attempt["ttft_seconds"] = perf_counter() - self.attempt["start"]
             yield chunk
 
     async def aclose(self):

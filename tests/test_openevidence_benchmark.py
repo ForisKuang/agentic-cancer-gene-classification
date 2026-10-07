@@ -311,3 +311,76 @@ def test_trial_labels_exclude_ordinary_words_and_ambiguous_drug_names():
     assert result["groups"]["negative_controls"]["genes"] == ["AIRE"]
     assert result["groups"]["established"]["agreement"]["trials"]["micro_recall"] == 1
     assert result["groups"]["negative_controls"]["card_guideline_totals"]["darwin"] == 0
+
+
+async def _ttft_per_event(events):
+    """Replay complete SSE events one at a time; return TTFT-set flags after each."""
+    import httpx
+    from time import perf_counter
+    from benchmarks.openevidence_model_benchmark import ObservedStream
+
+    attempt = {"start": perf_counter(), "start_byte": perf_counter(),
+               "first_byte_seconds": None, "ttft_seconds": None}
+    seen = []
+
+    class EventStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            for event in events:
+                yield event
+                seen.append(attempt["ttft_seconds"] is not None)
+
+        async def aclose(self):
+            pass
+
+    async for _ in ObservedStream(EventStream(), attempt):
+        pass
+    return seen
+
+
+def _sse(text):
+    return f"data: {json.dumps({'text': text})}\n\n".encode()
+
+
+async def test_observed_stream_ttft_waits_for_prose_in_real_egfr_fixture():
+    from pathlib import Path
+
+    raw = (Path(__file__).parent / "fixtures/openevidence/egfr_osler_raw.sse").read_text()
+    blocks = [block + "\n\n" for block in raw.replace("\r\n", "\n").split("\n\n") if block.strip()]
+    first_prose = next(i for i, block in enumerate(blocks) if "Targeted therapy for EGFR" in block)
+    seen = await _ttft_per_event([block.encode() for block in blocks])
+    assert seen.index(True) == first_prose
+    assert all(seen[first_prose:])
+
+
+async def test_observed_stream_ttft_widget_split_across_events_then_prose():
+    widget = ('REACTCOMPONENT!:!InlineGenerationStep!:!{"steps": [{"kind": "reasoning", '
+              '"label": "Analyzing query"}], "done": true, "summary": "Analyzed"}')
+    split = widget.index('query"}')
+    seen = await _ttft_per_event([_sse(widget[:split]), _sse(widget[split:]), _sse("\n\n"),
+                                  _sse("Real answer.")])
+    assert seen == [False, False, False, True]
+
+
+async def test_observed_stream_ttft_complete_widget_and_prose_in_one_event():
+    seen = await _ttft_per_event([_sse(
+        'REACTCOMPONENT!:!InlineGenerationStep!:!{"steps":[],"done":true,"summary":"x"}Real answer.')])
+    assert seen == [True]
+
+
+async def test_observed_stream_ttft_ignores_citation_markers_and_whitespace():
+    seen = await _ttft_per_event([_sse("[[1]]"), _sse("  \n\n "), _sse("[[2]][[3]]"),
+                                  _sse("\t"), _sse("Prose [[4]]")])
+    assert seen == [False, False, False, False, True]
+
+
+def test_has_prose_treats_pending_headless_widget_tail_as_not_prose():
+    from benchmarks.openevidence_model_benchmark import has_prose
+
+    head = ('REACTCOMPONENT!:!InlineGenerationStep!:!{"steps": [{"kind": "reasoning"}], '
+            '"done": false, "summary": "Analyzing query"}')
+    assert not has_prose(head + "a9")
+    assert not has_prose(head + 'a9ac", "ki')
+    assert not has_prose(head + 'a9ac", "kind": "search", "label": "Searching')
+    tail = 'a9ac", "kind": "search"}], "done": true, "summary": "Searched"}'
+    assert not has_prose(head + tail + "\n")
+    assert has_prose(head + tail + "\n\nTargeted therapy")
