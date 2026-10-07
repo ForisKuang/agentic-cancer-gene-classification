@@ -147,6 +147,8 @@ def set_user_context(
     name: Optional[str] = None,
     role: Optional[str] = None,
     domain: Optional[str] = None,
+    auth_method: Optional[str] = None,
+    api_key_id: Optional[str] = None,
 ) -> contextvars.Token:
     """Sets request-scoped user context for logging and observability."""
     ctx = {
@@ -155,6 +157,8 @@ def set_user_context(
         "name": name or "",
         "role": role or "",
         "domain": domain or "",
+        "auth_method": auth_method or "",
+        "api_key_id": api_key_id or "",
     }
     return _current_user_context.set(ctx)
 

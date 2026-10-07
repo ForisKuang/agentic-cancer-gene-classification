@@ -124,6 +124,77 @@ Turning on OpenEvidence also needs these (see `.env.example`):
 | `OPENEVIDENCE_SIDECAR_CONCURRENCY` | `3` | Max concurrent live OpenEvidence calls across all sidecar requests. |
 | `OPENEVIDENCE_WARMUP_CONCURRENCY` | `5` | Concurrency for the offline `benchmarks/warm_openevidence_cache.py` warmup. |
 
+## ACGC API Keys (for scripts)
+
+When `AUTH_ENABLED=true`, scripts can call the `/v1/*` API with a personal
+ACGC API key instead of a browser session. (The section above is about
+*third-party* keys ACGC itself uses; this one is about keys for calling ACGC.)
+
+- Keys look like `acgc_<43 random characters>` and are sent as
+  `Authorization: Bearer acgc_...`. Every endpoint protected by sign-in accepts
+  them and acts as the key's owner.
+- Key management (create, list, revoke) is **browser-session only**: each user
+  manages their own keys, and a request authenticated with an API key gets
+  `403` on every `/v1/api-keys` endpoint, so a leaked key can't mint, list, or
+  revoke keys.
+- The plaintext key is shown **once**, in the create response. ACGC stores only
+  its SHA-256 hash (and looks keys up by that hash); keys are identified in
+  listings and logs by their non-secret `id` and `name`. A lost key cannot be
+  recovered — revoke it and create a new one.
+- A key stops working when it is revoked, when it expires (optional
+  `expires_in_days`, max `API_KEY_MAX_EXPIRES_IN_DAYS`), or when its owner no
+  longer passes `ALLOWED_EMAIL_DOMAINS` / `ALLOWED_EMAILS`.
+- Each key is limited to `API_KEY_RATE_LIMIT_PER_MINUTE` requests per minute
+  (default 60, shared across workers via Redis; per-process in-memory fallback
+  if Redis is unreachable). Over the limit you get `429` with `Retry-After`.
+- Admins (signed in via browser session) can list everyone's keys with
+  `GET /v1/api-keys?all=true` and revoke any key.
+
+Create a key while signed in — e.g. from the browser devtools console on the
+ACGC page (uses your session cookie):
+
+```js
+await (await fetch("/v1/api-keys", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ name: "nightly triage script", expires_in_days: 90 }),
+})).json()   // -> { id, name, key: "acgc_...", ... }  copy `key` now
+```
+
+or with curl, passing your session cookie (`agcg_session`, from devtools →
+Application → Cookies):
+
+```bash
+curl -s -X POST https://acgc.oncokb.org/v1/api-keys \
+  -H "Cookie: agcg_session=$ACGC_SESSION" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "nightly triage script", "expires_in_days": 90}'
+```
+
+Then use it from scripts (keep it in an env var or secret store, never in git):
+
+```bash
+export ACGC_API_KEY=acgc_...
+
+curl -s -X POST https://acgc.oncokb.org/v1/annotate \
+  -H "Authorization: Bearer $ACGC_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"fusions": ["EML4::ALK"]}'
+```
+
+List (secrets are never returned) and revoke keys with your session, not the
+key itself:
+
+```bash
+curl -s https://acgc.oncokb.org/v1/api-keys -H "Cookie: agcg_session=$ACGC_SESSION"
+curl -s -X DELETE https://acgc.oncokb.org/v1/api-keys/<key-id> \
+  -H "Cookie: agcg_session=$ACGC_SESSION"
+```
+
+API-key requests are attributed to the owner in Datadog (`usr.id` = owner
+email); spans and application log lines also carry `acgc.auth_method`
+(`api_key` / `session`) and `acgc.api_key_id`.
+
 ## Run With Anthropic SDK
 
 For the direct Anthropic API, set `ANTHROPIC_API_KEY` in `.env`:
