@@ -413,6 +413,19 @@ def decode_session_token(token: str) -> Optional[AuthenticatedUser]:
         return None
 
 
+def validate_redirect_to(value: Any) -> str:
+    """Accept only local absolute paths, never browser-normalized external URLs."""
+    if (
+        not isinstance(value, str)
+        or not value.startswith("/")
+        or value.startswith("//")
+        or "\\" in value
+        or any(ord(char) < 32 or ord(char) == 127 for char in value)
+    ):
+        return "/"
+    return value
+
+
 def create_oauth_state(redirect_to: str = "/") -> str:
     """
     Generates a tamper-proof state token for CSRF protection during OAuth / SAML flow.
@@ -420,7 +433,7 @@ def create_oauth_state(redirect_to: str = "/") -> str:
     now = int(time.time())
     payload = {
         "nonce": secrets.token_hex(16),
-        "redirect_to": redirect_to or "/",
+        "redirect_to": validate_redirect_to(redirect_to),
         "iat": now,
         "exp": now + 900,  # 15 minutes
     }
@@ -550,7 +563,7 @@ def build_saml_authn_request(acs_url: str, relay_state: str = "/") -> Tuple[str,
 
     deflated = zlib.compress(xml.encode("utf-8"))[2:-4]
     b64_request = base64.b64encode(deflated).decode("utf-8")
-    params = {"SAMLRequest": b64_request, "RelayState": relay_state}
+    params = {"SAMLRequest": b64_request, "RelayState": validate_redirect_to(relay_state)}
     redirect_url = f"{destination}?{urlencode(params)}"
     return request_id, redirect_url
 
