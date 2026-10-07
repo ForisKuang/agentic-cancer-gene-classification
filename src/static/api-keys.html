@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="same-origin" />
+    <title>API Keys — Cancer Gene Classification</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon-180.png" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <!-- data-* values are filled in by GET /api-keys (src/main.py). -->
+  <body
+    class="api-keys-body"
+    data-public-base-url="__ACGC_PUBLIC_BASE_URL__"
+    data-max-expires-days="__ACGC_API_KEY_MAX_EXPIRES_DAYS__"
+  >
+    <main class="api-keys-page" id="api-keys-page">
+      <header class="api-keys-header">
+        <a class="api-keys-back" href="/">&larr; Back to annotations</a>
+        <div class="brand-title">
+          <img class="brand-icon" src="/static/favicon.svg" alt="" width="28" height="28" />
+          <h1>API keys</h1>
+        </div>
+        <p class="api-keys-lead">
+          Personal keys for calling the ACGC API from scripts. A key acts as you, so treat it like a
+          password: keep it in an environment variable or secret store, never in git.
+        </p>
+        <p class="api-keys-signed-in hidden" id="api-keys-signed-in"></p>
+      </header>
+
+      <div class="api-keys-alert hidden" id="api-keys-error" role="alert"></div>
+
+      <section class="api-keys-card" aria-labelledby="create-key-heading">
+        <h2 id="create-key-heading">Create a key</h2>
+        <form class="api-keys-form" id="create-key-form" novalidate>
+          <label class="field">
+            <span>Name <span class="required-star">*</span></span>
+            <input
+              id="key-name"
+              name="name"
+              type="text"
+              maxlength="128"
+              required
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="e.g. nightly triage script"
+            />
+          </label>
+          <label class="field">
+            <span>Expires</span>
+            <select id="key-expiry" name="expires_in_days"></select>
+          </label>
+          <button class="primary-action" id="create-key-btn" type="submit">Create key</button>
+        </form>
+        <p class="api-keys-form-error hidden" id="create-key-error" role="alert"></p>
+      </section>
+
+      <section class="api-keys-card" aria-labelledby="list-keys-heading">
+        <div class="api-keys-list-heading">
+          <h2 id="list-keys-heading">Your keys</h2>
+          <label class="checkbox-control hidden" id="show-all-wrap">
+            <input id="show-all-keys" type="checkbox" checked />
+            All users' keys (admin)
+          </label>
+        </div>
+        <p class="api-keys-empty hidden" id="keys-empty">No API keys yet.</p>
+        <p class="api-keys-empty" id="keys-loading">Loading…</p>
+        <div class="api-keys-table-wrap">
+          <table class="api-keys-table hidden" id="keys-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="owner-col hidden" id="owner-col-header">Owner</th>
+                <th>Created</th>
+                <th>Expires</th>
+                <th>Last used</th>
+                <th>Status</th>
+                <th>ID</th>
+                <th><span class="visually-hidden">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody id="keys-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="api-keys-card" aria-labelledby="usage-heading">
+        <h2 id="usage-heading">Using a key</h2>
+        <p>Send the key as a bearer token:</p>
+        <pre class="api-keys-snippet"><code id="usage-snippet"></code></pre>
+      </section>
+    </main>
+
+    <!-- Shown once after creating a key. The plaintext lives only in this DOM
+         node and is cleared when the dialog is closed. -->
+    <div class="modal-backdrop hidden" id="new-key-modal" role="dialog" aria-modal="true" aria-labelledby="new-key-title">
+      <div class="feedback-modal">
+        <div class="modal-header">
+          <h2 id="new-key-title">Copy your new API key</h2>
+        </div>
+        <p class="api-keys-warning">
+          This is the only time the key will be shown. ACGC stores only a hash, so it can't be
+          recovered — if you lose it, revoke it and create a new one.
+        </p>
+        <div class="api-keys-secret-row">
+          <code class="api-keys-secret" id="new-key-value"></code>
+          <button type="button" id="copy-key-btn">Copy</button>
+        </div>
+        <p class="api-keys-copy-status" id="copy-key-status" aria-live="polite"></p>
+        <div class="modal-footer">
+          <button class="primary-action" type="button" id="new-key-done-btn">I've saved it</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="revoke-modal" role="dialog" aria-modal="true" aria-labelledby="revoke-title">
+      <div class="feedback-modal">
+        <div class="modal-header">
+          <h2 id="revoke-title">Revoke API key?</h2>
+        </div>
+        <p id="revoke-message"></p>
+        <p class="api-keys-form-error hidden" id="revoke-error" role="alert"></p>
+        <div class="modal-footer api-keys-modal-actions">
+          <button type="button" id="revoke-cancel-btn">Cancel</button>
+          <button class="danger-action" type="button" id="revoke-confirm-btn">Revoke</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/api-keys.js"></script>
+  </body>
+</html>

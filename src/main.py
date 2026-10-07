@@ -17,6 +17,7 @@ from threading import Lock
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from datetime import datetime, timezone
+from html import escape as html_escape
 from pathlib import Path
 from typing import Any, Coroutine, Dict, List, Literal, Optional
 from urllib.parse import parse_qs, quote
@@ -198,7 +199,7 @@ async def no_cache_static(request: Request, call_next):
     # app.js/styles.css after a deploy on a plain reload, not just a hard
     # refresh — force revalidation on every request for both.
     response = await call_next(request)
-    if request.url.path in ("/", "/login") or request.url.path.startswith("/static/"):
+    if request.url.path in ("/", "/login", "/api-keys") or request.url.path.startswith("/static/"):
         response.headers["Cache-Control"] = "no-cache"
     return response
 
@@ -598,19 +599,39 @@ def _record_annotation_request_metrics(
         )
 
 
+def _login_redirect(request: Request) -> Optional[RedirectResponse]:
+    """Send a signed-out browser to /login, returning to this page afterwards."""
+    if not settings.auth_enabled or get_current_user(request):
+        return None
+    target = request.url.path
+    if request.url.query:
+        target += f"?{request.url.query}"
+    login_url = "/login"
+    if target != "/":
+        login_url += f"?redirect_to={quote(validate_redirect_to(target), safe='')}"
+    return RedirectResponse(url=login_url, status_code=303)
+
+
 @app.get("/")
 async def root(request: Request) -> Response:
-    if settings.auth_enabled:
-        user = get_current_user(request)
-        if not user:
-            target = request.url.path
-            if request.url.query:
-                target += f"?{request.url.query}"
-            login_url = "/login"
-            if target != "/":
-                login_url += f"?redirect_to={quote(validate_redirect_to(target), safe='')}"
-            return RedirectResponse(url=login_url, status_code=303)
+    redirect = _login_redirect(request)
+    if redirect:
+        return redirect
     return FileResponse(_STATIC_DIR / "index.html")
+
+
+@app.get("/api-keys")
+async def api_keys_page(request: Request) -> Response:
+    redirect = _login_redirect(request)
+    if redirect:
+        return redirect
+    public_base_url = (settings.public_app_base_url or str(request.base_url)).rstrip("/")
+    page = (_STATIC_DIR / "api-keys.html").read_text(encoding="utf-8")
+    page = page.replace("__ACGC_PUBLIC_BASE_URL__", html_escape(public_base_url, quote=True))
+    page = page.replace(
+        "__ACGC_API_KEY_MAX_EXPIRES_DAYS__", str(int(settings.api_key_max_expires_in_days))
+    )
+    return HTMLResponse(page)
 
 
 @app.get("/login")
