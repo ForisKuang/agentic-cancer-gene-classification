@@ -1,0 +1,350 @@
+event: request-id
+data: REDACTED-REQUEST-ID
+
+event: analysis-id
+data: 00000000-0000-0000-0000-000000000000
+
+data: {"text": "REACTCOMPONENT!:!InlineGenerationStep!:!{\"steps\": [{\"kind\": \"reasoning\", \"label\": \"Analyzing query\", \"id\": \"analyzing"}
+
+data: {"text": "query\", \"active\": true, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 0, \"metadata\": {}}], \"done\": false, \"summary\": \"Analyzing query\"}"}
+
+data: {"text": "aacf\", \"kind\": \"search\", \"label\": \"Searching published medical literature, guidelines, FDA, CDC, and more\", \"id\": \"search"}
+
+data: {"text": "medical"}
+
+data: {"text": "literature\", \"active\": true, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 0, \"metadata\": {}, \"queries\": []}, {\"call"}
+
+data: {"text": "id\": \"319a1530-47f4-49d7-a6c7-c2dd72e237e4\", \"kind\": \"search\", \"label\": \"Searching full-text sources from NEJM, JAMA, Nature, NCCN, Cochrane, Wiley, and more\", \"id\": \"search"}
+
+data: {"text": "medical"}
+
+data: {"text": "literature\", \"active\": true, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 0, \"metadata\": {}, \"queries\": []}], \"done\": true, \"summary\": \"Analyzed query, searched for evidence\"}\n"}
+
+data: {"text": "\n\n"}
+
+data: {"text": "ALK inhibitors are the standard targeted therapy for ALK-rearranged (fusion-positive) cancers"}
+
+data: {"text": ", with the deepest evidence and formal guideline backing in non-small cell lung cancer (NSCLC"}
+
+data: {"text": "). NCCN, ASCO, and the major trials converge on next-generation ALK TKIs (alectinib, brigatinib, lorlatinib, ensartinib) over first-generation crizotinib for advanced ALK+"}
+
+data: {"text": " NSCLC, with alectinib established as adjuvant therapy after resection. Beyond lung cancer, NCCN guidelines also list ALK inhibitors for ALK-positive anaplastic large cell lymphoma (ALCL) and ALK-translocated [inflammatory myofibroblastic tumor](/rare-disease/inflammatory-myofibroblastic-tumor) (IMT), and ALK inhibition (lorlatinib) is being integrated into frontline/relapsed [neuroblastoma](/rare-disease/neuroblastoma), though largely in the trial setting.\n"}
+
+data: {"text": "Advanced/metastatic ALK+ NSCLC \u2014 first-line"}
+
+data: {"text": "\nThe NCCN Non-Small Cell Lung Cancer guideline (v9"}
+
+data: {"text": ".2026) lists four category 1 preferred first-line options \u2014 "}
+
+data: {"text": "alectinib, brigatinib, ensartinib, and lorlatinib"}
+
+data: {"text": " \u2014 with "}
+
+data: {"text": "ceritinib and crizotinib"}
+
+data: {"text": " as category 1 \"useful in certain circumstances\"."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=110"}, "source_texts": []}}
+
+data: {"text": " If an ALK fusion is discovered during first-line chemotherapy, NCCN advises interrupting ther"}
+
+data: {"text": "apy and starting a preferred next-generation TKI."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=54"}, "source_texts": []}}
+
+data: {"text": "\nASCO guidelines (Therapy for Stage IV NSCLC with Driver Alterations, 2026) recommend clinicians offer "}
+
+data: {"text": "alectinib, brigatinib, or lorlatinib"}
+
+data: {"text": " first-line (evidence strength high; strong), and offer ceritinib or crizotinib only if those three are unavailable."}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": " The 2026 ASCO"}
+
+data: {"text": " update singles out "}
+
+data: {"text": "lorlatinib as an agent of choice when available"}
+
+data: {"text": ", citing its durable long-term efficacy, while noting alectinib or brigatinib as alternatives in frail or older patients with cardiac/CNS comorbidities given lorlatinib's higher rate of grade \u22653 adverse events and need for proactive monitoring."}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "\nThe pivotal first-line trials \u2014 all using crizotinib as comparator:"}
+
+data: {"text": "\n- "}
+
+data: {"text": "ALEX (alectinib):"}
+
+data: {"text": " median PFS 25.7 vs 10.4 months (HR 0.50); final OS 81.1 vs 57.2 months (HR 0.78)."}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "[[3]]", "reference": {"citation_key": 3, "reference_text": "Schneider JL, Lin JJ, Shaw AT. <a target=\"_blank\" href=\"https://doi.org/10.1038/s43018-023-00515-0\">ALK-positive Lung Cancer: A Moving Target</a>. Nature Cancer. 2023;4(3):330-343. doi:10.1038/s43018-023-00515-0.", "reference_detail": {"title": "ALK-positive lung cancer: a moving target", "authors_string": "Schneider JL, Lin JJ, Shaw AT.", "publication_info_string": "Nature Cancer. 2023;4(3):330-343. doi:10.1038/s43018-023-00515-0.", "journal_name": "Nature Cancer", "journal_short_name": "Nat Cancer", "publication_date": "2023-03-01", "doi": "10.1038/s43018-023-00515-0", "url": "https://doi.org/10.1038/s43018-023-00515-0"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "ALTA-1L (brigatinib):"}
+
+data: {"text": " median PFS 30.8 vs 9.2 months (HR 0.43)."}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "eXalt3 (ensartinib):"}
+
+data: {"text": " median PFS 25.8 months (HR 0.51)."}
+
+data: {"text": "[[4]]", "reference": {"citation_key": 4, "reference_text": "Shaw AT, Bauer TM, de Marinis F, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2027187?utm_source=openevidence&utm_medium=referral\">First-Line Lorlatinib or Crizotinib in Advanced ALK-Positive Lung Cancer</a>. The New England Journal of Medicine. 2020;383(21):2018-2029. doi:10.1056/NEJMoa2027187.", "reference_detail": {"title": "First-Line Lorlatinib or Crizotinib in Advanced ALK-Positive Lung Cancer", "authors_string": "Shaw AT, Bauer TM, de Marinis F, et al.", "publication_info_string": "The New England Journal of Medicine. 2020;383(21):2018-2029. doi:10.1056/NEJMoa2027187.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2020-11-19", "doi": "10.1056/NEJMoa2027187", "url": "https://doi.org/10.1056/nejmoa2027187?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "\n- "}
+
+data: {"text": "CROWN (lorlatinib):"}
+
+data: {"text": " at 5"}
+
+data: {"text": " years, median PFS not reached vs 9.1 months (HR 0.19), with 5-year PFS 60% vs 8%; the 7-year update still had not reached median PFS (7-year PFS 55% vs 3%), representing the longest PFS reported for any single-agent targeted therapy across metastatic solid tumors. Lorlatinib also show"}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "[[5]]", "reference": {"citation_key": 5, "reference_text": "Solomon BJ, Liu G, Felip E, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/38819031\">Lorlatinib Versus Crizotinib in Patients With Advanced ALK-Positive Non-Small Cell Lung Cancer: 5-Year Outcomes From the Phase III CROWN Study</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2024;42(29):3400-3409. doi:10.1200/JCO.24.00581.", "reference_detail": {"title": "Lorlatinib Versus Crizotinib in Patients With Advanced ALK-Positive Non-Small Cell Lung Cancer: 5-Year Outcomes From the Phase III CROWN Study", "authors_string": "Solomon BJ, Liu G, Felip E, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2024;42(29):3400-3409. doi:10.1200/JCO.24.00581.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2024-10-10", "doi": "10.1200/JCO.24.00581", "url": "https://pubmed.ncbi.nlm.nih.gov/38819031"}, "source_texts": []}}
+
+data: {"text": "[[6]]", "reference": {"citation_key": 6, "reference_text": "Shaw AT, Solomon BJ, Felip E, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/42217582\">Lorlatinib Versus Crizotinib as First-Line Treatment for Advanced ALK-positive Non-Small-Cell Lung Cancer: 7-Year Update From the Phase III CROWN Study</a>. Annals of Oncology : Official Journal of the European Society for Medical Oncology. 2026;37(9):1242-1252. doi:10.1016/j.annonc.2026.05.692.", "reference_detail": {"title": "Lorlatinib Versus Crizotinib as First-Line Treatment for Advanced ALK-positive Non-Small-Cell Lung Cancer: 7-Year Update From the Phase III CROWN Study", "authors_string": "Shaw AT, Solomon BJ, Felip E, et al.", "publication_info_string": "Annals of Oncology : Official Journal of the European Society for Medical Oncology. 2026;37(9):1242-1252. doi:10.1016/j.annonc.2026.05.692.", "journal_name": "Annals of Oncology : Official Journal of the European Society for Medical Oncology", "journal_short_name": "Ann Oncol", "publication_date": "2026-09-01", "doi": "10.1016/j.annonc.2026.05.692", "url": "https://pubmed.ncbi.nlm.nih.gov/42217582"}, "source_texts": []}}
+
+data: {"text": "ed striking CNS protection (time to intracranial progression HR 0.06; ~96% probability of preventing brain metastases at 7 years)."}
+
+data: {"text": "[[7]]", "reference": {"citation_key": 7, "reference_text": "Solomon BJ, Bauer TM, Ignatius Ou SH, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/35605188\">Post Hoc Analysis of Lorlatinib Intracranial Efficacy and Safety in Patients With ALK-Positive Advanced Non-Small-Cell Lung Cancer From the Phase III CROWN Study</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2022;40(31):3593-3602. doi:10.1200/JCO.21.02278.", "reference_detail": {"title": "Post Hoc Analysis of Lorlatinib Intracranial Efficacy and Safety in Patients With ALK-Positive Advanced Non-Small-Cell Lung Cancer From the Phase III CROWN Study", "authors_string": "Solomon BJ, Bauer TM, Ignatius Ou SH, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2022;40(31):3593-3602. doi:10.1200/JCO.21.02278.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2022-11-01", "doi": "10.1200/JCO.21.02278", "url": "https://pubmed.ncbi.nlm.nih.gov/35605188"}, "source_texts": []}}
+
+data: {"text": "\nThe CROWN Kaplan-Meier curves illustrate the magnitude of the first-line PFS and intracranial benefit of lorlatinib over crizotinib:"}
+
+data: {"text": "\n"}
+
+data: {"image": {"url": "https://storage.googleapis.com/openevidence-multimedia/nejm/cms/10.1056_nejmoa2027187/asset/fd425d3d-0648-5118-98e0-828aa4915f81/assets/images/large/NEJMoa2027187_f2.jpg", "name": "Figure 2", "caption": "Efficacy Outcomes in the Intention-to-Treat Population. Panel A shows Kaplan\u2013Meier estimates of progression-free survival, according to blinded independent central review (BICR) in the intention-to-treat population. Progression-free survival was significantly longer with lorlatinib than crizotinib; the median progression-free survival with lorlatinib was not reached. Tick marks on the survival curves indicate censoring of data. NR denotes not reached. Panel B shows Kaplan\u2013Meier estimates of time to intracranial progression, as assessed by BICR, in the intention-to-treat population. Time to intracranial progression was defined as the time from randomization to the first objective progression of central nervous system (CNS) disease (either new brain metastases or progression of existing brain metastases). Panel C shows the cumulative incidence of CNS progression as the first event, as assessed by BICR in the intention-to-treat population. Cumulative-incidence probabilities were calculated with the use of a competing-risks approach, with values adjusted for the competing risks of non-CNS progression and death (Fig. S3 in the Supplementary Appendix). Panel D shows Kaplan\u2013Meier curves of overall survival."}}
+
+data: {"text": "[[4]]", "reference": {"citation_key": 4, "reference_text": "Shaw AT, Bauer TM, de Marinis F, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2027187?utm_source=openevidence&utm_medium=referral\">First-Line Lorlatinib or Crizotinib in Advanced ALK-Positive Lung Cancer</a>. The New England Journal of Medicine. 2020;383(21):2018-2029. doi:10.1056/NEJMoa2027187.", "reference_detail": {"title": "First-Line Lorlatinib or Crizotinib in Advanced ALK-Positive Lung Cancer", "authors_string": "Shaw AT, Bauer TM, de Marinis F, et al.", "publication_info_string": "The New England Journal of Medicine. 2020;383(21):2018-2029. doi:10.1056/NEJMoa2027187.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2020-11-19", "doi": "10.1056/NEJMoa2027187", "url": "https://doi.org/10.1056/nejmoa2027187?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": "\nThe"}
+
+data: {"text": " NCCN first-line ALK algorithm is shown here:"}
+
+data: {"text": "\n"}
+
+data: {"image": {"url": "https://storage.googleapis.com/nccn_images/nscl/versions/9.2026/page_53.jpg", "name": "NSCL-27", "caption": "Non-Small Cell Lung Cancer: First-Line Therapy for ALK Gene Fusion \u2014 NCCN Guidelines\u00ae \u2014 Non-Small Cell Lung Cancer p. 54 (v9.2026)"}}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=54"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "Advanced ALK+ NSCLC \u2014 subsequent therapy"}
+
+data: {"text": "\nNCCN directs subsequent therapy based on the prior TKI and pattern of progression. After progression on crizotinib, options include "}
+
+data: {"text": "alectinib, brigatinib, ceritinib, ensartinib, or lorlatinib"}
+
+data: {"text": ", often with local therapy (SABR/SRS) for oligo- or C"}
+
+data: {"text": "NS progression."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=56"}, "source_texts": []}}
+
+data: {"text": " After progression on a second-/third-generation TKI, "}
+
+data: {"text": "lorlatinib"}
+
+data: {"text": " is favored (noted as an option for resistance mutations such as G1202R and L1196M, except the compound L1196M/G1202R), followed by platinum/pemetrexed-based chemotherapy."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=55"}, "source_texts": []}}
+
+data: {"text": " ASCO simil"}
+
+data: {"text": "arly recommends alectinib, brigatinib, lorlatinib, or ceritinib post-crizotinib (moderate; strong), and lorlatinib after prior second-generation TKIs (weak; strong), emphasizing repeat plasma/tissue NGS at progression to identify actionable resistance mutations."}
+
+data: {"text": "[[2]]", "reference": {"citation_key": 2, "reference_text": "Reuss JE, Ismaila N, Ahluwalia A, et al. <a target=\"_blank\" href=\"https://doi.org/10.1200/jco-26-00843\">Therapy for Stage IV Non-Small Cell Lung Cancer With Driver Alterations: ASCO Living Guideline, 2026.3.1</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "reference_detail": {"title": "Therapy for Stage IV NSCLC with Driver Alterations", "authors_string": "Reuss JE, Ismaila N, Ahluwalia A, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2026;44(18):e89-e100. doi:10.1200/JCO-26-00843.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2026-06-20", "doi": "10.1200/JCO-26-00843", "url": "https://doi.org/10.1200/jco-26-00843"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "Resected ALK+ NSCLC \u2014 adjuvant therapy"}
+
+data: {"text": "\nNCCN lists "}
+
+data: {"text": "adjuvant alectinib ("}
+
+data: {"text": "category 1) for resected ALK+ tumors \u22654 cm or node-positive, stages IB\u2013IIIA/IIIB."}
+
+data: {"text": "[[1]]", "reference": {"citation_key": 1, "reference_text": "National Comprehensive Cancer Network. Non-Small Cell Lung Cancer.", "reference_detail": {"title": "Non-Small Cell Lung Cancer", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-09-22", "publication_date": "2026-09-22", "url": "https://www.nccn.org/professionals/physician_gls/pdf/nscl.pdf#page=94"}, "source_texts": []}}
+
+data: {"text": " This is based on the phase 3 "}
+
+data: {"text": "ALINA trial"}
+
+data: {"text": ", in which 2 years of adjuvant alectinib improved disease-free survival versus platinum-based chemotherapy (ITT HR 0.24; 4-year DFS"}
+
+data: {"text": " 75.5% vs 47.0%) and reduced CNS relapse."}
+
+data: {"text": "[[8]]", "reference": {"citation_key": 8, "reference_text": "Remon J, Cascone T, Saw SPL, et al. <a target=\"_blank\" href=\"https://pubmed.ncbi.nlm.nih.gov/42702210\">Early-Stage Non-Small-Cell Lung Cancer: Emerging Treatments and Evolving Challenges</a>. The Lancet. Respiratory Medicine. 2026;:S2213-2600(26)00221-3. doi:10.1016/S2213-2600(26)00221-3.", "reference_detail": {"title": "Early-Stage Non-Small-Cell Lung Cancer: Emerging Treatments and Evolving Challenges", "authors_string": "Remon J, Cascone T, Saw SPL, et al.", "publication_info_string": "The Lancet. Respiratory Medicine. 2026;:S2213-2600(26)00221-3. doi:10.1016/S2213-2600(26)00221-3.", "journal_name": "The Lancet. Respiratory Medicine", "journal_short_name": "Lancet Respir Med", "publication_date": "2026-09-06", "doi": "10.1016/S2213-2600(26)00221-3", "url": "https://pubmed.ncbi.nlm.nih.gov/42702210"}, "source_texts": []}}
+
+data: {"text": "[[9]]", "reference": {"citation_key": 9, "reference_text": "Wu YL, Dziadziuszko R, Ahn JS, et al. <a target=\"_blank\" href=\"https://doi.org/10.1056/nejmoa2310532?utm_source=openevidence&utm_medium=referral\">Alectinib in Resected ALK-Positive Non-Small-Cell Lung Cancer</a>. The New England Journal of Medicine. 2024;390(14):1265-1276. doi:10.1056/NEJMoa2310532.", "reference_detail": {"title": "Alectinib in Resected ALK-Positive Non\u2013Small-Cell Lung Cancer", "authors_string": "Wu YL, Dziadziuszko R, Ahn JS, et al.", "publication_info_string": "The New England Journal of Medicine. 2024;390(14):1265-1276. doi:10.1056/NEJMoa2310532.", "journal_name": "The New England Journal of Medicine", "journal_short_name": "N Engl J Med", "publication_date": "2024-04-11", "doi": "10.1056/NEJMoa2310532", "url": "https://doi.org/10.1056/nejmoa2310532?utm_source=openevidence&utm_medium=referral"}, "source_texts": []}}
+
+data: {"text": " Alectinib is FDA-approved in this setting."}
+
+data: {"text": "[[10]]", "reference": {"citation_key": 10, "reference_text": "Food and Drug Administration. <a target=\"_blank\" href=\"https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=42c49deb-713b-427a-9670-08af08adcffb\">ALECENSA</a>. 2026.", "reference_detail": {"title": "ALECENSA", "authors_string": "Food and Drug Administration", "publication_info_string": "Updated date: 2026-08-21", "publication_date": "2026-08-21", "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=42c49deb-713b-427a-9670-08af08adcffb"}, "source_texts": []}}
+
+data: {"text": " The American College of Chest Physicians (2025) also endorses offering adjuvant alectinib to high-risk resected ALK+ patients, while advising that chemotherapy still be discussed given immature long-term/OS data."}
+
+data: {"text": "[[11]]", "reference": {"citation_key": 11, "reference_text": "Howington J, Souter LH, Arenberg D, et al. <a target=\"_blank\" href=\"https://linkinghub.elsevier.com/retrieve/pii/S0012-3692(25)00737-8\">Management of Patients With Early-Stage Non-Small Cell Lung Cancer: An American College of Chest Physicians Clinical Practice Guideline</a>. Chest. 2025;168(3):810-827. doi:10.1016/j.chest.2025.06.023.", "reference_detail": {"title": "Management of Patients With Early-Stage Non-Small Cell Lung Cancer: An American College of Chest Physicians Clinical Practice Guideline", "authors_string": "Howington J, Souter LH, Arenberg D, et al.", "publication_info_string": "Chest. 2025;168(3):810-827. doi:10.1016/j.chest.2025.06.023.", "journal_name": "Chest", "journal_short_name": "Chest", "publication_date": "2025-09-01", "doi": "10.1016/j.chest.2025.06.023", "url": "https://linkinghub.elsevier.com/retrieve/pii/S0012-3692(25)00737-8"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "ALK+"}
+
+data: {"text": " anaplastic large cell lymphoma (ALCL)"}
+
+data: {"text": "\nThe NCCN T-Cell Lymphomas guideline (v2.2026) lists "}
+
+data: {"text": "ALK inhibitors (alectinib, brigatinib, ceritinib, crizotinib, lorlatinib) \u2014 for ALK-positive ALCL only"}
+
+data: {"text": " \u2014 as \"other recommended\" single agents in both initial palliative-intent therapy and second-line/subsequent therapy (with or without transplant intent); brentuxim"}
+
+data: {"text": "ab vedotin remains the preferred non-trial option."}
+
+data: {"text": "[[12]]", "reference": {"citation_key": 12, "reference_text": "National Comprehensive Cancer Network. T-Cell Lymphomas.", "reference_detail": {"title": "T-Cell Lymphomas", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-02-13", "publication_date": "2026-02-13", "url": "https://www.nccn.org/professionals/physician_gls/pdf/t-cell.pdf#page=21"}, "source_texts": []}}
+
+data: {"text": " NCCN notes the second- and third-generation agents have activity in patients with CNS involvement."}
+
+data: {"text": "[[12]]", "reference": {"citation_key": 12, "reference_text": "National Comprehensive Cancer Network. T-Cell Lymphomas.", "reference_detail": {"title": "T-Cell Lymphomas", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-02-13", "publication_date": "2026-02-13", "url": "https://www.nccn.org/professionals/physician_gls/pdf/t-cell.pdf#page=22"}, "source_texts": []}}
+
+data: {"text": " Crizotinib is FDA-approved for relapsed/refractory ALK+ ALCL in pediatric and young adult patients, based on ORRs of ~84\u201390%"}
+
+data: {"text": "."}
+
+data: {"text": "[[13]]", "reference": {"citation_key": 13, "reference_text": "Chang EWY, Tan YH, Chan JY. <a target=\"_blank\" href=\"https://doi.org/10.1186/s13045-024-01560-7\">Novel Clinical Risk Stratification and Treatment Strategies in Relapsed/Refractory Peripheral T-Cell Lymphoma</a>. Journal of Hematology & Oncology. 2024;17(1):38. doi:10.1186/s13045-024-01560-7.", "reference_detail": {"title": "Novel clinical risk stratification and treatment strategies in relapsed/refractory peripheral T-cell lymphoma", "authors_string": "Chang EWY, Tan YH, Chan JY.", "publication_info_string": "Journal of Hematology & Oncology. 2024;17(1):38. doi:10.1186/s13045-024-01560-7.", "journal_name": "Journal of Hematology & Oncology", "journal_short_name": "J Hematol Oncol", "publication_date": "2024-06-01", "doi": "10.1186/s13045-024-01560-7", "url": "https://doi.org/10.1186/s13045-024-01560-7"}, "source_texts": []}}
+
+data: {"text": "[[14]]", "reference": {"citation_key": 14, "reference_text": "Shreenivas A, Janku F, Gouda MA, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41698-023-00449-x\">ALK Fusions in the Pan-Cancer Setting: Another Tumor-Agnostic Target?</a>. NPJ Precision Oncology. 2023;7(1):101. doi:10.1038/s41698-023-00449-x.", "reference_detail": {"title": "ALK fusions in the pan-cancer setting: another tumor-agnostic target?", "authors_string": "Shreenivas A, Janku F, Gouda MA, et al.", "publication_info_string": "NPJ Precision Oncology. 2023;7(1):101. doi:10.1038/s41698-023-00449-x.", "journal_name": "NPJ Precision Oncology", "journal_short_name": "NPJ Precis Oncol", "publication_date": "2023-09-29", "doi": "10.1038/s41698-023-00449-x", "url": "https://doi.org/10.1038/s41698-023-00449-x"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "ALK-translocated inflammatory myofibroblastic tumor (IMT)"}
+
+data: {"text": "\nThe NCCN Soft Tissue Sarcoma guideline (v5.2026) lists "}
+
+data: {"text": "alectinib, brigatinib, ceritinib, crizotinib, and lorlatinib as preferred agents"}
+
+data: {"text": " for IMT with ALK translocation."}
+
+data: {"text": "[[15]]", "reference": {"citation_key": 15, "reference_text": "National Comprehensive Cancer Network. Soft Tissue Sarcoma.", "reference_detail": {"title": "Soft Tissue Sarcoma", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-07-23", "publication_date": "2026-07-23", "url": "https://www.nccn.org/professionals/physician_gls/pdf/sarcoma.pdf#page=63"}, "source_texts": []}}
+
+data: {"text": " Crizotinib carries FDA approval for ALK-positive IMT, and response rates of ~85% have been reported."}
+
+data: {"text": "[[14]]", "reference": {"citation_key": 14, "reference_text": "Shreenivas A, Janku F, Gouda MA, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41698-023-00449-x\">ALK Fusions in the Pan-Cancer Setting: Another Tumor-Agnostic Target?</a>. NPJ Precision Oncology. 2023;7(1):101. doi:10.1038/s41698-023-00449-x.", "reference_detail": {"title": "ALK fusions in the pan-cancer setting: another tumor-agnostic target?", "authors_string": "Shreenivas A, Janku F, Gouda MA, et al.", "publication_info_string": "NPJ Precision Oncology. 2023;7(1):101. doi:10.1038/s41698-023-00449-x.", "journal_name": "NPJ Precision Oncology", "journal_short_name": "NPJ Precis Oncol", "publication_date": "2023-09-29", "doi": "10.1038/s41698-023-00449-x", "url": "https://doi.org/10.1038/s41698-023-00449-x"}, "source_texts": []}}
+
+data: {"text": "[[16]]", "reference": {"citation_key": 16, "reference_text": "Goldsmith KC, Park JR, Kayser K, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41591-023-02297-5\">Lorlatinib With or Without Chemotherapy in ALK-driven Refractory/Relapsed Neuroblastoma: Phase 1 Trial Results</a>. Nature Medicine. 2023;29(5):1092-1102. doi:10.1038/s41591-023-02297-5.", "reference_detail": {"title": "Lorlatinib with or without chemotherapy in ALK-driven refractory/relapsed neuroblastoma: phase 1 trial results", "authors_string": "Goldsmith KC, Park JR, Kayser K, et al.", "publication_info_string": "Nature Medicine. 2023;29(5):1092-1102. doi:10.1038/s41591-023-02297-5.", "journal_name": "Nature Medicine", "journal_short_name": "Nat Med", "publication_date": "2023-05-01", "doi": "10.1038/s41591-023-02297-5", "url": "https://doi.org/10.1038/s41591-023-02297-5"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "ALK-aberrant neuroblastoma"}
+
+data: {"text": "\nNeuroblastoma is"}
+
+data: {"text": " driven by ALK point mutations/amplifications (not fusions), so responses to ALK TKIs are lower (~10\u201320%) and mutation-dependent \u2014 crizotinib is active against R1275Q but not the common F1174L/F1245C mutants."}
+
+data: {"text": "[[14]]", "reference": {"citation_key": 14, "reference_text": "Shreenivas A, Janku F, Gouda MA, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41698-023-00449-x\">ALK Fusions in the Pan-Cancer Setting: Another Tumor-Agnostic Target?</a>. NPJ Precision Oncology. 2023;7(1):101. doi:10.1038/s41698-023-00449-x.", "reference_detail": {"title": "ALK fusions in the pan-cancer setting: another tumor-agnostic target?", "authors_string": "Shreenivas A, Janku F, Gouda MA, et al.", "publication_info_string": "NPJ Precision Oncology. 2023;7(1):101. doi:10.1038/s41698-023-00449-x.", "journal_name": "NPJ Precision Oncology", "journal_short_name": "NPJ Precis Oncol", "publication_date": "2023-09-29", "doi": "10.1038/s41698-023-00449-x", "url": "https://doi.org/10.1038/s41698-023-00449-x"}, "source_texts": []}}
+
+data: {"text": "[[16]]", "reference": {"citation_key": 16, "reference_text": "Goldsmith KC, Park JR, Kayser K, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41591-023-02297-5\">Lorlatinib With or Without Chemotherapy in ALK-driven Refractory/Relapsed Neuroblastoma: Phase 1 Trial Results</a>. Nature Medicine. 2023;29(5):1092-1102. doi:10.1038/s41591-023-02297-5.", "reference_detail": {"title": "Lorlatinib with or without chemotherapy in ALK-driven refractory/relapsed neuroblastoma: phase 1 trial results", "authors_string": "Goldsmith KC, Park JR, Kayser K, et al.", "publication_info_string": "Nature Medicine. 2023;29(5):1092-1102. doi:10.1038/s41591-023-02297-5.", "journal_name": "Nature Medicine", "journal_short_name": "Nat Med", "publication_date": "2023-05-01", "doi": "10.1038/s41591-023-02297-5", "url": "https://doi.org/10.1038/s41591-023-02297-5"}, "source_texts": []}}
+
+data: {"text": "[[17]]", "reference": {"citation_key": 17, "reference_text": "Qiu B, Matthay KK. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41571-022-00643-z\">Advancing Therapy for Neuroblastoma</a>. Nature Reviews. Clinical Oncology. 2022;19(8):515-533. doi:10.1038/s41571-022-00643-z.", "reference_detail": {"title": "Advancing therapy for neuroblastoma", "authors_string": "Qiu B, Matthay KK.", "publication_info_string": "Nature Reviews. Clinical Oncology. 2022;19(8):515-533. doi:10.1038/s41571-022-00643-z.", "journal_name": "Nature Reviews. Clinical Oncology", "journal_short_name": "Nat Rev Clin Oncol", "publication_date": "2022-08-01", "doi": "10.1038/s41571-022-00643-z", "url": "https://doi.org/10.1038/s41571-022-00643-z"}, "source_texts": []}}
+
+data: {"text": " The NCCN"}
+
+data: {"text": " Neuroblastoma guideline (v2026) recommends NGS testing for ALK and notes ALK inhibitors have activity in relapsed/refractory ALK-altered disease, but states that early addition of an ALK inhibitor during induction should be done within clinical trials."}
+
+data: {"text": "[[18]]", "reference": {"citation_key": 18, "reference_text": "National Comprehensive Cancer Network. Neuroblastoma.", "reference_detail": {"title": "Neuroblastoma", "authors_string": "National Comprehensive Cancer Network", "publication_info_string": "Updated 2026-04-28", "publication_date": "2026-04-28", "url": "https://www.nccn.org/professionals/physician_gls/pdf/neuroblastoma.pdf#page=31"}, "source_texts": []}}
+
+data: {"text": " The third-generation inhibitor "}
+
+data: {"text": "lorlatinib"}
+
+data: {"text": " is being incor"}
+
+data: {"text": "porated frontline for ALK-altered high-risk disease in the COG ANBL1531 (NCT03126916) and SIOPEN HR-NBL2 programs, and showed activity in a phase 1 relapsed/refractory trial."}
+
+data: {"text": "[[16]]", "reference": {"citation_key": 16, "reference_text": "Goldsmith KC, Park JR, Kayser K, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41591-023-02297-5\">Lorlatinib With or Without Chemotherapy in ALK-driven Refractory/Relapsed Neuroblastoma: Phase 1 Trial Results</a>. Nature Medicine. 2023;29(5):1092-1102. doi:10.1038/s41591-023-02297-5.", "reference_detail": {"title": "Lorlatinib with or without chemotherapy in ALK-driven refractory/relapsed neuroblastoma: phase 1 trial results", "authors_string": "Goldsmith KC, Park JR, Kayser K, et al.", "publication_info_string": "Nature Medicine. 2023;29(5):1092-1102. doi:10.1038/s41591-023-02297-5.", "journal_name": "Nature Medicine", "journal_short_name": "Nat Med", "publication_date": "2023-05-01", "doi": "10.1038/s41591-023-02297-5", "url": "https://doi.org/10.1038/s41591-023-02297-5"}, "source_texts": []}}
+
+data: {"text": "[[19]]", "reference": {"citation_key": 19, "reference_text": "Xu S, Foster J, Wahba A. <a target=\"_blank\" href=\"https://doi.org/10.1007/s40272-025-00731-4\">Established and Emerging Therapies for High-Risk Neuroblastoma</a>. Paediatric Drugs. 2026;28(2):159-175. doi:10.1007/s40272-025-00731-4.", "reference_detail": {"title": "Established and Emerging Therapies for High-Risk Neuroblastoma", "authors_string": "Xu S, Foster J, Wahba A.", "publication_info_string": "Paediatric Drugs. 2026;28(2):159-175. doi:10.1007/s40272-025-00731-4.", "journal_name": "Paediatric Drugs", "journal_short_name": "Paediatr Drugs", "publication_date": "2026-03-01", "doi": "10.1007/s40272-025-00731-4", "url": "https://doi.org/10.1007/s40272-025-00731-4"}, "source_texts": []}}
+
+data: {"text": "[[20]]", "reference": {"citation_key": 20, "reference_text": "Bellini A, P\u00f6tschger U, Bernard V, et al. <a target=\"_blank\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8791815/\">Frequency and Prognostic Impact of ALK Amplifications and Mutations in the European Neuroblastoma Study Group (SIOPEN) High-Risk Neuroblastoma Trial (HR-NBL1)</a>. Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2021;39(30):3377-3390. doi:10.1200/JCO.21.00086.", "reference_detail": {"title": "Frequency and Prognostic Impact of ALK Amplifications and Mutations in the European Neuroblastoma Study Group (SIOPEN) High-Risk Neuroblastoma Trial (HR-NBL1)", "authors_string": "Bellini A, P\u00f6tschger U, Bernard V, et al.", "publication_info_string": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology. 2021;39(30):3377-3390. doi:10.1200/JCO.21.00086.", "journal_name": "Journal of Clinical Oncology : Official Journal of the American Society of Clinical Oncology", "journal_short_name": "J Clin Oncol", "publication_date": "2021-10-20", "doi": "10.1200/JCO.21.00086", "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8791815/"}, "source_texts": []}}
+
+data: {"text": "\n"}
+
+data: {"text": "ALK as a broader/tissue-agnostic target"}
+
+data: {"text": "\nALK fusions appear in >50% of IMTs and ALCLs but only ~0.2% of other ("}
+
+data: {"text": "non-NSCLC) cancers; case reports document ALK inhibitor activity in histiocytosis, ALK+ large B-cell lymphoma, and various solid tumors bearing ALK rearrangements, and the NCI-MATCH subprotocol F tested crizotinib in rare ALK-rearranged tumors (ORR 50% among"}
+
+data: {"text": " 5 patients)."}
+
+data: {"text": "[[14]]", "reference": {"citation_key": 14, "reference_text": "Shreenivas A, Janku F, Gouda MA, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41698-023-00449-x\">ALK Fusions in the Pan-Cancer Setting: Another Tumor-Agnostic Target?</a>. NPJ Precision Oncology. 2023;7(1):101. doi:10.1038/s41698-023-00449-x.", "reference_detail": {"title": "ALK fusions in the pan-cancer setting: another tumor-agnostic target?", "authors_string": "Shreenivas A, Janku F, Gouda MA, et al.", "publication_info_string": "NPJ Precision Oncology. 2023;7(1):101. doi:10.1038/s41698-023-00449-x.", "journal_name": "NPJ Precision Oncology", "journal_short_name": "NPJ Precis Oncol", "publication_date": "2023-09-29", "doi": "10.1038/s41698-023-00449-x", "url": "https://doi.org/10.1038/s41698-023-00449-x"}, "source_texts": []}}
+
+data: {"text": "[[21]]", "reference": {"citation_key": 21, "reference_text": "Kim J, Kim HS, Nam M, Chae YK. <a target=\"_blank\" href=\"https://doi.org/10.1007/s10555-025-10274-2\">Tissue-Agnostic Biomarkers in Solid Tumors: Current Approvals and Emerging Candidates</a>. Cancer Metastasis Reviews. 2025;44(3):58. doi:10.1007/s10555-025-10274-2.", "reference_detail": {"title": "Tissue-agnostic biomarkers in solid tumors: current approvals and emerging candidates", "authors_string": "Kim J, Kim HS, Nam M, Chae YK.", "publication_info_string": "Cancer Metastasis Reviews. 2025;44(3):58. doi:10.1007/s10555-025-10274-2.", "journal_name": "Cancer Metastasis Reviews", "journal_short_name": "Cancer Metastasis Rev", "publication_date": "2025-06-27", "doi": "10.1007/s10555-025-10274-2", "url": "https://doi.org/10.1007/s10555-025-10274-2"}, "source_texts": []}}
+
+data: {"text": "[[22]]", "reference": {"citation_key": 22, "reference_text": "Voena C, Ambrogio C, Iannelli F, Chiarle R. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41568-025-00797-9\">ALK in Cancer: From Function to Therapeutic Targeting</a>. Nature Reviews. Cancer. 2025;25(5):359-378. doi:10.1038/s41568-025-00797-9.", "reference_detail": {"title": "ALK in cancer: from function to therapeutic targeting", "authors_string": "Voena C, Ambrogio C, Iannelli F, Chiarle R.", "publication_info_string": "Nature Reviews. Cancer. 2025;25(5):359-378. doi:10.1038/s41568-025-00797-9.", "journal_name": "Nature Reviews. Cancer", "journal_short_name": "Nat Rev Cancer", "publication_date": "2025-05-01", "doi": "10.1038/s41568-025-00797-9", "url": "https://doi.org/10.1038/s41568-025-00797-9"}, "source_texts": []}}
+
+data: {"text": " Current data suggest tissue-agnostic activity specifically for ALK fusion/rearrangement\u2013driven tumors, less so for ALK point mutations."}
+
+data: {"text": "[[14]]", "reference": {"citation_key": 14, "reference_text": "Shreenivas A, Janku F, Gouda MA, et al. <a target=\"_blank\" href=\"https://doi.org/10.1038/s41698-023-00449-x\">ALK Fusions in the Pan-Cancer Setting: Another Tumor-Agnostic Target?</a>. NPJ Precision Oncology. 2023;7(1):101. doi:10.1038/s41698-023-00449-x.", "reference_detail": {"title": "ALK fusions in the pan-cancer setting: another tumor-agnostic target?", "authors_string": "Shreenivas A, Janku F, Gouda MA, et al.", "publication_info_string": "NPJ Precision Oncology. 2023;7(1):101. doi:10.1038/s41698-023-00449-x.", "journal_name": "NPJ Precision Oncology", "journal_short_name": "NPJ Precis Oncol", "publication_date": "2023-09-29", "doi": "10.1038/s41698-023-00449-x", "url": "https://doi.org/10.1038/s41698-023-00449-x"}, "source_texts": []}}
+
+data: {"text": "\nGiven that ALK-altered neuroblastoma management and some rare ALK-fusion tumors are driven heavily by trial enrollment, the following active trials may be relevant:"}
+
+data: {"text": "\n"}
+
+data: {"text": "REACTCOMPONENT!:!InlineGenerationStep!:!{\"steps\": [{\"call"}
+
+data: {"text": "id\": \"65010715-c85d-41f0-a2d9-5b5c9b8acf6a\", \"kind\": \"search\", \"label\": \"Matching clinical trials\", \"id\": \"match"}
+
+data: {"text": "clinical"}
+
+data: {"text": "trials\", \"active\": true, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 26, \"metadata\": {}}], \"done\": false, \"summary\": \"Matching clinical trials\"}"}
+
+data: {"text": "REACTCOMPONENT!:!InlineGenerationStep!:!{\"steps\": [{\"call"}
+
+data: {"text": "id\": \"65010715-c85d-41f0-a2d9-5b5c9b8acf6a\", \"kind\": \"search\", \"label\": \"Matched clinical trials\", \"id\": \"match"}
+
+data: {"text": "clinical"}
+
+data: {"text": "trials\", \"active\": false, \"children\": [], \"paragraph"}
+
+data: {"text": "index\": 26, \"metadata\": {}}], \"done\": true, \"summary\": \"Matched clinical trials\"}"}
+
+data: {"text": "\n"}
+
+data: {"text": "\n\n"}
+
+data: {"text": "\n\n"}
+
+data: {"text": "The search returned 16 available trials. Among the top trials in the search results above, several directly target ALK alterations: "}
+
+data: {"text": "repotrectinib"}
+
+data: {"text": " (a next-generation ALK/ROS1/NTRK inhibitor) is being studied in pediatric/young adult ALK-altered solid tumors ([NCT04094610](/clinical-trials/NCT04094610)) and adult ALK/ROS1/NTRK-rearranged solid tumors ([NCT03093116](/clinical-trials/NCT03093116)), as well as in combination with irinotecan/temozolomide chemotherapy in children ([NCT05004116](/clinical-trials/NCT05004116)). The "}
+
+data: {"text": "TalaCom tr"}
+
+data: {"text": "ial ([NCT04693468](/clinical-trials/NCT04693468)) includes crizotinib among its targeted-therapy arms for advanced/metastatic solid tumors, and a pediatric master protocol ([NCT05999994](/clinical-trials/NCT05999994)) covers multiple molecularly defined subsets."}
+
+data: {"text": "\n"}
+
+data: {"text": "\n\n"}
+
+data: {"text": "Would you like to explore resistance mechanisms to lorlatinib and the emerging fourth-generation ALK inhibitors?"}
+
+data: [DONE]
+
