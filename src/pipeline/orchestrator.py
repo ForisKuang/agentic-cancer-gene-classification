@@ -561,6 +561,7 @@ async def run_pipeline(
     mode: AnnotationMode = "full",
     on_annotation: Optional[AnnotationProgressCallback] = None,
     on_total_known: Optional[AnnotationTotalCallback] = None,
+    strict_gene_lookup: bool = False,
 ) -> AnnotationResult:
     """
     Main entry point: accepts a list of gene/fusion strings (or FusionInput objects) and returns
@@ -597,7 +598,10 @@ async def run_pipeline(
             "acgc.skip_literature_for_oncokb": skip_literature_for_oncokb,
         },
     ) as span:
-        gene_map = await normalize_fusions(input_strings)
+        if strict_gene_lookup:
+            gene_map = await normalize_fusions(input_strings, strict_gene_lookup=True)
+        else:
+            gene_map = await normalize_fusions(input_strings)
         span.set_tag("acgc.genes.count", len(gene_map))
     timings["normalization"] = _elapsed_ms(normalization_start)
     increment("genes.queried", value=len(gene_map), tags=metric_tags)
@@ -628,15 +632,17 @@ async def run_pipeline(
         gene_start = perf_counter()
         associated_fusions = [value for value in gene_inputs if is_fusion_input(value)]
         tumor_type = gene_tumor_type.get(canonical)
-        annotation = await _maybe_reuse_cached_annotation(
-            gene=canonical,
-            fusions=associated_fusions,
-            tumor_type=tumor_type,
-            now=started_at,
-            run_store=run_store,
-            force_refresh=force_refresh,
-            local_mode=local_mode,
-        )
+        annotation = None
+        if not (strict_gene_lookup and resolved_gene.unresolvable):
+            annotation = await _maybe_reuse_cached_annotation(
+                gene=canonical,
+                fusions=associated_fusions,
+                tumor_type=tumor_type,
+                now=started_at,
+                run_store=run_store,
+                force_refresh=force_refresh,
+                local_mode=local_mode,
+            )
         # Time spent waiting for a gene_semaphore slot (i.e. for other genes in
         # this batch) is reported separately as gene.queue_wait_ms and excluded
         # from gene.total_duration_ms, so the latter measures only this gene's

@@ -590,6 +590,128 @@ def test_ensembl_batch_rejection_is_a_lookup_failure_not_absence():
     assert all(gene.unresolvable and gene.lookup_failed for gene in resolved.values())
 
 
+@pytest.fixture
+def hgnc_transport(client, real_pipeline, monkeypatch):
+    """Exercise real HGNC resolution with deterministic HTTP and cache edges."""
+    state = {"mode": "timeout", "requests": 0, "cache": {}}
+
+    class HGNCClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            pass
+
+        async def get(self, url, **_kwargs):
+            symbol = url.rsplit("/", 1)[-1]
+            state["requests"] += 1
+            request = httpx.Request("GET", url)
+            if symbol == "ALK":
+                return httpx.Response(200, request=request, json={"response": {"docs": [{"symbol": "ALK"}]}})
+            mode = state["mode"]
+            if mode == "timeout":
+                raise httpx.ReadTimeout("HGNC timeout", request=request)
+            if mode == "connect":
+                raise httpx.ConnectError("HGNC connection failed", request=request)
+            if isinstance(mode, int):
+                return httpx.Response(mode, request=request, json={"error": "unavailable"})
+            return httpx.Response(200, request=request, json={"response": {"docs": []}})
+
+    async def cached_call(key, compute):
+        if key not in state["cache"]:
+            state["cache"][key] = await compute()
+        return state["cache"][key]
+
+    async def resolve_hgnc(symbols, transport):
+        return {symbol: await normalization.resolve_gene(symbol, transport) for symbol in symbols}
+
+    monkeypatch.setattr(normalization.httpx, "AsyncClient", HGNCClient)
+    monkeypatch.setattr(normalization, "cached_call", cached_call)
+    monkeypatch.setattr(normalization, "_resolve_hgnc_symbols_concurrently", resolve_hgnc)
+    return state, real_pipeline
+
+
+@pytest.mark.parametrize("mode", ["timeout", "connect", 503, 500, 429])
+def test_get_hgnc_failure_retries_and_does_not_reuse_cached_classification(hgnc_transport, client, mode):
+    state, pipeline = hgnc_transport
+    state["mode"] = mode
+    pipeline["store"].gene_cache[("TP53", "")] = _rich_annotation("TP53")
+
+    response = client.get("/v1/genes/TP53")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Gene symbol lookup is temporarily unavailable; please retry."}
+    assert pipeline["store"].saved_runs
+    assert pipeline["store"].gene_cache_lookups == []
+    assert state["cache"] == {}
+
+
+@pytest.mark.parametrize("mode", ["missing", 404])
+def test_get_hgnc_confirmed_missing_returns_404(hgnc_transport, client, mode):
+    state, pipeline = hgnc_transport
+    state["mode"] = mode
+
+    response = client.get("/v1/genes/ZZNOTREAL")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Gene symbol not found."}
+    assert pipeline["store"].saved_runs
+    assert state["cache"] == {}
+
+
+@pytest.mark.parametrize("mode", ["timeout", "connect", 503, 429, "missing", 404])
+def test_batch_hgnc_failure_or_absence_is_per_gene(hgnc_transport, client, mode):
+    state, pipeline = hgnc_transport
+    state["mode"] = mode
+    symbol = "ZZNOTREAL" if mode in ("missing", 404) else "TP53"
+
+    response = client.post("/v1/genes/query", json={"genes": [symbol, "ALK"]})
+
+    assert response.status_code == 200
+    expected = (
+        "Gene symbol could not be resolved."
+        if mode in ("missing", 404)
+        else "Gene symbol lookup is temporarily unavailable; please retry."
+    )
+    assert {item["gene"]: item["error"] for item in response.json()["results"]} == {
+        symbol: expected,
+        "ALK": None,
+    }
+    assert pipeline["store"].saved_runs
+    assert all(symbol not in key for key in state["cache"])
+
+
+def test_hgnc_failure_is_not_cached_as_absence_across_requests(hgnc_transport, client):
+    state, pipeline = hgnc_transport
+    assert client.get("/v1/genes/TP53").status_code == 503
+    first_requests = state["requests"]
+    state["mode"] = "missing"
+
+    response = client.get("/v1/genes/TP53")
+
+    assert response.status_code == 404
+    assert state["requests"] > first_requests
+    assert state["cache"] == {}
+    assert pipeline["store"].gene_cache_lookups == []
+
+
+def test_gene_query_job_reports_hgnc_lookup_failure(hgnc_transport, client):
+    state, pipeline = hgnc_transport
+    state["mode"] = 503
+
+    created = client.post("/v1/genes/query/jobs", json={"genes": ["TP53", "ALK"]})
+    body = _poll(client, created.json()["status_url"])
+
+    assert body["status"] == "complete"
+    assert body["view_url"] == f"https://acgc.example.org/?run={body['run_id']}"
+    assert {item["gene"]: item["error"] for item in body["results"]} == {
+        "TP53": "Gene symbol lookup is temporarily unavailable; please retry.",
+        "ALK": None,
+    }
+    assert pipeline["store"].saved_runs
+    assert all("TP53" not in key for key in state["cache"])
+
+
 # --- jobs -----------------------------------------------------------------------
 
 
@@ -687,6 +809,21 @@ def test_annotate_gene_includes_run_id_and_view_url(client):
     assert "analysis_tumor_type" not in schemas["GeneAnnotation"]["properties"]
 
 
+def test_annotate_gene_save_failure_has_no_unsaved_run_link(client, monkeypatch):
+    monkeypatch.setattr(FakeRunStore, "fail_saves", True)
+
+    response = client.post("/v1/annotate/gene", json={"gene": "ALK"})
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Gene query failed. Please retry; contact the ACGC team if this persists."}
+    assert "run_id" not in response.text and "view_url" not in response.text
+    assert "SECRET-DB-ERROR" not in response.text
+    assert main.app.state.run_store.saved_runs == []
+    legacy = client.post("/v1/annotate", json={"fusions": ["ALK"]})
+    assert legacy.status_code == 200
+    assert legacy.json()["run_id"] == _RUN_ID
+
+
 # --- auth -----------------------------------------------------------------------
 
 
@@ -706,4 +843,3 @@ def test_gene_query_endpoints_require_auth(client, monkeypatch, pipeline_calls, 
 
     assert response.status_code == 401
     assert pipeline_calls == []
-

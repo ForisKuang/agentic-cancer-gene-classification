@@ -1224,6 +1224,7 @@ async def _launch_annotation_job(
                 mode=request.mode,
                 on_annotation=on_annotation,
                 on_total_known=on_total_known,
+                **({"strict_gene_lookup": True} if kind == "gene_query" else {}),
             )
             if require_persistence:
                 await _save_run_result(http_request, request.model_dump(), result)
@@ -1454,7 +1455,9 @@ async def annotate_gene(
         logger.exception("Gene annotation pipeline error")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-    await _persist_run_result(http_request, request.model_dump(), result)
+    from src.api.gene_query import _save_run_or_raise
+
+    await _save_run_or_raise(http_request, request.model_dump(), result)
 
     if not result.annotations:
         raise HTTPException(status_code=500, detail="No gene annotation was returned")

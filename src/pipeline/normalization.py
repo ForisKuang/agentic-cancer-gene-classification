@@ -28,6 +28,10 @@ HGNC_TIMEOUT_SECONDS = 5.0
 ENSEMBL_TIMEOUT_SECONDS = 8.0
 NORMALIZATION_CONCURRENCY = 6
 
+
+class _HGNCNotFound(Exception):
+    """A successful HGNC response with no docs; do not cache negative results."""
+
 # Separators used in fusion notation.
 FUSION_SEPARATORS = re.compile(r"[:]{2}|--|/")
 
@@ -148,7 +152,10 @@ async def resolve_gene(symbol: str, client: httpx.AsyncClient) -> ResolvedGene:
         async def _fetch_primary() -> list:
             resp = await client.get(url, headers=headers, timeout=HGNC_TIMEOUT_SECONDS)
             resp.raise_for_status()
-            return resp.json().get("response", {}).get("docs", [])
+            docs = resp.json().get("response", {}).get("docs", [])
+            if not docs:
+                raise _HGNCNotFound
+            return docs
 
         docs = await cached_call(f"hgnc:fetch:{symbol}", _fetch_primary)
         if docs:
@@ -163,6 +170,12 @@ async def resolve_gene(symbol: str, client: httpx.AsyncClient) -> ResolvedGene:
                 locus_type=doc.get("locus_type"),
                 resolved=True,
             )
+    except _HGNCNotFound:
+        pass
+    except httpx.HTTPStatusError as exc:
+        if exc.response.status_code != 404:
+            logger.warning("HGNC fetch lookup failed for %s: %s", symbol, exc)
+            lookup_failed = True
     except httpx.HTTPError as exc:
         logger.warning("HGNC fetch lookup failed for %s: %s", symbol, exc)
         lookup_failed = True
@@ -174,7 +187,10 @@ async def resolve_gene(symbol: str, client: httpx.AsyncClient) -> ResolvedGene:
         async def _fetch_search() -> list:
             resp = await client.get(search_url, headers=headers, timeout=HGNC_TIMEOUT_SECONDS)
             resp.raise_for_status()
-            return resp.json().get("response", {}).get("docs", [])
+            docs = resp.json().get("response", {}).get("docs", [])
+            if not docs:
+                raise _HGNCNotFound
+            return docs
 
         docs = await cached_call(f"hgnc:search:{symbol}", _fetch_search)
         if docs:
@@ -189,6 +205,12 @@ async def resolve_gene(symbol: str, client: httpx.AsyncClient) -> ResolvedGene:
                 locus_type=doc.get("locus_type"),
                 resolved=True,
             )
+    except _HGNCNotFound:
+        pass
+    except httpx.HTTPStatusError as exc:
+        if exc.response.status_code != 404:
+            logger.warning("HGNC search lookup failed for %s: %s", symbol, exc)
+            lookup_failed = True
     except httpx.HTTPError as exc:
         logger.warning("HGNC search lookup failed for %s: %s", symbol, exc)
         lookup_failed = True
@@ -200,6 +222,7 @@ async def resolve_gene(symbol: str, client: httpx.AsyncClient) -> ResolvedGene:
             hgnc_id=None,
             resolved=False,
             unresolvable=False,
+            lookup_failed=True,
         )
 
     # Could not resolve — treat as unknown locus (insufficient evidence)
@@ -222,6 +245,8 @@ async def _resolve_hgnc_symbols_concurrently(
 
 async def normalize_fusions(
     fusions: list[str],
+    *,
+    strict_gene_lookup: bool = False,
 ) -> Dict[str, Tuple[ResolvedGene, list[str]]]:
     """
     Given a list of gene or fusion strings, return a mapping of
@@ -245,6 +270,14 @@ async def normalize_fusions(
         resolved: Dict[str, ResolvedGene] = {}
         resolved.update(await _resolve_ensembl_ids(ensembl_symbols, client))
         resolved.update(await _resolve_hgnc_symbols_concurrently(hgnc_symbols, client))
+
+    if strict_gene_lookup:
+        # The gene query API must not classify or reuse a cached annotation
+        # when HGNC failed to establish the symbol's identity.
+        resolved = {
+            symbol: gene.model_copy(update={"unresolvable": True}) if gene.lookup_failed else gene
+            for symbol, gene in resolved.items()
+        }
 
     result: Dict[str, Tuple[ResolvedGene, list[str]]] = {}
     for symbol, rg in resolved.items():

@@ -53,6 +53,15 @@ def _app() -> "ModuleType":
     return main
 
 
+async def _save_run_or_raise(http_request: Request, request_payload: dict, result: AnnotationResult) -> None:
+    """Only return a run link after persistence succeeds; hide storage errors."""
+    try:
+        await _app()._save_run_result(http_request, request_payload, result)
+    except Exception as exc:
+        logger.exception("Gene query failed to save run %s", result.run_id)
+        raise HTTPException(status_code=500, detail=_GENERIC_FAILURE) from exc
+
+
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
@@ -337,17 +346,13 @@ async def _run_gene_query(
             force_refresh=annotate_request.force_refresh,
             skip_literature_for_oncokb=annotate_request.skip_literature_for_oncokb,
             mode=annotate_request.mode,
+            strict_gene_lookup=True,
         )
     except Exception as exc:
         logger.exception("Gene query pipeline error")
         raise HTTPException(status_code=500, detail=_GENERIC_FAILURE) from exc
 
-    try:
-        # Strict: view_url must point at a run that actually exists.
-        await app._save_run_result(http_request, annotate_request.model_dump(), result)
-    except Exception as exc:
-        logger.exception("Gene query failed to save run %s", result.run_id)
-        raise HTTPException(status_code=500, detail=_GENERIC_FAILURE) from exc
+    await _save_run_or_raise(http_request, annotate_request.model_dump(), result)
     if current_user and current_user.email:
         await record_user_annotation_activity(current_user.email, count=result.genes_annotated)
     record_user_action(
