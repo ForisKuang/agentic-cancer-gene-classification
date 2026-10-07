@@ -24,6 +24,18 @@ class CallBudgetExceeded(RuntimeError):
 _ORPHAN_TAIL_KEY = '", "kind": "'
 
 
+def _leading_widget_rest(text: str) -> str | None:
+    """Text after a complete leading widget, or None if the text doesn't start with one."""
+    leading = text.lstrip()
+    if not leading.startswith(oe._GENERATION_STEP_MARKER):
+        return None
+    try:
+        payload, end = oe._JSON_DECODER.raw_decode(leading, len(oe._GENERATION_STEP_MARKER))
+    except json.JSONDecodeError:
+        return None
+    return leading[end:] if oe._is_generation_step_payload(payload) else None
+
+
 def _is_pending_headless_tail(text: str) -> bool:
     """Whether the text after the first leading widget may be an unfinished headless tail.
 
@@ -35,15 +47,8 @@ def _is_pending_headless_tail(text: str) -> bool:
     followed by a prefix of `", "kind": "`. Anything else, e.g. "FDA" or
     "a therapy", can no longer become a tail and is prose.
     """
-    leading = text.lstrip()
-    if not leading.startswith(oe._GENERATION_STEP_MARKER):
-        return False
-    try:
-        payload, end = oe._JSON_DECODER.raw_decode(leading, len(oe._GENERATION_STEP_MARKER))
-    except json.JSONDecodeError:
-        return False
-    rest = leading[end:]
-    if not oe._is_generation_step_payload(payload) or not rest or oe._orphan_widget_tail_length(rest):
+    rest = _leading_widget_rest(text)
+    if not rest or oe._orphan_widget_tail_length(rest):
         return False
     if oe._ORPHAN_WIDGET_TAIL_START.match(rest):
         try:
@@ -99,12 +104,35 @@ class ObservedStream(httpx.AsyncByteStream):
     def __init__(self, stream, attempt):
         self.stream = stream
         self.attempt = attempt
-        # When a still-ambiguous headless-tail candidate first appeared; if it
-        # turns out to be prose, that's when the first token arrived.
+        # When a still-ambiguous headless-tail candidate first appeared, and its
+        # latest text; if the candidate itself turns out to be prose, that's
+        # when the first token arrived.
         self.pending_since = None
+        self.pending_rest = None
+
+    def _record_ttft(self, text, now):
+        state = prose_state(text)
+        if state == "none":
+            self.pending_since = self.pending_rest = None
+        elif state == "pending":
+            if self.pending_since is None:
+                self.pending_since = now
+            self.pending_rest = _leading_widget_rest(text)
+        else:
+            # Backdate only if the candidate wasn't stripped as a tail, i.e. the
+            # prose begins with it; otherwise the prose arrived in this event.
+            rest = _leading_widget_rest(text)
+            candidate_was_prose = (self.pending_since is not None and rest is not None
+                                   and not oe._orphan_widget_tail_length(rest))
+            arrived = self.pending_since if candidate_was_prose else now
+            self.attempt["ttft_seconds"] = arrived - self.attempt["start"]
 
     def _settle_pending(self):
-        if self.attempt["ttft_seconds"] is None and self.pending_since is not None:
+        # At end of stream or close, a bare callid-like fragment (e.g. "dead") is
+        # prose; text already shaped like a tail (`<hex>", "kind": "`) is an
+        # interrupted widget, so no first token was seen.
+        if (self.attempt["ttft_seconds"] is None and self.pending_since is not None
+                and not oe._ORPHAN_WIDGET_TAIL_START.match(self.pending_rest or "")):
             self.attempt["ttft_seconds"] = self.pending_since - self.attempt["start"]
 
     async def __aiter__(self):
@@ -132,14 +160,7 @@ class ObservedStream(httpx.AsyncByteStream):
                     if event.get("text") and "table" not in event:
                         text_parts.append(event["text"])
                 if events:
-                    now = perf_counter()
-                    state = prose_state("".join(text_parts))
-                    if state == "none":
-                        self.pending_since = None
-                    elif self.pending_since is None:
-                        self.pending_since = now
-                    if state == "prose":
-                        self._settle_pending()
+                    self._record_ttft("".join(text_parts), perf_counter())
             yield chunk
         self._settle_pending()
 

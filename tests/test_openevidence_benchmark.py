@@ -485,3 +485,71 @@ def test_prose_state_classifies_pending_tail_candidates():
     assert prose_state(_COMPLETE_WIDGET + 'a9ac", "kind": "search"}], "done": true, "summary": "S"}') == "none"
     assert prose_state(_COMPLETE_WIDGET + "decade-long efficacy") == "prose"
     assert prose_state(_COMPLETE_WIDGET + "FDA") == "prose"
+
+
+_HEADLESS_TAIL = 'a9ac", "kind": "search"}], "done": true, "summary": "Searched"}'
+
+
+@pytest.mark.parametrize("prose", ["Real prose.", "de"])
+async def test_observed_stream_ttft_not_backdated_when_candidate_was_a_tail(monkeypatch, prose):
+    events = [_sse(_COMPLETE_WIDGET), _sse(_HEADLESS_TAIL[:2]), _sse(_HEADLESS_TAIL[2:] + prose)]
+    assert await _ttft_with_clock(monkeypatch, events) == 3.0
+
+
+@pytest.mark.parametrize("exhaust", [True, False])
+async def test_observed_stream_ttft_unset_for_interrupted_tail(monkeypatch, exhaust):
+    events = [_sse(_COMPLETE_WIDGET), _sse('a9ac", "kind": "search')]
+    assert await _ttft_with_clock(monkeypatch, events, exhaust=exhaust) is None
+
+
+async def test_model_row_ttft_skips_interrupted_tail_attempt(tmp_path, monkeypatch):
+    import httpx
+    import tenacity
+    from benchmarks import openevidence_model_benchmark as models
+
+    class InterruptedStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            yield _sse(_COMPLETE_WIDGET)
+            yield _sse('a9ac", "kind": "search')
+            raise httpx.ReadError("connection reset")
+
+    calls = []
+
+    def respond(request):
+        calls.append(request)
+        if len(calls) == 1:
+            return httpx.Response(200, stream=InterruptedStream())
+        return httpx.Response(200, stream=httpx.ByteStream(
+            _sse(_COMPLETE_WIDGET) + _sse(_HEADLESS_TAIL) + _sse("FLAURA improves PFS.")))
+
+    monkeypatch.setattr(models.httpx, "AsyncHTTPTransport", lambda: httpx.MockTransport(respond))
+    monkeypatch.setattr(models.settings, "openevidence_api_key", "test-only-key")
+    monkeypatch.setattr(models.oe._post_streaming_analysis.retry, "wait", tenacity.wait_none())
+    await models.run_models(tmp_path, genes=["EGFR"], models=("osler",))
+    row = json.loads((tmp_path / "models.json").read_text())["per_gene"]["EGFR"]["osler"]
+    assert row["status"] == "success"
+    first, second = row["attempts"]
+    assert first["ttft_seconds"] is None
+    assert second["ttft_seconds"] is not None
+    assert row["ttft_seconds"] == second["ttft_seconds"]
+
+
+@pytest.mark.parametrize("fixture", ["egfr", "alk", "tp53"])
+async def test_observed_stream_ttft_exact_for_every_two_delta_split(monkeypatch, fixture):
+    """Split the text through the first prose character into two deltas at every
+    boundary; TTFT must be the arrival time of the delta holding that character."""
+    from pathlib import Path
+    from src.pipeline import openevidence as oe
+
+    raw = (Path(__file__).parent / f"fixtures/openevidence/{fixture}_osler_raw.sse").read_text()
+    full = "".join(event["text"] for event in oe._parse_sse_events(raw) if event.get("text"))
+    first_prose = full.index(oe._strip_generation_step_widgets(full)[:40])
+    head, tail = full[:first_prose + 1], full[first_prose + 1:first_prose + 200]
+    wrong = []
+    for split in range(1, len(head)):
+        events = [_sse(head[:split]), _sse(head[split:]), _sse(tail)]
+        expected = 1.0 if split > first_prose else 2.0
+        if (ttft := await _ttft_with_clock(monkeypatch, events)) != expected:
+            wrong.append((split, ttft, expected))
+    assert len(head) > 800
+    assert wrong == []
