@@ -25,7 +25,7 @@ import httpx
 import pytest
 from tenacity import RetryError
 
-from src.config import settings
+from src.config import Settings, settings
 from src.models.schema import OpenEvidenceCitation
 from src.pipeline import cache as cache_module
 from src.pipeline import openevidence as openevidence_module
@@ -307,6 +307,22 @@ def test_build_question_fusion_gene_with_tumor_type():
 # cache key derived only from gene/tumor_type/model) — see the end-to-end
 # regression tests below for the observable consequence.
 # ---------------------------------------------------------------------------
+
+
+def test_settings_default_openevidence_model_is_osler(monkeypatch, tmp_path):
+    monkeypatch.delenv("OPENEVIDENCE_MODEL", raising=False)
+    monkeypatch.delenv("openevidence_model", raising=False)
+    monkeypatch.chdir(tmp_path)  # Ignore any developer .env overrides.
+    assert Settings().openevidence_model == "osler"
+
+
+@pytest.mark.parametrize("fusion", [None, "EML4::ALK"])
+def test_cache_key_differs_between_osler_and_darwin(monkeypatch, fusion):
+    monkeypatch.setattr(settings, "openevidence_model", "osler")
+    osler_key = _cache_key("ALK", tumor_type="NSCLC", fusion=fusion)
+    monkeypatch.setattr(settings, "openevidence_model", "darwin")
+    darwin_key = _cache_key("ALK", tumor_type="NSCLC", fusion=fusion)
+    assert osler_key != darwin_key
 
 
 def test_cache_key_differs_by_fusion_presence():

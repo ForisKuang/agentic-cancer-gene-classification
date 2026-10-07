@@ -118,7 +118,7 @@ Turning on OpenEvidence also needs these (see `.env.example`):
 | --- | --- | --- |
 | `OPENEVIDENCE_API_KEY` | _(empty)_ | Required for live calls; org-provisioned access (see https://github.com/oncokb/oe-api-exp). Cached results are served without it. |
 | `OPENEVIDENCE_BASE_URL` | `https://api.openevidence.com` | API base URL. |
-| `OPENEVIDENCE_MODEL` | `darwin` | OpenEvidence model name; also part of the cache key. |
+| `OPENEVIDENCE_MODEL` | `osler` | OpenEvidence model name; also part of the cache key. |
 | `OPENEVIDENCE_TIMEOUT_SECONDS` | `60` | Per-call timeout; a timeout is not retried and just hides the card. |
 | `OPENEVIDENCE_CACHE_TTL_SECONDS` | `604800` | Redis TTL for cached analyses (one week). |
 | `OPENEVIDENCE_SIDECAR_CONCURRENCY` | `3` | Max concurrent live OpenEvidence calls across all sidecar requests. |
