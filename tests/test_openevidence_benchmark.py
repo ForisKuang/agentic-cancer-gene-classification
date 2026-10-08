@@ -311,3 +311,245 @@ def test_trial_labels_exclude_ordinary_words_and_ambiguous_drug_names():
     assert result["groups"]["negative_controls"]["genes"] == ["AIRE"]
     assert result["groups"]["established"]["agreement"]["trials"]["micro_recall"] == 1
     assert result["groups"]["negative_controls"]["card_guideline_totals"]["darwin"] == 0
+
+
+async def _ttft_per_event(events):
+    """Replay complete SSE events one at a time; return TTFT-set flags after each."""
+    import httpx
+    from time import perf_counter
+    from benchmarks.openevidence_model_benchmark import ObservedStream
+
+    attempt = {"start": perf_counter(), "start_byte": perf_counter(),
+               "first_byte_seconds": None, "ttft_seconds": None}
+    seen = []
+
+    class EventStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            for event in events:
+                yield event
+                seen.append(attempt["ttft_seconds"] is not None)
+
+        async def aclose(self):
+            pass
+
+    async for _ in ObservedStream(EventStream(), attempt):
+        pass
+    return seen
+
+
+def _sse(text):
+    return f"data: {json.dumps({'text': text})}\n\n".encode()
+
+
+async def test_observed_stream_ttft_waits_for_prose_in_real_egfr_fixture():
+    from pathlib import Path
+
+    raw = (Path(__file__).parent / "fixtures/openevidence/egfr_osler_raw.sse").read_text()
+    blocks = [block + "\n\n" for block in raw.replace("\r\n", "\n").split("\n\n") if block.strip()]
+    first_prose = next(i for i, block in enumerate(blocks) if "Targeted therapy for EGFR" in block)
+    seen = await _ttft_per_event([block.encode() for block in blocks])
+    assert seen.index(True) == first_prose
+    assert all(seen[first_prose:])
+
+
+async def test_observed_stream_ttft_widget_split_across_events_then_prose():
+    widget = ('REACTCOMPONENT!:!InlineGenerationStep!:!{"steps": [{"kind": "reasoning", '
+              '"label": "Analyzing query"}], "done": true, "summary": "Analyzed"}')
+    split = widget.index('query"}')
+    seen = await _ttft_per_event([_sse(widget[:split]), _sse(widget[split:]), _sse("\n\n"),
+                                  _sse("Real answer.")])
+    assert seen == [False, False, False, True]
+
+
+async def test_observed_stream_ttft_complete_widget_and_prose_in_one_event():
+    seen = await _ttft_per_event([_sse(
+        'REACTCOMPONENT!:!InlineGenerationStep!:!{"steps":[],"done":true,"summary":"x"}Real answer.')])
+    assert seen == [True]
+
+
+async def test_observed_stream_ttft_ignores_citation_markers_and_whitespace():
+    seen = await _ttft_per_event([_sse("[[1]]"), _sse("  \n\n "), _sse("[[2]][[3]]"),
+                                  _sse("\t"), _sse("Prose [[4]]")])
+    assert seen == [False, False, False, False, True]
+
+
+def test_has_prose_treats_pending_headless_widget_tail_as_not_prose():
+    from benchmarks.openevidence_model_benchmark import has_prose
+
+    head = ('REACTCOMPONENT!:!InlineGenerationStep!:!{"steps": [{"kind": "reasoning"}], '
+            '"done": false, "summary": "Analyzing query"}')
+    assert not has_prose(head + "a9")
+    assert not has_prose(head + 'a9ac", "ki')
+    assert not has_prose(head + 'a9ac", "kind": "search", "label": "Searching')
+    tail = 'a9ac", "kind": "search"}], "done": true, "summary": "Searched"}'
+    assert not has_prose(head + tail + "\n")
+    assert has_prose(head + tail + "\n\nTargeted therapy")
+
+
+_COMPLETE_WIDGET = ('REACTCOMPONENT!:!InlineGenerationStep!:!{"steps": [{"kind": "reasoning"}], '
+                    '"done": false, "summary": "Analyzing query"}')
+
+
+async def test_observed_stream_ttft_partial_marker_prefix_is_not_prose():
+    rest = _COMPLETE_WIDGET[len("REACT"):]
+    assert await _ttft_per_event([_sse("REACT"), _sse(rest), _sse("Real answer.")]) == [
+        False, False, True]
+    assert await _ttft_per_event([_sse("REACTCOMPONENT!:!Inline"), _sse(rest[len("COMPONENT!:!Inline"):]),
+                                  _sse("Real answer.")]) == [False, False, True]
+
+
+async def test_observed_stream_ttft_hex_looking_prose_after_widget_counts():
+    assert await _ttft_per_event([_sse(_COMPLETE_WIDGET), _sse("FDA"), _sse("[[1]]")]) == [
+        False, True, True]
+    assert await _ttft_per_event([_sse(_COMPLETE_WIDGET), _sse("A"), _sse(" therapy")]) == [
+        False, True, True]
+
+
+async def test_observed_stream_ttft_ambiguous_callid_fragment_resolves_on_next_event():
+    assert await _ttft_per_event([_sse(_COMPLETE_WIDGET), _sse("a"), _sse(" therapy")]) == [
+        False, False, True]
+
+
+def test_has_prose_hex_prose_not_after_leading_widget():
+    from benchmarks.openevidence_model_benchmark import has_prose
+
+    assert has_prose("FDA" + _COMPLETE_WIDGET)
+    assert has_prose(_COMPLETE_WIDGET + 'a9ac", "kind": "search"}], "done": true, "summary": "S"}'
+                     + "\n\nFDA")
+    assert not has_prose("REACTCOMPONENT!:!")
+    assert has_prose("Real answer. REACT")
+
+
+async def _ttft_with_clock(monkeypatch, events, exhaust=True):
+    """Replay events with event i arriving at clock time i + 1 (start = 0); return ttft_seconds."""
+    import httpx
+    from benchmarks import openevidence_model_benchmark as model_benchmark
+
+    clock = [0.0]
+    monkeypatch.setattr(model_benchmark, "perf_counter", lambda: clock[0])
+    attempt = {"start": 0.0, "start_byte": 0.0, "first_byte_seconds": None, "ttft_seconds": None}
+
+    class EventStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            for index, event in enumerate(events):
+                clock[0] = float(index + 1)
+                yield event
+
+        async def aclose(self):
+            pass
+
+    observed = model_benchmark.ObservedStream(EventStream(), attempt)
+    if exhaust:
+        async for _ in observed:
+            pass
+    else:
+        iterator = observed.__aiter__()
+        for _ in events:
+            await iterator.__anext__()
+        clock[0] = 99.0
+        await observed.aclose()
+    return attempt["ttft_seconds"]
+
+
+async def test_observed_stream_ttft_backdates_to_when_ambiguous_prose_appeared(monkeypatch):
+    events = [_sse(_COMPLETE_WIDGET), _sse("de"), _sse("ca"), _sse("de"), _sse("-long efficacy")]
+    assert await _ttft_with_clock(monkeypatch, events) == 2.0
+    events = [_sse(_COMPLETE_WIDGET), _sse("a"), _sse(" therapy")]
+    assert await _ttft_with_clock(monkeypatch, events) == 2.0
+
+
+async def test_observed_stream_ttft_settles_pending_candidate_at_stream_end(monkeypatch):
+    events = [_sse(_COMPLETE_WIDGET), _sse("dead"), b'data: {"done": true}\n\n']
+    assert await _ttft_with_clock(monkeypatch, events) == 2.0
+    assert await _ttft_with_clock(monkeypatch, events[:2], exhaust=False) == 2.0
+
+
+async def test_observed_stream_ttft_egfr_tail_split_mid_callid_waits_for_prose(monkeypatch):
+    from pathlib import Path
+    from src.pipeline import openevidence as oe
+
+    raw = (Path(__file__).parent / "fixtures/openevidence/egfr_osler_raw.sse").read_text()
+    texts = [event["text"] for event in oe._parse_sse_events(raw) if event.get("text")]
+    tail = next(i for i, text in enumerate(texts) if text.startswith("a9ac"))
+    texts[tail:tail + 1] = ["a9", texts[tail][2:]]
+    first_prose = next(i for i, text in enumerate(texts) if "Targeted therapy for EGFR" in text)
+    assert await _ttft_with_clock(monkeypatch, [_sse(text) for text in texts]) == first_prose + 1
+
+
+def test_prose_state_classifies_pending_tail_candidates():
+    from benchmarks.openevidence_model_benchmark import prose_state
+
+    assert prose_state(_COMPLETE_WIDGET) == "none"
+    assert prose_state(_COMPLETE_WIDGET + "dead") == "pending"
+    assert prose_state(_COMPLETE_WIDGET + 'a9ac", "kind": "search') == "pending"
+    assert prose_state(_COMPLETE_WIDGET + 'a9ac", "kind": "search"}], "done": true, "summary": "S"}') == "none"
+    assert prose_state(_COMPLETE_WIDGET + "decade-long efficacy") == "prose"
+    assert prose_state(_COMPLETE_WIDGET + "FDA") == "prose"
+
+
+_HEADLESS_TAIL = 'a9ac", "kind": "search"}], "done": true, "summary": "Searched"}'
+
+
+@pytest.mark.parametrize("prose", ["Real prose.", "de"])
+async def test_observed_stream_ttft_not_backdated_when_candidate_was_a_tail(monkeypatch, prose):
+    events = [_sse(_COMPLETE_WIDGET), _sse(_HEADLESS_TAIL[:2]), _sse(_HEADLESS_TAIL[2:] + prose)]
+    assert await _ttft_with_clock(monkeypatch, events) == 3.0
+
+
+@pytest.mark.parametrize("exhaust", [True, False])
+async def test_observed_stream_ttft_unset_for_interrupted_tail(monkeypatch, exhaust):
+    events = [_sse(_COMPLETE_WIDGET), _sse('a9ac", "kind": "search')]
+    assert await _ttft_with_clock(monkeypatch, events, exhaust=exhaust) is None
+
+
+async def test_model_row_ttft_skips_interrupted_tail_attempt(tmp_path, monkeypatch):
+    import httpx
+    import tenacity
+    from benchmarks import openevidence_model_benchmark as models
+
+    class InterruptedStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            yield _sse(_COMPLETE_WIDGET)
+            yield _sse('a9ac", "kind": "search')
+            raise httpx.ReadError("connection reset")
+
+    calls = []
+
+    def respond(request):
+        calls.append(request)
+        if len(calls) == 1:
+            return httpx.Response(200, stream=InterruptedStream())
+        return httpx.Response(200, stream=httpx.ByteStream(
+            _sse(_COMPLETE_WIDGET) + _sse(_HEADLESS_TAIL) + _sse("FLAURA improves PFS.")))
+
+    monkeypatch.setattr(models.httpx, "AsyncHTTPTransport", lambda: httpx.MockTransport(respond))
+    monkeypatch.setattr(models.settings, "openevidence_api_key", "test-only-key")
+    monkeypatch.setattr(models.oe._post_streaming_analysis.retry, "wait", tenacity.wait_none())
+    await models.run_models(tmp_path, genes=["EGFR"], models=("osler",))
+    row = json.loads((tmp_path / "models.json").read_text())["per_gene"]["EGFR"]["osler"]
+    assert row["status"] == "success"
+    first, second = row["attempts"]
+    assert first["ttft_seconds"] is None
+    assert second["ttft_seconds"] is not None
+    assert row["ttft_seconds"] == second["ttft_seconds"]
+
+
+@pytest.mark.parametrize("fixture", ["egfr", "alk", "tp53"])
+async def test_observed_stream_ttft_exact_for_every_two_delta_split(monkeypatch, fixture):
+    """Split the text through the first prose character into two deltas at every
+    boundary; TTFT must be the arrival time of the delta holding that character."""
+    from pathlib import Path
+    from src.pipeline import openevidence as oe
+
+    raw = (Path(__file__).parent / f"fixtures/openevidence/{fixture}_osler_raw.sse").read_text()
+    full = "".join(event["text"] for event in oe._parse_sse_events(raw) if event.get("text"))
+    first_prose = full.index(oe._strip_generation_step_widgets(full)[:40])
+    head, tail = full[:first_prose + 1], full[first_prose + 1:first_prose + 200]
+    wrong = []
+    for split in range(1, len(head)):
+        events = [_sse(head[:split]), _sse(head[split:]), _sse(tail)]
+        expected = 1.0 if split > first_prose else 2.0
+        if (ttft := await _ttft_with_clock(monkeypatch, events)) != expected:
+            wrong.append((split, ttft, expected))
+    assert len(head) > 800
+    assert wrong == []
