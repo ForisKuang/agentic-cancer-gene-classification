@@ -44,7 +44,7 @@ class ObservedStream(httpx.AsyncByteStream):
                     if isinstance(event, dict):
                         events.append(event)
             if self.attempt["ttft_seconds"] is None and any(
-                event.get("text") and oe._strip_generation_step_prefix(event["text"]).strip()
+                event.get("text") and oe._strip_generation_step_widgets(event["text"]).strip()
                 and not event["text"].lstrip().startswith("REACTCOMPONENT!")
                 and not oe._CITATION_MARKER_PATTERN.fullmatch(event["text"].strip())
                 for event in events
