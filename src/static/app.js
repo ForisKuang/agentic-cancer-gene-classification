@@ -2416,6 +2416,11 @@ function loadOpenEvidenceCard(card, body, key, request) {
     return;
   }
   const isNew = !lifecycle;
+  // Results isn't showing (e.g. an annotation job's progress re-rendered
+  // the hidden panel while on Benchmark): start nothing. switchView cancelled
+  // the lifecycles on the way out and re-renders the cards on the way back,
+  // which starts them then; meanwhile the hidden card keeps its loading state.
+  if (isNew && state.currentView !== "annotate") return;
   if (isNew) {
     lifecycle = createOpenEvidenceLifecycle(key, request);
     openEvidenceLifecycles.set(key, lifecycle);

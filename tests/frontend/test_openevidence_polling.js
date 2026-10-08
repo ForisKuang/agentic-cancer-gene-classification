@@ -341,8 +341,8 @@ async function test_leaving_the_results_view_stops_polling_and_aborts_in_flight_
     ALK: () => PENDING,
     BRAF: () => new Promise((resolve) => gates.push(() => resolve(PENDING))),
   });
-  mountCard(sandbox, "ALK");
-  mountCard(sandbox, "BRAF");
+  const run = result("ALK", "BRAF");
+  renderRun(sandbox, run);
   await waitFor(() => callsFor("ALK").length >= 2 && callsFor("BRAF").length === 1, "polling to start");
 
   sandbox.switchView("benchmark");
@@ -351,6 +351,25 @@ async function test_leaving_the_results_view_stops_polling_and_aborts_in_flight_
   gates.forEach((open) => open()); // BRAF's answer arrives after navigation
   await sleep(sandbox.OPENEVIDENCE_POLL.maxDelayMs * 6 + 30);
   assert.strictEqual(callsFor("ALK").length + callsFor("BRAF").length, callsAtSwitch, "no polls after leaving the results view");
+
+  // An annotation job's progress tick re-renders the hidden results panel
+  // while the user is still on Benchmark: it must not restart polling.
+  renderRun(sandbox, run);
+  await sleep(sandbox.OPENEVIDENCE_POLL.maxDelayMs * 6 + 30);
+  assert.strictEqual(sandbox.state.currentView, "benchmark");
+  assert.strictEqual(
+    callsFor("ALK").length + callsFor("BRAF").length,
+    callsAtSwitch,
+    "a progress render while away from Results makes no sidecar request"
+  );
+
+  // Back on Results, the normal render path resumes the cards.
+  sandbox.switchView("annotate");
+  await waitFor(
+    () => callsFor("ALK").length + callsFor("BRAF").length >= callsAtSwitch + 3 && callsFor("BRAF").length === 2,
+    "polling to resume on returning to Results"
+  );
+  sandbox.switchView("benchmark");
 }
 
 async function test_rerendering_results_reuses_an_in_flight_request() {
