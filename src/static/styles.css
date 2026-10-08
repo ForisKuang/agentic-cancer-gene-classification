@@ -2359,3 +2359,243 @@ body.login-body {
   color: #94a3b8;
   font-size: 11px;
 }
+
+/* ---------------------------------------------------------------------------
+   API keys page (/api-keys)
+   --------------------------------------------------------------------------- */
+
+.user-menu-link {
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.user-menu-link:hover {
+  text-decoration: underline;
+}
+
+body.api-keys-body {
+  overflow: auto;
+}
+
+.api-keys-page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.api-keys-header h1 {
+  margin: 0;
+}
+
+.api-keys-back {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.api-keys-lead,
+.api-keys-signed-in {
+  margin: 8px 0 0;
+  color: var(--muted);
+  max-width: 70ch;
+}
+
+.api-keys-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px 20px;
+  min-width: 0;
+}
+
+.api-keys-card h2 {
+  margin: 0 0 12px;
+  font-size: 17px;
+}
+
+.api-keys-form {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.api-keys-alert,
+.api-keys-form-error {
+  border: 1px solid #f3b4af;
+  border-radius: 6px;
+  background: #fff4f2;
+  color: var(--danger);
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.api-keys-form-error {
+  margin: 12px 0 0;
+}
+
+.api-keys-list-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.api-keys-empty {
+  color: var(--muted);
+  margin: 0;
+}
+
+.api-keys-table-wrap {
+  overflow-x: auto;
+}
+
+.api-keys-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.api-keys-table th,
+.api-keys-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.api-keys-table th {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.api-key-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.api-key-status {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--surface-strong);
+  color: var(--muted);
+}
+
+.api-key-status.status-active {
+  background: #e7f4ec;
+  color: var(--ok);
+}
+
+.api-key-status.status-revoked {
+  background: #fef3f2;
+  color: var(--danger);
+}
+
+.api-key-status.status-expired,
+.api-key-status.status-inactive {
+  background: #fff6e0;
+  color: var(--warning);
+}
+
+.danger-link {
+  min-height: 28px;
+  padding: 2px 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.danger-link:hover {
+  background: #fef3f2;
+}
+
+.danger-action {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.api-keys-modal-actions {
+  gap: 8px;
+}
+
+.api-keys-warning {
+  border-left: 3px solid var(--warning);
+  background: #fff6e0;
+  border-radius: 0 6px 6px 0;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.api-keys-secret-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.api-keys-secret {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-strong);
+  padding: 9px 11px;
+  font-size: 13px;
+  user-select: all;
+}
+
+.api-keys-copy-status {
+  min-height: 18px;
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.api-keys-snippet {
+  margin: 0;
+  overflow-x: auto;
+  border-radius: 6px;
+  background: #152026;
+  color: #e6edf0;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .api-keys-form {
+    grid-template-columns: 1fr;
+  }
+}

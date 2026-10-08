@@ -150,8 +150,16 @@ ACGC API key instead of a browser session. (The section above is about
 - Admins (signed in via browser session) can list everyone's keys with
   `GET /v1/api-keys?all=true` and revoke any key.
 
-Create a key while signed in — e.g. from the browser devtools console on the
-ACGC page (uses your session cookie):
+**Get a key from the API keys page:** sign in, then click **API keys** under
+your name in the sidebar (or go to `/api-keys`, e.g.
+`https://acgc.oncokb.org/api-keys`). There you can create a key (name +
+expiry, default 90 days, capped at `API_KEY_MAX_EXPIRES_IN_DAYS`), copy it
+from the one-time dialog, see your keys' status and last use, and revoke them.
+Admins see every user's keys with their owners. The page also shows a ready
+`curl` example for `/v1/genes/query`.
+
+Fallback without the page — create a key from the browser devtools console on
+the ACGC page (uses your session cookie):
 
 ```js
 await (await fetch("/v1/api-keys", {
@@ -182,8 +190,8 @@ curl -s -X POST https://acgc.oncokb.org/v1/annotate \
   -d '{"fusions": ["EML4::ALK"]}'
 ```
 
-List (secrets are never returned) and revoke keys with your session, not the
-key itself:
+List (secrets are never returned) and revoke keys on the API keys page, or
+with your session (not the key itself):
 
 ```bash
 curl -s https://acgc.oncokb.org/v1/api-keys -H "Cookie: agcg_session=$ACGC_SESSION"
