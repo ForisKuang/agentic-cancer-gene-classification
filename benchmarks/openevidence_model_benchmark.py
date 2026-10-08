@@ -5,6 +5,7 @@ import asyncio
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import re
 from time import perf_counter
 from unittest.mock import patch
 
@@ -20,18 +21,129 @@ class CallBudgetExceeded(RuntimeError):
     pass
 
 
+_ORPHAN_TAIL_KEY = '", "kind": "'
+
+
+def _leading_widget_rest(text: str) -> str | None:
+    """Text after a complete leading widget, or None if the text doesn't start with one."""
+    leading = text.lstrip()
+    if not leading.startswith(oe._GENERATION_STEP_MARKER):
+        return None
+    try:
+        payload, end = oe._JSON_DECODER.raw_decode(leading, len(oe._GENERATION_STEP_MARKER))
+    except json.JSONDecodeError:
+        return None
+    return leading[end:] if oe._is_generation_step_payload(payload) else None
+
+
+def _is_pending_headless_tail(text: str) -> bool:
+    """Whether the text after the first leading widget may be an unfinished headless tail.
+
+    That is the only place OpenEvidence sends one (see
+    oe._strip_generation_step_widgets); a complete tail there is removed by the
+    strip. An incomplete one is pending while it starts with
+    oe._ORPHAN_WIDGET_TAIL_START and its JSON is still open, or while it's a
+    callid fragment cut before that key: lowercase UUID hex (as emitted)
+    followed by a prefix of `", "kind": "`. Anything else, e.g. "FDA" or
+    "a therapy", can no longer become a tail and is prose.
+    """
+    rest = _leading_widget_rest(text)
+    if not rest or oe._orphan_widget_tail_length(rest):
+        return False
+    if oe._ORPHAN_WIDGET_TAIL_START.match(rest):
+        try:
+            oe._JSON_DECODER.raw_decode(oe._ORPHAN_WIDGET_HEAD + rest)
+        except json.JSONDecodeError:
+            return True
+        return False
+    callid_suffix = re.match(r"[0-9a-f-]{1,36}", rest)
+    return bool(callid_suffix) and _ORPHAN_TAIL_KEY.startswith(rest[callid_suffix.end():])
+
+
+def _without_trailing_marker_prefix(text: str) -> str:
+    """Drop a proper prefix of the widget marker at the end (rest not yet arrived)."""
+    for length in range(min(len(text), len(oe._GENERATION_STEP_MARKER) - 1), 0, -1):
+        if text.endswith(oe._GENERATION_STEP_MARKER[:length]):
+            return text[:-length]
+    return text
+
+
+def prose_state(text: str) -> str:
+    """Classify accumulated OpenEvidence answer text: 'prose', 'pending' or 'none'.
+
+    Widgets are split across SSE events at arbitrary points, so this is
+    judged on the joined text so far, not per event. 'pending' means the only
+    non-widget text is a possible unfinished headless tail (see
+    _is_pending_headless_tail): it's prose from the moment it appeared unless
+    it later completes into a tail. Otherwise, after the shared widget strip,
+    a marker whose JSON decodes is dropped; one whose JSON is still open, or
+    a trailing partial marker, truncates the text there (rest of the widget
+    hasn't arrived). Citation markers alone are not prose.
+    """
+    if _is_pending_headless_tail(text):
+        return "pending"
+    stripped = oe._strip_generation_step_widgets(text)
+    kept, position = [], 0
+    while (start := stripped.find(oe._GENERATION_STEP_MARKER, position)) >= 0:
+        kept.append(stripped[position:start])
+        try:
+            _, position = oe._JSON_DECODER.raw_decode(
+                stripped, start + len(oe._GENERATION_STEP_MARKER))
+        except json.JSONDecodeError:
+            position = len(stripped)
+    kept.append(_without_trailing_marker_prefix(stripped[position:]))
+    return "prose" if oe._CITATION_MARKER_PATTERN.sub("", "".join(kept)).strip() else "none"
+
+
+def has_prose(text: str) -> bool:
+    """Whether accumulated OpenEvidence answer text definitely contains prose yet."""
+    return prose_state(text) == "prose"
+
+
 class ObservedStream(httpx.AsyncByteStream):
     def __init__(self, stream, attempt):
         self.stream = stream
         self.attempt = attempt
+        # When a still-ambiguous headless-tail candidate first appeared, and its
+        # latest text; if the candidate itself turns out to be prose, that's
+        # when the first token arrived.
+        self.pending_since = None
+        self.pending_rest = None
+
+    def _record_ttft(self, text, now):
+        state = prose_state(text)
+        if state == "none":
+            self.pending_since = self.pending_rest = None
+        elif state == "pending":
+            if self.pending_since is None:
+                self.pending_since = now
+            self.pending_rest = _leading_widget_rest(text)
+        else:
+            # Backdate only if the candidate wasn't stripped as a tail, i.e. the
+            # prose begins with it; otherwise the prose arrived in this event.
+            rest = _leading_widget_rest(text)
+            candidate_was_prose = (self.pending_since is not None and rest is not None
+                                   and not oe._orphan_widget_tail_length(rest))
+            arrived = self.pending_since if candidate_was_prose else now
+            self.attempt["ttft_seconds"] = arrived - self.attempt["start"]
+
+    def _settle_pending(self):
+        # At end of stream or close, a bare callid-like fragment (e.g. "dead") is
+        # prose; text already shaped like a tail (`<hex>", "kind": "`) is an
+        # interrupted widget, so no first token was seen.
+        if (self.attempt["ttft_seconds"] is None and self.pending_since is not None
+                and not oe._ORPHAN_WIDGET_TAIL_START.match(self.pending_rest or "")):
+            self.attempt["ttft_seconds"] = self.pending_since - self.attempt["start"]
 
     async def __aiter__(self):
         buffered = b""
+        text_parts = []
         async for chunk in self.stream:
             if self.attempt["first_byte_seconds"] is None:
                 self.attempt["first_byte_seconds"] = perf_counter() - self.attempt.pop("start_byte")
             buffered = (buffered + chunk).replace(b"\r\n", b"\n")
-            # Only complete SSE events count; exclude the generation-step widget.
+            # Only complete SSE events count; TTFT is the first one after which the
+            # accumulated text (widgets excluded) holds prose — see has_prose.
             complete = buffered.rsplit(b"\n\n", 1)
             events = []
             if len(complete) == 2:
@@ -43,16 +155,17 @@ class ObservedStream(httpx.AsyncByteStream):
                         continue
                     if isinstance(event, dict):
                         events.append(event)
-            if self.attempt["ttft_seconds"] is None and any(
-                event.get("text") and oe._strip_generation_step_widgets(event["text"]).strip()
-                and not event["text"].lstrip().startswith("REACTCOMPONENT!")
-                and not oe._CITATION_MARKER_PATTERN.fullmatch(event["text"].strip())
-                for event in events
-            ):
-                self.attempt["ttft_seconds"] = perf_counter() - self.attempt["start"]
+            if self.attempt["ttft_seconds"] is None:
+                for event in events:
+                    if event.get("text") and "table" not in event:
+                        text_parts.append(event["text"])
+                if events:
+                    self._record_ttft("".join(text_parts), perf_counter())
             yield chunk
+        self._settle_pending()
 
     async def aclose(self):
+        self._settle_pending()
         await self.stream.aclose()
 
 
