@@ -865,6 +865,61 @@ async def test_best_effort_redis_outage_lets_each_pod_call_once_and_warns(monkey
     await _wait_for_background_lookups()
 
 
+@pytest.mark.parametrize("outcome", ["failed", "ready"])
+async def test_redis_outage_claim_racing_a_finished_lookup_reuses_its_outcome(monkeypatch, upstream, outcome):
+    """Two same-key requests in one worker both reach the (fail-open) claim
+    while Redis is down. The later claim returns first, its lookup finishes
+    (fails fast, or succeeds) and records its outcome before the earlier
+    claim returns; that request must then answer from the memo instead of
+    starting a second paid upstream call (for "failed", despite the live
+    failure memo, which is the TTL the memo exists to enforce)."""
+
+    class DownRedis:
+        async def get(self, *args, **kwargs):
+            raise ConnectionError("redis down")
+
+        set = delete = eval = get
+
+    monkeypatch.setattr(cache_module, "_client", DownRedis())
+    if outcome == "failed":
+        upstream.fail_with = RuntimeError("upstream exploded")
+    upstream.release()
+
+    real_claim = main.claim_lookup
+    first_claim_entered = asyncio.Event()
+    let_first_claim_return = asyncio.Event()
+    claims = 0
+
+    async def interleaved_claim(key, ttl):
+        nonlocal claims
+        claims += 1
+        if claims == 1:
+            first_claim_entered.set()
+            await let_first_claim_return.wait()
+        return await real_claim(key, ttl)
+
+    monkeypatch.setattr(main, "claim_lookup", interleaved_claim)
+
+    slow = asyncio.create_task(_request("ALK"))
+    await asyncio.wait_for(first_claim_entered.wait(), timeout=2.0)
+    fast, _ = await _request("ALK")
+    assert fast.status == outcome
+    assert not main._openevidence_sidecar_tasks, "the fast request's lookup has finished"
+
+    let_first_claim_return.set()
+    slow_result, slow_response = await asyncio.wait_for(slow, timeout=2.0)
+    await _wait_for_background_lookups()
+
+    assert claims == 2
+    assert len(upstream.calls) == 1, "the outcome on record must not be paid for again"
+    assert slow_result.status == outcome
+    assert slow_response.status_code == 200
+    if outcome == "failed":
+        assert slow_result.error == "upstream exploded"
+    else:
+        assert slow_result.available is True
+
+
 async def test_lease_renewal_redis_error_is_logged_as_a_warning(monkeypatch, fake_redis, caplog):
     async def broken_eval(*args, **kwargs):
         raise ConnectionError("redis blip")

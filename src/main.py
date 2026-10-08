@@ -1959,13 +1959,21 @@ async def get_gene_openevidence(
             # result out of the shared cache instead of paying for a second.
             return pending()
         # Re-check after the awaits above: a concurrent request in this
-        # worker may have started the task meanwhile (no await between this
-        # check and registering a new task, so exactly one gets started).
-        # That can only happen when Redis is unreachable (the claim is NX
+        # worker may have started the task meanwhile — or even started and
+        # finished it, leaving only its outcome in the memos (no await
+        # between these checks and registering a new task, so exactly one
+        # gets started and a fresh outcome is never paid for twice). That
+        # can only happen when Redis is unreachable (the claim is NX
         # otherwise), so releasing the spare token is just tidiness.
         task = _live_openevidence_sidecar_task(key)
         if task is None:
-            task = _start_openevidence_sidecar_lookup(key, token, gene, tumor_type, fusion)
+            analysis = _openevidence_memo_get(_openevidence_sidecar_results, key)
+            error = None if analysis is not None else _openevidence_memo_get(_openevidence_sidecar_failures, key)
+            if analysis is None and error is None:
+                task = _start_openevidence_sidecar_lookup(key, token, gene, tumor_type, fusion)
+            else:
+                await release_inflight_marker(key, token)
+                return ready(analysis) if analysis is not None else failed(error)
         else:
             await release_inflight_marker(key, token)
 
