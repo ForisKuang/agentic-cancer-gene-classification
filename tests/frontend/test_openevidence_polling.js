@@ -146,6 +146,48 @@ async function waitFor(predicate, message, timeoutMs = 2000) {
   }
 }
 
+// Replaces the sandbox's clock (Date.now) and timers with a manual one, so
+// deadline tests assert exact virtual times instead of racing the wall
+// clock on a loaded runner. advance(ms) fires due timers in order, letting
+// promise callbacks settle after each.
+function installFakeClock(sandbox) {
+  let now = 0;
+  let nextId = 1;
+  const timers = new Map();
+  sandbox.Date = class extends Date {
+    static now() {
+      return now;
+    }
+  };
+  sandbox.setTimeout = (fn, ms = 0) => {
+    const id = nextId++;
+    timers.set(id, { fn, at: now + Math.max(0, Number(ms) || 0) });
+    return id;
+  };
+  sandbox.clearTimeout = (id) => timers.delete(id);
+  const settle = async () => {
+    for (let i = 0; i < 5; i += 1) await new Promise((resolve) => setImmediate(resolve));
+  };
+  return {
+    now: () => now,
+    async advance(ms) {
+      const target = now + ms;
+      await settle();
+      for (;;) {
+        const due = [...timers.entries()].filter(([, t]) => t.at <= target).sort((a, b) => a[1].at - b[1].at || a[0] - b[0]);
+        if (due.length === 0) break;
+        const [id, timer] = due[0];
+        timers.delete(id);
+        now = timer.at;
+        timer.fn();
+        await settle();
+      }
+      now = target;
+      await settle();
+    },
+  };
+}
+
 async function stopEverything(sandbox) {
   sandbox.state.openevidenceEnabled = false; // every scheduled poll bails out on its next tick
   await sleep(sandbox.OPENEVIDENCE_POLL.maxDelayMs + 20);
@@ -448,24 +490,24 @@ async function test_repeated_rerenders_do_not_extend_or_restart_the_deadline() {
     { ALK: () => new Promise((resolve) => gates.push(() => resolve(READY))) },
     { poll: { totalCapMs: 30 } }
   );
+  const clock = installFakeClock(sandbox);
   const run = result("ALK");
-  const startedAt = Date.now();
-  while (notices.length === 0 && Date.now() - startedAt < 300) {
-    renderRun(sandbox, run); // re-render every ~10ms, well inside the 30ms cap
-    await sleep(10);
+  while (notices.length === 0 && clock.now() < 300) {
+    renderRun(sandbox, run); // re-render every 10ms, well inside the 30ms cap
+    await clock.advance(10);
   }
   assert.strictEqual(notices.length, 1, "the deadline must expire despite continuous re-renders");
   assert.strictEqual(notices[0].kind, "timeout");
-  assert.ok(Date.now() - startedAt < 150, `timed out after ${Date.now() - startedAt}ms`);
+  assert.strictEqual(clock.now(), 30, "the first lifecycle's 30ms deadline was neither extended nor restarted");
   assert.strictEqual(callsFor("ALK").length, 1, "re-renders reused the one request");
 
   // Keep re-rendering the same run past the timeout: no new lifecycle, no
   // fresh deadline, no new requests — the timed-out note just persists.
   for (let i = 0; i < 8; i += 1) {
     renderRun(sandbox, run);
-    await sleep(5);
+    await clock.advance(5);
   }
-  await sleep(40);
+  await clock.advance(40);
   assert.strictEqual(callsFor("ALK").length, 1, "no requests after the timeout within the same run");
   assert.ok(notices.length > 1 && notices.every((notice) => notice.kind === "timeout"), "the timeout note persists");
 }
@@ -475,19 +517,24 @@ async function test_a_new_run_does_not_inherit_an_old_runs_deadline() {
     { ALK: () => new Promise(() => {}) },
     { poll: { totalCapMs: 80 } }
   );
+  const clock = installFakeClock(sandbox);
   const runA = result("ALK");
   renderRun(sandbox, runA);
-  await sleep(50); // 50ms into run A's 80ms deadline
+  await clock.advance(50); // 50ms into run A's 80ms deadline
+  assert.strictEqual(callsFor("ALK").length, 1, "run A made its request");
 
-  const runBStartedAt = Date.now();
-  renderRun(sandbox, { ...runA, run_id: "run-B" });
+  renderRun(sandbox, { ...runA, run_id: "run-B" }); // run B starts at t=50
   assert.strictEqual(aborted.length, 1, "run A's request is cancelled");
-  await waitFor(() => callsFor("ALK").length === 2, "run B to make its own request");
-  await sleep(45); // past run A's deadline, well inside run B's
+  await clock.advance(0);
+  assert.strictEqual(callsFor("ALK").length, 2, "run B makes its own request");
+  await clock.advance(45); // t=95: past run A's deadline, well inside run B's
   assert.strictEqual(notices.length, 0, "run B must not time out on run A's deadline");
 
-  await waitFor(() => notices.length === 1, "run B's own deadline to expire");
-  assert.ok(Date.now() - runBStartedAt >= 75, `run B timed out after ${Date.now() - runBStartedAt}ms`);
+  await clock.advance(34); // t=129: 1ms before run B's own deadline
+  assert.strictEqual(notices.length, 0, "run B's deadline runs a full 80ms from its own start");
+  await clock.advance(1); // t=130
+  assert.strictEqual(notices.length, 1, "run B's own deadline expires");
+  assert.strictEqual(notices[0].kind, "timeout");
 }
 
 async function test_job_completion_switching_to_the_final_run_id_is_the_same_run() {
