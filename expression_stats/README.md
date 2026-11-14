@@ -67,8 +67,9 @@ contract for concurrency and freshness semantics.
 
 Contract 1.5 makes `confidence_tier: high` an either-arm decision: a v3 pass is high
 when the lineage arm (still broad-blocked) or the subgroup arm meets its strong cutoffs,
-even when `pass_mode` is lineage. The additive `strong_arm` field records the promoting
-arm; purity demotion still applies afterwards.
+even when `pass_mode` is lineage. The subgroup arm must still pass its base v3 gate
+(counts, P95 shift and FDR); fraction and ratio alone are not enough. The additive
+`strong_arm` field records the promoting arm; purity demotion still applies afterwards.
 
 Contract 1.4 adds the pinned GDC ABSOLUTE tumor-purity R2 gate: high pairs can
 be demoted to candidate, preserving every v3 statistical call and alteration

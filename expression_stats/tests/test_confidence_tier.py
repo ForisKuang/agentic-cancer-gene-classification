@@ -9,7 +9,7 @@ from test_bundle import CODES as BUNDLE_CODES
 from test_bundle import PANEL, bundled, load, rebundle  # noqa: F401 (fixture)
 
 from gene_expression_relevance import CONTRACT_VERSION, METHOD_VERSION, PARAMS, controls
-from gene_expression_relevance.stats import compute, confidence_tier
+from gene_expression_relevance.stats import compute, confidence_tier, subgroup_pass
 
 CODES = [f"T{i:02d}" for i in range(32)]
 
@@ -17,7 +17,15 @@ CODES = [f"T{i:02d}" for i in range(32)]
 def arrays(**values):
     """One pair (1x1 arrays) with the v3 fields confidence_tier reads."""
     base = dict(
-        log2fc=1.0, cliffs_delta=0.5, subgroup_high_fraction=0.03, subgroup_high_fraction_ratio=3.0
+        log2fc=1.0,
+        cliffs_delta=0.5,
+        n=100.0,
+        n_rest=1000.0,
+        subgroup_high_count=10.0,
+        subgroup_high_fraction=0.03,
+        subgroup_high_fraction_ratio=3.0,
+        p95_log2_diff=2.0,
+        subgroup_q=0.01,
     )
     base.update(values)
     return {key: np.array([[value]], dtype=float) for key, value in base.items()}
@@ -92,11 +100,12 @@ def test_changing_a_strong_cutoff_changes_the_release_id(tmp_path, monkeypatch, 
 )
 def test_lineage_arm_boundaries(fc, delta, expected):
     assert tier(lineage=True, log2fc=fc, cliffs_delta=delta) == expected
-    # Strong subgroup statistics also promote a lineage-first pass (either-arm rule).
+    # Strong subgroup statistics do not promote a lineage-first pass unless the base
+    # subgroup gate also passes (subgroup=True here means that gate passed).
     assert (
         tier(lineage=True, log2fc=fc, cliffs_delta=delta, subgroup_high_fraction=0.5,
              subgroup_high_fraction_ratio=50.0)
-        == "high"
+        == expected
     )  # fmt: skip
 
 
@@ -120,15 +129,43 @@ def test_subgroup_arm_boundaries(fraction, ratio, expected):
 
 def test_either_arm_can_make_a_pass_high():
     # EGFR/GBM in the full build: log2FC 2.73, delta 0.58, 16% high, 21.7x. Lineage
-    # passes but misses its strong delta; the strong subgroup tail now promotes it.
+    # passes but misses its strong delta; the subgroup tail promotes it only after its
+    # base gate passes.
     weak_lineage = dict(log2fc=2.73, cliffs_delta=0.58)
     strong_subgroup = dict(subgroup_high_fraction=0.16, subgroup_high_fraction_ratio=21.7)
-    assert tier(lineage=True, **weak_lineage, **strong_subgroup) == "high"
+    assert tier(lineage=True, **weak_lineage, **strong_subgroup) == "candidate"
     # pass_mode stays lineage even when subgroup also passes: the subgroup arm still counts.
     assert tier(lineage=True, subgroup=True, **weak_lineage, **strong_subgroup) == "high"
     assert tier(lineage=True, **weak_lineage) == "candidate"
     strong_lineage = dict(log2fc=2.0, cliffs_delta=0.70)
     assert tier(lineage=True, subgroup=True, **strong_lineage) == "high"
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [dict(subgroup_q=0.025), dict(p95_log2_diff=np.nextafter(1.5, 0))],
+    ids=["subgroup_q", "p95_log2_diff"],
+)
+def test_strong_subgroup_requires_the_base_v3_gate(failure):
+    weak_lineage = dict(log2fc=2.73, cliffs_delta=0.58)
+    strong_tail = dict(subgroup_high_fraction=0.16, subgroup_high_fraction_ratio=21.7)
+    values = dict(
+        n=100.0, n_rest=1000.0, subgroup_high_count=16.0, **strong_tail, **failure
+    )
+    assert values["subgroup_high_fraction"] >= PARAMS["strong_subgroup_min_fraction"]
+    assert values["subgroup_high_fraction_ratio"] >= PARAMS["strong_subgroup_min_fraction_ratio"]
+    result = arrays(**weak_lineage, **values)
+    subgroup = subgroup_pass(result, PARAMS)
+    assert not subgroup[0, 0]
+    assert confidence_tier(result, np.array([[True]]), subgroup, PARAMS)[0, 0] == "candidate"
+
+    passing = arrays(
+        **weak_lineage,
+        **dict(values, subgroup_q=0.024999, p95_log2_diff=1.5),
+    )
+    subgroup = subgroup_pass(passing, PARAMS)
+    assert subgroup[0, 0]
+    assert confidence_tier(passing, np.array([[True]]), subgroup, PARAMS)[0, 0] == "high"
 
 
 def test_strong_arm_records_the_promoting_arm():
@@ -144,7 +181,8 @@ def test_strong_arm_records_the_promoting_arm():
             arrays(**values), np.array([[lineage]]), np.array([[subgroup]]), PARAMS
         )[0, 0]
 
-    assert arm(lineage=True, **weak_lineage, **strong_subgroup) == "subgroup"
+    assert arm(lineage=True, **weak_lineage, **strong_subgroup) is None
+    assert arm(lineage=True, subgroup=True, **weak_lineage, **strong_subgroup) == "subgroup"
     # A broad-blocked lineage arm leaves only the subgroup strong mask.
     assert arm(subgroup=True, **weak_lineage, **strong_subgroup) == "subgroup"
     assert arm(lineage=True, **strong_lineage) == "lineage"

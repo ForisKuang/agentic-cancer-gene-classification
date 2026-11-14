@@ -167,12 +167,14 @@ A v3 pass is `"high"` if **either** arm meets its strong cutoffs (inclusive), ot
 | Arm | Strong cutoffs (manifest `params`) |
 | --- | --- |
 | lineage | `log2fc >= strong_log2fc` (2.0) **and** `cliffs_delta >= strong_cliffs_delta` (0.70); retains the broad-expression block |
-| subgroup | `subgroup_high_fraction >= strong_subgroup_min_fraction` (0.05) **and** `subgroup_high_fraction_ratio >= strong_subgroup_min_fraction_ratio` (5.0) |
+| subgroup | the **base subgroup gate passes** (counts, P95 shift, FDR; every rule above) **and** `subgroup_high_fraction >= strong_subgroup_min_fraction` (0.05) **and** `subgroup_high_fraction_ratio >= strong_subgroup_min_fraction_ratio` (5.0) |
 
-The subgroup strong criteria are evaluated from the subgroup statistics whenever they
-exist, regardless of `pass_mode`: a pair that passes by lineage first (including one in
-which lineage wins `pass_mode`) is still promoted when its subgroup tail clears the
-strong bar. A broadly expressed gene whose lineage arm is blocked can therefore be high
+The subgroup strong criteria are evaluated from the subgroup statistics regardless of
+`pass_mode`, but only after the base subgroup gate passes: a pair that passes by lineage
+first (including one in which lineage wins `pass_mode`) is promoted when its subgroup
+tail clears the strong bar. Fraction and ratio alone are not sufficient; the subgroup
+arm must also satisfy `n`, `n_rest`, `subgroup_high_count`, `p95_log2_diff` and
+`subgroup_q`. A broadly expressed gene whose lineage arm is blocked can therefore be high
 via `strong_arm: "subgroup"` only. `strong_arm` is `"both"` only when both strong masks
 hold.
 
@@ -812,8 +814,9 @@ RNA can represent different aliquots of the selected sample.
 `confidence_tier` is `"high"` when a v3 pass meets the strong cutoffs of **either** arm,
 not only the arm recorded in `pass_mode`. The lineage strong criteria keep the existing
 broad-expression block (a broad-blocked lineage pass cannot be high via lineage); the
-subgroup strong criteria are evaluated from the subgroup statistics whenever they exist,
-regardless of `pass_mode`. No v3 threshold, `stats_pass`, `pass_mode`, broad flag,
+subgroup strong criteria retain the base subgroup v3 gate and are evaluated regardless
+of `pass_mode`; fraction and ratio alone cannot promote a lineage pass. No v3 threshold,
+`stats_pass`, `pass_mode`, broad flag,
 statistic, flag or PubMed field changes. The release identity changes because the tier
 derivation is code, not because any parameter moved.
 

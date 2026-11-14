@@ -51,6 +51,19 @@ def passes(q, fc, delta, median, n, params=PARAMS):
     )
 
 
+def subgroup_pass(result, params=PARAMS):
+    """Base v3 subgroup gate, independent of the lineage arm."""
+    return (
+        (result["n"] >= params["min_n"])
+        & (result["n_rest"] >= params["min_n"])
+        & (result["subgroup_high_count"] >= params["subgroup_min_count"])
+        & (result["subgroup_high_fraction"] >= params["subgroup_min_fraction"])
+        & (result["subgroup_high_fraction_ratio"] >= params["subgroup_min_fraction_ratio"])
+        & (result["p95_log2_diff"] >= params["subgroup_p95_log2_diff"])
+        & (result["subgroup_q"] < params["subgroup_fdr"])
+    )
+
+
 def compute(linear, labels, codes, params=PARAMS):
     """Return gene × type arrays. Input genes × samples; NaN means unmeasured.
 
@@ -202,15 +215,7 @@ def compute(linear, labels, codes, params=PARAMS):
     lineage = lineage_v2 & ~broad[:, None]
     p = result.pop("subgroup_p")
     result["subgroup_q"] = np.where(np.isfinite(p), bh(p), np.nan)
-    subgroup = (
-        (result["n"] >= params["min_n"])
-        & (result["n_rest"] >= params["min_n"])
-        & (result["subgroup_high_count"] >= params["subgroup_min_count"])
-        & (result["subgroup_high_fraction"] >= params["subgroup_min_fraction"])
-        & (result["subgroup_high_fraction_ratio"] >= params["subgroup_min_fraction_ratio"])
-        & (result["p95_log2_diff"] >= params["subgroup_p95_log2_diff"])
-        & (result["subgroup_q"] < params["subgroup_fdr"])
-    )
+    subgroup = subgroup_pass(result, params)
     result["stats_pass"] = lineage | subgroup
     result["pass_mode"] = np.where(lineage, "lineage", np.where(subgroup, "subgroup", None))
     result["confidence_tier"] = confidence_tier(result, lineage, subgroup, params)
@@ -221,8 +226,9 @@ def compute(linear, labels, codes, params=PARAMS):
 def strong_masks(result, lineage, subgroup, params=PARAMS):
     """Strong-cutoff masks per arm; the lineage mask keeps its broad-expression block.
 
-    The subgroup strong criteria are evaluated from the subgroup statistics whether or
-    not the pair's pass_mode is subgroup, so a lineage-first pass can still be promoted.
+    The subgroup strong criteria are evaluated whether or not the pair's pass_mode is
+    subgroup, so a lineage-first pass can still be promoted. They still require the
+    base subgroup gate (counts, P95 shift and FDR), not just fraction and ratio.
     """
     with np.errstate(invalid="ignore"):
         strong_lineage = (
@@ -231,9 +237,12 @@ def strong_masks(result, lineage, subgroup, params=PARAMS):
             & (result["cliffs_delta"] >= params["strong_cliffs_delta"])
         )
         strong_subgroup = (
-            result["subgroup_high_fraction"] >= params["strong_subgroup_min_fraction"]
-        ) & (
-            result["subgroup_high_fraction_ratio"] >= params["strong_subgroup_min_fraction_ratio"]
+            subgroup
+            & (result["subgroup_high_fraction"] >= params["strong_subgroup_min_fraction"])
+            & (
+                result["subgroup_high_fraction_ratio"]
+                >= params["strong_subgroup_min_fraction_ratio"]
+            )
         )
     return strong_lineage, strong_subgroup
 
@@ -243,8 +252,8 @@ def confidence_tier(result, lineage, subgroup, params=PARAMS):
 
     Read-only over the v3 arrays: a v3 pass is "high" if either arm meets its strong
     cutoffs (both inclusive), otherwise "candidate". The lineage arm retains its
-    broad-expression block; the subgroup arm is tested from its statistics regardless
-    of pass_mode.
+    broad-expression block; the subgroup arm retains its base v3 gate and is tested
+    regardless of pass_mode.
     """
     strong_lineage, strong_subgroup = strong_masks(result, lineage, subgroup, params)
     passed = lineage | subgroup

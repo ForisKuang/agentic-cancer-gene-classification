@@ -10,7 +10,7 @@ from scipy.stats import spearmanr
 
 from . import PARAMS, http
 from .fetch import digest
-from .stats import bh, compute, confidence_tier, passes
+from .stats import bh, compute, confidence_tier, passes, subgroup_pass
 
 SOURCE = dict(
     url="https://api.gdc.cancer.gov/data/4f277128-f793-4354-a13d-30cc7fe9f6b5",
@@ -82,16 +82,7 @@ def measure(raw, labels, codes, original, purity, params=PARAMS):
             )
             & ~original["broadly_expressed"][needed, None]
         )
-        # Use the explicit subgroup conditions: a filtered lineage pass alone is not subgroup.
-        subgroup = (
-            (hp["n"] >= params["min_n"])
-            & (hp["n_rest"] >= params["min_n"])
-            & (hp["subgroup_high_count"] >= params["subgroup_min_count"])
-            & (hp["subgroup_high_fraction"] >= params["subgroup_min_fraction"])
-            & (hp["subgroup_high_fraction_ratio"] >= params["subgroup_min_fraction_ratio"])
-            & (hp["p95_log2_diff"] >= params["subgroup_p95_log2_diff"])
-            & (hp["subgroup_q"] < params["subgroup_fdr"])
-        )
+        subgroup = subgroup_pass(hp, params)
         hp_strong = confidence_tier(hp, lineage, subgroup, params) == "high"
     for i, j in zip(*np.where(original["stats_pass"]), strict=True):
         matched = (labels == codes[j]) & np.isfinite(purity) & np.isfinite(raw[i])
