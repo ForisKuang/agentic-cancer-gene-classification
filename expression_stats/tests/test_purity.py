@@ -120,6 +120,69 @@ def test_purity_demotes_a_newly_high_subgroup_pair(tmp_path):
     assert result["subgroup_high_fraction_ratio"] == pytest.approx(21.7)
 
 
+def _measure_hp_strong(monkeypatch, original_arm, **overrides):
+    raw = np.ones((1, 60))
+    labels = np.array(["A"] * 30 + ["B"] * 30)
+    original = dict(
+        confidence_tier=np.array([["high", "candidate"]]),
+        stats_pass=np.array([[True, True]]),
+        broadly_expressed=np.array([False]),
+        strong_arm=np.array([[original_arm, None]], dtype=object),
+    )
+    hp = {
+        key: np.full((1, 2), value)
+        for key, value in dict(
+            n=30,
+            n_rest=30,
+            q_value=0.001,
+            log2fc=1.5,
+            cliffs_delta=0.8,
+            median_log2=8,
+            subgroup_high_count=10,
+            subgroup_high_fraction=0.1,
+            subgroup_high_fraction_ratio=6,
+            p95_log2_diff=2,
+            subgroup_q=0.001,
+        ).items()
+    }
+    for key, value in overrides.items():
+        hp[key][:] = value
+    monkeypatch.setattr(purity, "compute", lambda *args: hp)
+    return purity.measure(raw, labels, ["A", "B"], original, np.full(60, 0.6))[0, 0]["hp_strong"]
+
+
+@pytest.mark.parametrize(
+    "original_arm,overrides",
+    [
+        ("lineage", dict(log2fc=1.5, cliffs_delta=0.8)),
+        (
+            "subgroup",
+            dict(
+                log2fc=3.0,
+                cliffs_delta=0.8,
+                subgroup_high_fraction=0.03,
+                subgroup_high_fraction_ratio=3.0,
+            ),
+        ),
+    ],
+    ids=["lineage", "subgroup"],
+)
+def test_purity_retests_only_the_original_strong_arm(monkeypatch, original_arm, overrides):
+    assert _measure_hp_strong(monkeypatch, original_arm, **overrides) is False
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        dict(log2fc=3.0, subgroup_high_fraction=0.03, subgroup_high_fraction_ratio=3.0),
+        dict(log2fc=1.5),
+    ],
+    ids=["lineage", "subgroup"],
+)
+def test_purity_both_original_arms_use_either_filtered_arm(monkeypatch, overrides):
+    assert _measure_hp_strong(monkeypatch, "both", **overrides) is True
+
+
 def test_frozen_broad_and_lineage_priority(monkeypatch):
     raw = np.ones((1, 60))
     labels = np.array(["A"] * 30 + ["B"] * 30)
@@ -127,6 +190,7 @@ def test_frozen_broad_and_lineage_priority(monkeypatch):
         confidence_tier=np.array([["high", "candidate"]]),
         stats_pass=np.array([[True, True]]),
         broadly_expressed=np.array([False]),
+        strong_arm=np.array([["subgroup", None]], dtype=object),
     )
     hp = {
         key: np.full((1, 2), value)

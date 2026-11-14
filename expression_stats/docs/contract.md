@@ -184,7 +184,8 @@ contract 1.2 build (tested). The four `strong_*` params are hashed into the rele
 ID. The cutoffs come from the read-only confidence-tier evaluation; they are a selective
 statistical screen, not a calibrated precision. Purity demotion (contract 1.4) always
 applies after the tier is assigned, including to pairs newly promoted by the subgroup
-arm; the purity re-test evaluates the filtered strong statistics of both arms.
+arm; the purity re-test evaluates only the filtered strong statistics of the arm(s)
+recorded in `strong_arm`. An arm that was not strong before filtering cannot retain the pair.
 
 **Optional field.** `confidence_tier` is optional in the schema: bundles before contract
 1.3 omit it and still load. `strong_arm` is optional for every contract version; readers
@@ -823,8 +824,10 @@ derivation is code, not because any parameter moved.
 The additive `strong_arm` field records which arm(s) produced a high tier
 (`"lineage"`, `"subgroup"`, `"both"`), and is null when the pair is not high (including
 after a purity demotion). It is optional in the schema and ignored by readers that
-predate 1.5. Purity demotion (contract 1.4) applies unchanged after promotion and its
-high-purity re-test evaluates both arms' strong statistics. PubMed precheck coverage is
+predate 1.5. Purity demotion (contract 1.4) applies unchanged after promotion, and its
+high-purity re-test retains the pair only when an arm recorded in the original
+`strong_arm` is still strong on the filtered data (`both` uses either filtered arm).
+PubMed precheck coverage is
 unchanged: every `stats_pass` pair is checked, so newly promoted candidates already have
 their counts.
 
